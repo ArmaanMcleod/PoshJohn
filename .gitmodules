@@ -1,0 +1,6 @@
+[submodule "PowerShellBuildTools"]
+	path = PowerShellBuildTools
+	url = https://github.com/ArmaanMcleod/PowerShellBuildTools.git
+[submodule "john"]
+	path = john
+	url = https://github.com/openwall/john

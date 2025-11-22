@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AssemblyName>PoshJohn</AssemblyName>
+    <RootNamespace>PoshJohn</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management.Automation" Version="7.4.6" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\john\run\pdf2john.py" CopyToOutputDirectory="PreserveNewest" Link="pdf2john.py" />
+  </ItemGroup>
+
+  <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
+    <RemoveDir Directories="$(BaseOutputPath)" />
+    <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
+  </Target>
+
+
+</Project>
