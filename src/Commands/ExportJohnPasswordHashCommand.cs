@@ -7,18 +7,26 @@ using PoshJohn.Models;
 
 namespace PoshJohn.Commands;
 
-[Cmdlet(VerbsData.Export, "JohnPasswordHash")]
+/// <summary>
+/// Implements the Export-JohnPasswordHash cmdlet.
+/// Exports password hashes from files for use with John the Ripper.
+/// </summary>
+[Cmdlet(VerbsData.Export, "JohnPasswordHash", HelpUri = "https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Export-JohnPasswordHash.md")]
 [OutputType(typeof(HashResult))]
 public sealed class ExportJohnPasswordHashCommand : PSCmdlet
 {
-    [Parameter(Mandatory = true)]
+    private const string InputPathHelpMessage = "Path to the password-protected file.";
+    private const string OutputPathHelpMessage = "Path to save the exported hash.";
+    private const string AppendHelpMessage = "Append the exported hash to the output file.";
+
+    [Parameter(Mandatory = true, HelpMessage = InputPathHelpMessage)]
     public string InputPath { get; set; }
 
-    [Parameter(Mandatory = true)]
+    [Parameter(Mandatory = true, HelpMessage = OutputPathHelpMessage)]
     [Alias("HashPath")]
     public string OutputPath { get; set; }
 
-    [Parameter(Mandatory = false)]
+    [Parameter(Mandatory = false, HelpMessage = AppendHelpMessage)]
     public SwitchParameter Append { get; set; }
 
     private const string PyhankoModuleName = "pyhanko";

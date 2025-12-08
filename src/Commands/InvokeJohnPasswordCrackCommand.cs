@@ -10,7 +10,11 @@ using PoshJohn.Models;
 
 namespace PoshJohn.Commands;
 
-[Cmdlet(VerbsLifecycle.Invoke, "JohnPasswordCrack")]
+/// <summary>
+/// Implements the Invoke-JohnPasswordCrack cmdlet.
+/// Cracks password hashes using John the Ripper.
+/// </summary>
+[Cmdlet(VerbsLifecycle.Invoke, "JohnPasswordCrack", HelpUri = "https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Invoke-JohnPasswordCrack.md")]
 [OutputType(typeof(PasswordCrackResult))]
 public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 {
@@ -19,32 +23,40 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
     private const string WordListWithInputObjectParameterSet = "WordListWithInputObject";
     private const string WordListWithInputPathParameterSet = "WordListWithInputPath";
 
-    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = IncrementalWithInputObjectParameterSet)]
-    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = WordListWithInputObjectParameterSet)]
+    private const string InputObjectHelpMessage = "Hash Input Object.";
+    private const string InputPathHelpMessage = "Path to the file containing password hashes to crack.";
+    private const string IncrementalModeHelpMessage = "Incremental mode.";
+    private const string WordListPathHelpMessage = "Path to the word list file.";
+    private const string CustomPotPathHelpMessage = "Path to the custom pot file.";
+    private const string RefreshPotHelpMessage = "Refresh the pot file.";
+    private const string UnlockedFileDirectoryPathHelpMessage = "Directory path for unlocked files.";
+
+    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = IncrementalWithInputObjectParameterSet, HelpMessage = InputObjectHelpMessage)]
+    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = WordListWithInputObjectParameterSet, HelpMessage = InputObjectHelpMessage)]
     public HashResult InputObject { get; set; }
 
-    [Parameter(Mandatory = true, ParameterSetName = IncrementalWithInputPathParameterSet)]
-    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet)]
+    [Parameter(Mandatory = true, ParameterSetName = IncrementalWithInputPathParameterSet, HelpMessage = InputPathHelpMessage)]
+    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet, HelpMessage = InputPathHelpMessage)]
     [Alias("HashPath")]
     public string InputPath { get; set; }
 
-    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputPathParameterSet)]
-    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputObjectParameterSet)]
+    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputPathParameterSet, HelpMessage = IncrementalModeHelpMessage)]
+    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputObjectParameterSet, HelpMessage = IncrementalModeHelpMessage)]
     [ArgumentCompleter(typeof(IncrementalModeCompleter))]
     public string IncrementalMode { get; set; }
 
-    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet)]
-    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputObjectParameterSet)]
+    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet, HelpMessage = WordListPathHelpMessage)]
+    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputObjectParameterSet, HelpMessage = WordListPathHelpMessage)]
     [Alias("DictionaryPath")]
     public string WordListPath { get; set; }
 
-    [Parameter(Mandatory = false)]
+    [Parameter(Mandatory = false, HelpMessage = CustomPotPathHelpMessage)]
     public string CustomPotPath { get; set; }
 
-    [Parameter(Mandatory = false)]
+    [Parameter(Mandatory = false, HelpMessage = RefreshPotHelpMessage)]
     public SwitchParameter RefreshPot { get; set; }
 
-    [Parameter(Mandatory = false)]
+    [Parameter(Mandatory = false, HelpMessage = UnlockedFileDirectoryPathHelpMessage)]
     public string UnlockedFileDirectoryPath { get; set; }
 
     private IProcessRunner _processRunner;
