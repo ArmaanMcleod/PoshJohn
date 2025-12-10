@@ -286,7 +286,7 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                             WriteDebug("Key bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(kvp.Key)));
                         }
 
-                        continue;
+                        throw new KeyNotFoundException($"Label '{label}' not found in loaded label to file mappings.");
                     }
 
                     currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
