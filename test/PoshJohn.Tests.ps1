@@ -80,7 +80,7 @@ Describe 'PoshJohn Tests' {
             $firstPart = $splitHash[0].Split(':')
             $firstPart | Should -HaveCount 2
             $firstPart[0] | Should -Be (Split-Path -Path $sampleProtectedZipPath -Leaf)
-            $firstPart[1] | Should -Match '^\$pkzip2\$.*\$/pkzip2\$$'
+            $firstPart[1] | Should -Match '^\$(pkzip|pkzip2)\$.*\$/pkzip(2)?\$$'
 
             $secondPart = $splitHash[1].Split(':', 3)
             $secondPart | Should -HaveCount 3
@@ -144,7 +144,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -171,7 +171,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -207,7 +207,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -248,7 +248,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -277,7 +277,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -306,7 +306,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -356,7 +356,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -388,7 +388,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -438,7 +438,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 3
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 3
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 3
                     
                     for ($i = 1; $i -le 3; $i++) {
@@ -489,7 +489,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                    $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -631,7 +631,7 @@ Describe 'PoshJohn Tests' {
                 $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                 $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                 $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                 $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
 
                 $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
@@ -662,7 +662,7 @@ Describe 'PoshJohn Tests' {
                 $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                 $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
                 $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
-                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -Be 'MD5 SHA2 RC4/AES 32/64'
+                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                 $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 0
             }
 

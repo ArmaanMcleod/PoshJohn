@@ -18,61 +18,12 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\john\run\pdf2john.py" CopyToOutputDirectory="PreserveNewest" Link="pdf2john.py" />
+    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
-
-  <Target Name="BuildJohnBinaries" BeforeTargets="Build">
-    <PropertyGroup>
-      <JohnBinDir Condition="'$(OS)' == 'Windows_NT'">../john-binaries/windows</JohnBinDir>
-      <JohnBinDir Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">../john-binaries/linux</JohnBinDir>
-      <JohnBinDir Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">../john-binaries/macos</JohnBinDir>
-    </PropertyGroup>
-
-    <!-- Check if john binary already exists -->
-    <PropertyGroup>
-      <JohnExists Condition="Exists('$(JohnBinDir)/john.exe') Or Exists('$(JohnBinDir)/john')">true</JohnExists>
-    </PropertyGroup>
-
-    <!-- Build john if it doesn't exist -->
-    <Message Text="John binary not found. Building..." Importance="high" Condition="'$(JohnExists)' != 'true'" />
-
-    <!-- Windows: Run PowerShell script -->
-    <Exec Command="pwsh -ExecutionPolicy Bypass -File ../scripts/build-john-windows.ps1" Condition="'$(OS)' == 'Windows_NT' And '$(JohnExists)' != 'true'" IgnoreExitCode="true" WorkingDirectory="$(ProjectDir)" />
-
-    <!-- Linux: Run bash script -->
-    <Exec Command="bash ../scripts/build-john-linux.sh" Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true' And '$(JohnExists)' != 'true'" IgnoreExitCode="true" WorkingDirectory="$(ProjectDir)" />
-
-    <!-- macOS: Run bash script -->
-    <Exec Command="bash ../scripts/build-john-macos.sh" Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true' And '$(JohnExists)' != 'true'" IgnoreExitCode="true" WorkingDirectory="$(ProjectDir)" />
-  </Target>
-
-  <Target Name="CopyJohnBinaries" AfterTargets="Publish">
-    <PropertyGroup>
-      <JohnSourceDir Condition="'$(OS)' == 'Windows_NT'">$(MSBuildProjectDirectory)/../john-binaries/windows</JohnSourceDir>
-      <JohnSourceDir Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">$(MSBuildProjectDirectory)/../john-binaries/linux</JohnSourceDir>
-      <JohnSourceDir Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">$(MSBuildProjectDirectory)/../john-binaries/macos</JohnSourceDir>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <JohnFiles Include="$(JohnSourceDir)/**/*" Condition="Exists('$(JohnSourceDir)')" />
-    </ItemGroup>
-
-    <MakeDir Directories="$(PublishDir)john" Condition="'$(PublishDir)' != ''" />
-    <MakeDir Directories="$(OutputPath)john" Condition="'$(PublishDir)' == ''" />
-
-    <Copy SourceFiles="@(JohnFiles)" DestinationFolder="$(PublishDir)john/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'$(PublishDir)' != ''" />
-
-    <Copy SourceFiles="@(JohnFiles)" DestinationFolder="$(OutputPath)john/%(RecursiveDir)" SkipUnchangedFiles="true" Condition="'$(PublishDir)' == ''" />
-
-    <Message Text="Copied @(JohnFiles-&gt;Count()) John file(s) to $(PublishDir)john" Importance="high" Condition="'@(JohnFiles)' != '' And '$(PublishDir)' != ''" />
-    <Message Text="Copied @(JohnFiles-&gt;Count()) John file(s) to $(OutputPath)john" Importance="high" Condition="'@(JohnFiles)' != '' And '$(PublishDir)' == ''" />
-    <Warning Text="John binaries not found at $(JohnSourceDir). John may need to be built or installed separately." Condition="!Exists('$(JohnSourceDir)')" />
-  </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
     <RemoveDir Directories="$(BaseOutputPath)" />
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
   </Target>
-
 
 </Project>

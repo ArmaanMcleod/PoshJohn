@@ -79,17 +79,14 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
     private bool _initialized;
 
-    private readonly string[] _newLineChars = new[] { "\r", "\n" };
+    private readonly string[] _newLineChars = new[] { "\r\n", "\n" };
 
     private readonly Regex _formatGroupRegex = new(
-        @"Loaded (\d+) password hash(?:es)?(?: with (\d+) different salts)? \(([^ ]+) \[([^\]]+)\]\)",
+        @"Loaded\s+(\d+)\s+password hash(?:es)?(?: with (\d+) different salts)?\s*\(\s*([^\s,\[]+)[^\\[]*\[([^\]]+)\]\)",
         RegexOptions.Compiled
     );
 
-    private readonly Regex _passwordLabelRegex = new(
-        @"^(\S+)\s+\((\S+)\)$",
-        RegexOptions.Compiled
-    );
+    private static readonly Regex _ansiRegex = new(@"\x1B\[[0-9;]*[A-Za-z]", RegexOptions.Compiled);
 
     private const string NoPasswordHashesLeftToCrackMessage = "No password hashes left to crack";
 
@@ -216,12 +213,26 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
         var lines = output.Split(_newLineChars, StringSplitOptions.RemoveEmptyEntries);
 
-        FormatGroup currentGroup = null;
+        WriteDebug($"John output lines count: {lines.Length}");
 
-        foreach (var line in lines)
+        FormatGroup currentGroup = null;
+        int lastFormatGroupLineIndex = -1;
+
+        for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
         {
+            string line = _ansiRegex.Replace(lines[lineIndex], string.Empty).Trim();
+
+            WriteDebug($"Processing line '{line}' (index {lineIndex})");
+
+            // Check for format group line
             if (_formatGroupRegex.Match(line) is { Success: true } loadedMatch)
             {
+                // Before moving to a new group, check if the previous group had no passwords
+                if (currentGroup != null && currentGroup.FilePasswords.Count == 0)
+                {
+                    WriteDebug($"No passwords found for format group: {currentGroup.FileFormat} (line {lastFormatGroupLineIndex + 1})");
+                }
+
                 WriteDebug($"Matched '{line}'. Adding new format group from John output parsing.");
 
                 int hashCount = int.TryParse(loadedMatch.Groups[1].Value, out var hc) ? hc : 0;
@@ -244,21 +255,46 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                 };
 
                 result.FormatGroups.Add(currentGroup);
+                lastFormatGroupLineIndex = lineIndex;
             }
 
-            else if (_passwordLabelRegex.Match(line) is { Success: true } passwordMatch && currentGroup != null)
+            else if (line.Contains('(') && line.Contains(')') && currentGroup != null)
             {
                 WriteDebug($"Matched '{line}'. Adding cracked password from John output parsing.");
-                string password = passwordMatch.Groups[1].Value;
-                string label = passwordMatch.Groups[2].Value;
 
-                if (!_fileSystemProvider.LabelToFilePaths.TryGetValue(label, out string filePath))
+                int openIdx = line.LastIndexOf('(');
+                int closeIdx = line.LastIndexOf(')');
+
+                WriteDebug($"Extracted indices - Open: {openIdx}, Close: {closeIdx}");
+                WriteDebug($"Line length: {line.Length}");
+
+                if (openIdx > -1 && closeIdx > openIdx + 1 && closeIdx == line.Length - 1)
                 {
-                    WriteDebug($"No matching file path found for label: {label}. Skipping this cracked password entry.");
-                    continue;
-                }
+                    WriteDebug($"Parsing cracked password line: '{line}'");
 
-                currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
+                    string password = line[..openIdx].TrimEnd();
+                    string label = line.Substring(openIdx + 1, closeIdx - openIdx - 1).Trim();
+
+                    if (!_fileSystemProvider.LabelToFilePaths.TryGetValue(label, out string filePath))
+                    {
+                        WriteDebug($"No matching file path found for label: '{label}'. Skipping this cracked password entry.");
+                        WriteDebug($"Extracted label: '{label}'");
+                        WriteDebug("Extracted label bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(label)));
+                        foreach (var kvp in _fileSystemProvider.LabelToFilePaths)
+                        {
+                            WriteDebug($"Key: '{kvp.Key}'");
+                            WriteDebug("Key bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(kvp.Key)));
+                        }
+
+                        continue;
+                    }
+
+                    currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
+                }
+                else
+                {
+                    WriteDebug($"Failed to parse cracked password line: {line}. Skipping this entry.");
+                }
             }
 
             else if (line.StartsWith(NoPasswordHashesLeftToCrackMessage, StringComparison.OrdinalIgnoreCase) && currentGroup != null)
@@ -283,6 +319,12 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                     currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
                 }
             }
+        }
+
+        // After processing all lines, check the last group
+        if (currentGroup != null && currentGroup.FilePasswords.Count == 0)
+        {
+            WriteDebug($"No passwords found for format group: {currentGroup.FileFormat} (line {lastFormatGroupLineIndex + 1})");
         }
 
         return result;

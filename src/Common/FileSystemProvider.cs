@@ -34,6 +34,7 @@ namespace PoshJohn.Common
         private const string JohnDirName = "john";
         private const string JohnExeBaseName = "john";
         private const string JohnPotFileName = "john.pot";
+        private const string JohnRunDirName = "run";
         private const string Pdf2JohnPythonScriptName = "pdf2john.py";
         private const string Zip2JohnExeBaseName = "zip2john";
         private const string WindowsPythonExe = "python.exe";
@@ -99,7 +100,7 @@ namespace PoshJohn.Common
             _venvPythonExePath = GetVenvPythonExePath(_venvDirectoryPath);
             _systemPythonExePath = DetectSystemPythonExePath();
             _potPath = GetAppDataSubPath(JohnPotFileName);
-            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(Pdf2JohnPythonScriptName);
+            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, JohnRunDirName, Pdf2JohnPythonScriptName);
         }
 
         public FileSystemProvider(PSCmdlet cmdlet) : this()
@@ -132,11 +133,12 @@ namespace PoshJohn.Common
 
         private string GetPackageAssemblyResourcePath(params string[] paths)
         {
-            string resourcePath = Path.Combine(_packageAssemblyDirectory, Path.Combine(paths));
+            string subPath = Path.Combine(paths);
+            string resourcePath = Path.Combine(_packageAssemblyDirectory, subPath);
 
             if (!File.Exists(resourcePath))
             {
-                throw new FileNotFoundException("Required resource not found in package directory.", resourcePath);
+                throw new FileNotFoundException($"Required resource '{subPath}' not found in package directory '{_packageAssemblyDirectory}'.", resourcePath);
             }
 
             return resourcePath;
@@ -148,13 +150,7 @@ namespace PoshJohn.Common
                 ? $"{baseName}{ExeFileExtension}"
                 : baseName;
 
-            string exePath = GetPackageAssemblyResourcePath(JohnDirName, exeName);
-            if (!File.Exists(exePath))
-            {
-                throw new FileNotFoundException($"{exeName} executable not found in package directory.", exePath);
-            }
-
-            return exePath;
+            return GetPackageAssemblyResourcePath(JohnDirName, JohnRunDirName, exeName);
         }
 
         private static string GetVenvPythonExePath(string venvPath)
@@ -241,8 +237,10 @@ namespace PoshJohn.Common
                     throw new InvalidDataException($"Invalid hash file line format: {line}. Each line must contain a label and hash separated by a colon (:).");
                 }
 
-                string label = labelAndHash[0];
-                string hash = labelAndHash[1];
+                string label = labelAndHash[0].Trim();
+                string hash = labelAndHash[1].Trim();
+
+                _cmdlet?.WriteDebug($"Label: '{label}', Hash: '{hash}'");
 
                 if (hash.StartsWith(PdfHashPrefix))
                 {
