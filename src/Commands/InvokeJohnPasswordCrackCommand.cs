@@ -23,40 +23,53 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
     private const string WordListWithInputObjectParameterSet = "WordListWithInputObject";
     private const string WordListWithInputPathParameterSet = "WordListWithInputPath";
 
-    private const string InputObjectHelpMessage = "Hash Input Object.";
-    private const string InputPathHelpMessage = "Path to the file containing password hashes to crack.";
-    private const string IncrementalModeHelpMessage = "Incremental mode.";
-    private const string WordListPathHelpMessage = "Path to the word list file.";
-    private const string CustomPotPathHelpMessage = "Path to the custom pot file.";
-    private const string RefreshPotHelpMessage = "Refresh the pot file.";
-    private const string UnlockedFileDirectoryPathHelpMessage = "Directory path for unlocked files.";
-
-    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = IncrementalWithInputObjectParameterSet, HelpMessage = InputObjectHelpMessage)]
-    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = WordListWithInputObjectParameterSet, HelpMessage = InputObjectHelpMessage)]
+    /// <summary>
+    /// The hash object to be cracked. Accepts pipeline input from previous commands.
+    /// </summary>
+    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = IncrementalWithInputObjectParameterSet)]
+    [Parameter(Mandatory = true, ValueFromPipeline = true, ParameterSetName = WordListWithInputObjectParameterSet)]
     public HashResult InputObject { get; set; }
 
-    [Parameter(Mandatory = true, ParameterSetName = IncrementalWithInputPathParameterSet, HelpMessage = InputPathHelpMessage)]
-    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet, HelpMessage = InputPathHelpMessage)]
+    /// <summary>
+    /// Path to the file containing password hashes to crack.
+    /// </summary>
+    [Parameter(Mandatory = true, ParameterSetName = IncrementalWithInputPathParameterSet)]
+    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet)]
     [Alias("HashPath")]
     public string InputPath { get; set; }
 
-    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputPathParameterSet, HelpMessage = IncrementalModeHelpMessage)]
-    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputObjectParameterSet, HelpMessage = IncrementalModeHelpMessage)]
+    /// <summary>
+    /// Specifies the John the Ripper incremental mode to use (e.g., 'ASCII', 'Digits').
+    /// </summary>
+    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputPathParameterSet)]
+    [Parameter(Mandatory = false, ParameterSetName = IncrementalWithInputObjectParameterSet)]
     [ArgumentCompleter(typeof(IncrementalModeCompleter))]
     public string IncrementalMode { get; set; }
 
-    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet, HelpMessage = WordListPathHelpMessage)]
-    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputObjectParameterSet, HelpMessage = WordListPathHelpMessage)]
+    /// <summary>
+    /// Path to the word list file.
+    /// </summary>
+    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputPathParameterSet)]
+    [Parameter(Mandatory = true, ParameterSetName = WordListWithInputObjectParameterSet)]
     [Alias("DictionaryPath")]
     public string WordListPath { get; set; }
 
-    [Parameter(Mandatory = false, HelpMessage = CustomPotPathHelpMessage)]
+    /// <summary>
+    /// Specifies a custom pot file to use for storing cracked passwords.
+    /// </summary>
+    [Parameter(Mandatory = false)]
     public string CustomPotPath { get; set; }
 
-    [Parameter(Mandatory = false, HelpMessage = RefreshPotHelpMessage)]
+    /// <summary>
+    /// If set, refreshes the pot file before cracking.
+    /// </summary>
+    [Parameter(Mandatory = false)]
     public SwitchParameter RefreshPot { get; set; }
 
-    [Parameter(Mandatory = false, HelpMessage = UnlockedFileDirectoryPathHelpMessage)]
+    /// <summary>
+    /// Specifies the directory where unlocked files will be saved.
+    /// </summary>
+    [Parameter(Mandatory = false)]
     public string UnlockedFileDirectoryPath { get; set; }
 
     private IProcessRunner _processRunner;

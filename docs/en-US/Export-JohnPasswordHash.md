@@ -1,10 +1,10 @@
----
+﻿---
 document type: cmdlet
 external help file: PoshJohn.dll-Help.xml
 HelpUri: https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Export-JohnPasswordHash.md
 Locale: en-US
 Module Name: PoshJohn
-ms.date: 12/08/2025
+ms.date: 12/10/2025
 PlatyPS schema version: 2024-05-01
 title: Export-JohnPasswordHash
 ---
@@ -25,9 +25,6 @@ Export-JohnPasswordHash -InputPath <string> -OutputPath <string> [-Append] [<Com
 
 ## ALIASES
 
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
-
 ## DESCRIPTION
 
 {{ Fill in the Description }}
@@ -36,7 +33,7 @@ This cmdlet has the following aliases,
 
 ### Example 1
 
-
+## PARAMETERS
 
 ## PARAMETERS
 
@@ -122,7 +119,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## NOTES
 
 {{ Fill in the Notes }}
-
 
 ## RELATED LINKS
 

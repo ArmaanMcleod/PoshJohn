@@ -15,18 +15,28 @@ namespace PoshJohn.Commands;
 [OutputType(typeof(HashResult))]
 public sealed class ExportJohnPasswordHashCommand : PSCmdlet
 {
-    private const string InputPathHelpMessage = "Path to the password-protected file.";
-    private const string OutputPathHelpMessage = "Path to save the exported hash.";
-    private const string AppendHelpMessage = "Append the exported hash to the output file.";
 
-    [Parameter(Mandatory = true, HelpMessage = InputPathHelpMessage)]
+
+
+    /// <summary>
+    /// Path to the password-protected file.
+    /// </summary>
+    [Parameter(Mandatory = true)]
     public string InputPath { get; set; }
 
-    [Parameter(Mandatory = true, HelpMessage = OutputPathHelpMessage)]
+
+    /// <summary>
+    /// Path to save the exported hash.
+    /// </summary>
+    [Parameter(Mandatory = true)]
     [Alias("HashPath")]
     public string OutputPath { get; set; }
 
-    [Parameter(Mandatory = false, HelpMessage = AppendHelpMessage)]
+
+    /// <summary>
+    /// Append the exported hash to the output file.
+    /// </summary>
+    [Parameter(Mandatory = false)]
     public SwitchParameter Append { get; set; }
 
     private const string PyhankoModuleName = "pyhanko";

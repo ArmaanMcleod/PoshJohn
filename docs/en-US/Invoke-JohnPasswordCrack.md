@@ -1,10 +1,10 @@
----
+﻿---
 document type: cmdlet
 external help file: PoshJohn.dll-Help.xml
 HelpUri: https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Invoke-JohnPasswordCrack.md
 Locale: en-US
 Module Name: PoshJohn
-ms.date: 12/08/2025
+ms.date: 12/10/2025
 PlatyPS schema version: 2024-05-01
 title: Invoke-JohnPasswordCrack
 ---
@@ -47,9 +47,6 @@ Invoke-JohnPasswordCrack -InputPath <string> -WordListPath <string> [-CustomPotP
 
 ## ALIASES
 
-This cmdlet has the following aliases,
-  {{Insert list of aliases}}
-
 ## DESCRIPTION
 
 {{ Fill in the Description }}
@@ -58,13 +55,13 @@ This cmdlet has the following aliases,
 
 ### Example 1
 
-
+## PARAMETERS
 
 ## PARAMETERS
 
 ### -CustomPotPath
 
-Path to the custom pot file.
+{{ Fill CustomPotPath Description }}
 
 ```yaml
 Type: System.String
@@ -85,7 +82,7 @@ HelpMessage: ''
 
 ### -IncrementalMode
 
-Incremental mode.
+{{ Fill IncrementalMode Description }}
 
 ```yaml
 Type: System.String
@@ -112,7 +109,7 @@ HelpMessage: ''
 
 ### -InputObject
 
-Hash Input Object.
+{{ Fill InputObject Description }}
 
 ```yaml
 Type: PoshJohn.Models.HashResult
@@ -139,7 +136,7 @@ HelpMessage: ''
 
 ### -InputPath
 
-Path to the file containing password hashes to crack.
+{{ Fill InputPath Description }}
 
 ```yaml
 Type: System.String
@@ -167,7 +164,7 @@ HelpMessage: ''
 
 ### -RefreshPot
 
-Refresh the pot file.
+{{ Fill RefreshPot Description }}
 
 ```yaml
 Type: System.Management.Automation.SwitchParameter
@@ -188,7 +185,7 @@ HelpMessage: ''
 
 ### -UnlockedFileDirectoryPath
 
-Directory path for unlocked files
+{{ Fill UnlockedFileDirectoryPath Description }}
 
 ```yaml
 Type: System.String
@@ -209,7 +206,7 @@ HelpMessage: ''
 
 ### -WordListPath
 
-Path to the word list file.
+{{ Fill WordListPath Description }}
 
 ```yaml
 Type: System.String
@@ -257,7 +254,6 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## NOTES
 
 {{ Fill in the Notes }}
-
 
 ## RELATED LINKS
 
