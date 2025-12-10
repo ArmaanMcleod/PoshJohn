@@ -88,8 +88,13 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
     private static readonly Regex _ansiRegex = new(@"\x1B\[[0-9;]*[A-Za-z]", RegexOptions.Compiled);
 
-    private static readonly Regex _crackedPasswordLineRegex = new Regex(
+    private static readonly Regex _base64CrackedPasswordLineRegex = new(
         @"^(.+?)\s+\(([A-Za-z0-9+/=]+)\)$",
+        RegexOptions.Compiled
+    );
+
+    private static readonly Regex _zipFileCrackedPasswordLineRegex = new(
+        @"^(.+?)\s+\(([^\s()]+\.zip)\)$",
         RegexOptions.Compiled
     );
 
@@ -209,6 +214,23 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
         }
     }
 
+    private static (bool Success, string Password, string Label) ParseCrackedPasswordLine(string line)
+    {
+        var base64Match = _base64CrackedPasswordLineRegex.Match(line);
+        if (base64Match.Success)
+        {
+            return (true, base64Match.Groups[1].Value.Trim(), base64Match.Groups[2].Value.Trim());
+        }
+
+        var zipFileMatch = _zipFileCrackedPasswordLineRegex.Match(line);
+        if (zipFileMatch.Success)
+        {
+            return (true, zipFileMatch.Groups[1].Value.Trim(), zipFileMatch.Groups[2].Value.Trim());
+        }
+
+        return (false, null, null);
+    }
+
     private PasswordCrackSummary ParseJohnOutputToSummary(string output)
     {
         var result = new PasswordCrackSummary
@@ -263,12 +285,9 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                 lastFormatGroupLineIndex = lineIndex;
             }
 
-            else if (_crackedPasswordLineRegex.Match(line) is { Success: true } passwordMatch && currentGroup != null)
+            else if (ParseCrackedPasswordLine(line) is { Success: true, Password: string password, Label: string label } && currentGroup != null)
             {
                 WriteDebug($"Matched '{line}'. Adding cracked password from John output parsing.");
-
-                string password = passwordMatch.Groups[1].Value.Trim();
-                string label = passwordMatch.Groups[2].Value.Trim();
 
                 if (!_fileSystemProvider.LabelToFilePaths.TryGetValue(label, out string filePath))
                 {
@@ -300,14 +319,14 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
                 foreach (var kvp in fileHashes)
                 {
-                    if (!_fileSystemProvider.LoadedPotHashPasswords.TryGetValue(kvp.Key, out string password))
+                    if (!_fileSystemProvider.LoadedPotHashPasswords.TryGetValue(kvp.Key, out string potHashPassword))
                     {
                         WriteDebug($"No matching password found in pot file for hash: {kvp.Key}. Skipping this entry.");
                         continue;
                     }
 
                     string filePath = kvp.Value;
-                    currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
+                    currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, potHashPassword, currentGroup.FileFormat, UnlockedFileDirectoryPath);
                 }
             }
         }

@@ -97,7 +97,7 @@ internal sealed class ProcessRunner : IProcessRunner
                 var outputLines = stdoutBuilder.ToString().Split(_newLineChars, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in outputLines)
                 {
-                    _cmdlet?.WriteVerbose($"[Command StdOut] {line}");
+                    _cmdlet?.WriteVerbose($"[STDOUT] {line}");
                 }
             }
 
@@ -106,7 +106,7 @@ internal sealed class ProcessRunner : IProcessRunner
                 var errorLines = stderrBuilder.ToString().Split(_newLineChars, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in errorLines)
                 {
-                    _cmdlet?.WriteDebug($"[Command StdErr] {line}");
+                    _cmdlet?.WriteDebug($"[STDERR] {line}");
                 }
             }
         }
