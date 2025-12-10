@@ -46,7 +46,9 @@ namespace PoshJohn.Common
         private const string ZipFileExtension = ".zip";
         private const string ExeFileExtension = ".exe";
         private const string PdfHashPrefix = "$pdf$";
-        private const string ZipHashPrefix = "$pkzip2$";
+        private const string WindowsZipHashPrefix = "$pkzip2$";
+        private const string UnixZipHashPrefix = "$pkzip$";
+        private static readonly string ZipHashPrefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsZipHashPrefix : UnixZipHashPrefix;
 
         private string _potPath;
         private PSCmdlet _cmdlet;

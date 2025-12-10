@@ -88,6 +88,11 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
     private static readonly Regex _ansiRegex = new(@"\x1B\[[0-9;]*[A-Za-z]", RegexOptions.Compiled);
 
+    private static readonly Regex _crackedPasswordLineRegex = new Regex(
+        @"^(.+?)\s+\(([A-Za-z0-9+/=]+)\)$",
+        RegexOptions.Compiled
+    );
+
     private const string NoPasswordHashesLeftToCrackMessage = "No password hashes left to crack";
 
     protected override void BeginProcessing()
@@ -258,43 +263,29 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                 lastFormatGroupLineIndex = lineIndex;
             }
 
-            else if (line.Contains('(') && line.Contains(')') && currentGroup != null)
+            else if (_crackedPasswordLineRegex.Match(line) is { Success: true } passwordMatch && currentGroup != null)
             {
                 WriteDebug($"Matched '{line}'. Adding cracked password from John output parsing.");
 
-                int openIdx = line.LastIndexOf('(');
-                int closeIdx = line.LastIndexOf(')');
+                string password = passwordMatch.Groups[1].Value.Trim();
+                string label = passwordMatch.Groups[2].Value.Trim();
 
-                WriteDebug($"Extracted indices - Open: {openIdx}, Close: {closeIdx}");
-                WriteDebug($"Line length: {line.Length}");
-
-                if (openIdx > -1 && closeIdx > openIdx + 1 && closeIdx == line.Length - 1)
+                if (!_fileSystemProvider.LabelToFilePaths.TryGetValue(label, out string filePath))
                 {
-                    WriteDebug($"Parsing cracked password line: '{line}'");
+                    WriteDebug($"No matching file path found for label: '{label}'.");
+                    WriteDebug($"Extracted label: '{label}'");
+                    WriteDebug("Extracted label bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(label)));
 
-                    string password = line[..openIdx].TrimEnd();
-                    string label = line.Substring(openIdx + 1, closeIdx - openIdx - 1).Trim();
-
-                    if (!_fileSystemProvider.LabelToFilePaths.TryGetValue(label, out string filePath))
+                    foreach (var kvp in _fileSystemProvider.LabelToFilePaths)
                     {
-                        WriteDebug($"No matching file path found for label: '{label}'. Skipping this cracked password entry.");
-                        WriteDebug($"Extracted label: '{label}'");
-                        WriteDebug("Extracted label bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(label)));
-                        foreach (var kvp in _fileSystemProvider.LabelToFilePaths)
-                        {
-                            WriteDebug($"Key: '{kvp.Key}'");
-                            WriteDebug("Key bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(kvp.Key)));
-                        }
-
-                        throw new KeyNotFoundException($"Label '{label}' not found in loaded label to file mappings.");
+                        WriteDebug($"Key: '{kvp.Key}'");
+                        WriteDebug("Key bytes: " + BitConverter.ToString(Encoding.UTF8.GetBytes(kvp.Key)));
                     }
 
-                    currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
+                    throw new KeyNotFoundException($"Label '{label}' not found in loaded label to file mappings.");
                 }
-                else
-                {
-                    WriteDebug($"Failed to parse cracked password line: {line}. Skipping this entry.");
-                }
+
+                currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
             }
 
             else if (line.StartsWith(NoPasswordHashesLeftToCrackMessage, StringComparison.OrdinalIgnoreCase) && currentGroup != null)
