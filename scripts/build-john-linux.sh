@@ -38,7 +38,7 @@ else
 fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
-JOHN_DIR="$(dirname "$0")/../john"
+JOHN_DIR="$(dirname "$0")/../john/linux"
 SRC_DIR="$JOHN_DIR/src"
 
 # Clean up any previous build

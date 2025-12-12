@@ -18,14 +18,14 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../john/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/run/%(RecursiveDir)%(Filename)%(Extension)"  />
+    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)"  />
   </ItemGroup>
 
-  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/run') ">
-    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..../scripts/build-john-windows.ps1&quot;" />
+  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') ">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
   </Target>
 
-  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and !Exists('$(ProjectDir)../john/run') ">
+  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and !Exists('$(ProjectDir)../john/linux/run') ">
     <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
   </Target>
 

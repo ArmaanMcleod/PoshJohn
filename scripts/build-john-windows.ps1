@@ -9,7 +9,7 @@ Write-Host "Downloading John the Ripper for Windows..." -ForegroundColor Cyan
 $url = "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.zip"
 $tempFile = Join-Path $env:TEMP "john-win64.zip"
 $extractPath = Join-Path $env:TEMP "john-extract"
-$outputDir = Join-Path $PSScriptRoot "../john/run"
+$outputDir = Join-Path $PSScriptRoot "../john/windows/run"
 $johnRepoUrl = "https://github.com/openwall/john.git"
 $johnCloneDir = Join-Path $env:TEMP "john-bleeding-jumbo"
 $pdf2johnSrc = Join-Path $johnCloneDir "run/pdf2john.py"

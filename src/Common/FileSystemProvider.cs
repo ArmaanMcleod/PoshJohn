@@ -49,6 +49,9 @@ namespace PoshJohn.Common
         private const string WindowsZipHashPrefix = "$pkzip2$";
         private const string UnixZipHashPrefix = "$pkzip$";
         private static readonly string ZipHashPrefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsZipHashPrefix : UnixZipHashPrefix;
+        private const string WindowsOSPlatformName = "windows";
+        private const string UnixOSPlatformName = "linux";
+        private const string MacOSPlatformName = "macos";
 
         private string _potPath;
         private PSCmdlet _cmdlet;
@@ -102,7 +105,7 @@ namespace PoshJohn.Common
             _venvPythonExePath = GetVenvPythonExePath(_venvDirectoryPath);
             _systemPythonExePath = DetectSystemPythonExePath();
             _potPath = GetAppDataSubPath(JohnPotFileName);
-            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, JohnRunDirName, Pdf2JohnPythonScriptName);
+            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, Pdf2JohnPythonScriptName);
         }
 
         public FileSystemProvider(PSCmdlet cmdlet) : this()
@@ -130,6 +133,26 @@ namespace PoshJohn.Common
             ParseHashEntries(_hashFilePath);
         }
 
+        private string DetectOSPlatform()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return WindowsOSPlatformName;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return UnixOSPlatformName;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return MacOSPlatformName;
+            }
+            else
+            {
+                throw new PlatformNotSupportedException("Unsupported operating system platform.");
+            }
+        }
+
         private string GetAppDataSubPath(params string[] paths)
             => Path.Combine(_appDataDirectory, Path.Combine(paths));
 
@@ -152,7 +175,7 @@ namespace PoshJohn.Common
                 ? $"{baseName}{ExeFileExtension}"
                 : baseName;
 
-            return GetPackageAssemblyResourcePath(JohnDirName, JohnRunDirName, exeName);
+            return GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, exeName);
         }
 
         private static string GetVenvPythonExePath(string venvPath)
