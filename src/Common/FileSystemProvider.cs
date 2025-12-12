@@ -211,7 +211,7 @@ namespace PoshJohn.Common
                 var hashAndPassword = line.Split(':', 2);
                 if (hashAndPassword.Length != 2)
                 {
-                    _cmdlet?.WriteDebug($"Invalid pot file line format: {line}. Skipping this line.");
+                    _cmdlet?.WriteDebug($"Invalid pot file line format: '{line}'. Skipping this line.");
                     continue;
                 }
 
@@ -236,7 +236,7 @@ namespace PoshJohn.Common
                 var labelAndHash = line.Split(':', 2);
                 if (labelAndHash.Length != 2)
                 {
-                    throw new InvalidDataException($"Invalid hash file line format: {line}. Each line must contain a label and hash separated by a colon (:).");
+                    throw new InvalidDataException($"Invalid hash file line format: '{line}'. Each line must contain a label and hash separated by a colon (:).");
                 }
 
                 string label = labelAndHash[0].Trim();
@@ -267,7 +267,7 @@ namespace PoshJohn.Common
                     var zipHashWithFileMetadata = hash.Split("::", 2);
                     if (zipHashWithFileMetadata.Length != 2)
                     {
-                        throw new InvalidDataException($"Invalid ZIP hash format in line: {line}. Missing double colon (::) when splitting {hash} into 2 parts.");
+                        throw new InvalidDataException($"Invalid ZIP hash format in line: '{line}'. Missing double colon (::) when splitting {hash} into 2 parts.");
                     }
 
                     string zipHash = zipHashWithFileMetadata[0];
@@ -276,7 +276,7 @@ namespace PoshJohn.Common
                     var zipFileMetadataParts = zipFileMetadata.Split(':', 3);
                     if (zipFileMetadataParts.Length != 3)
                     {
-                        throw new InvalidDataException($"Invalid ZIP hash format in line: {line}. Missing colon (:) when splitting {zipFileMetadata} into 3 parts.");
+                        throw new InvalidDataException($"Invalid ZIP hash format in line: '{line}'. Missing colon (:) when splitting {zipFileMetadata} into 3 parts.");
                     }
 
                     string zipFilePath = zipFileMetadataParts[2];
@@ -287,7 +287,7 @@ namespace PoshJohn.Common
                 }
                 else
                 {
-                    throw new InvalidDataException($"Unsupported hash format in line: {line}. Supported formats are {PdfHashPrefix} and {ZipHashPrefix}.");
+                    throw new InvalidDataException($"Unsupported hash format in line: '{line}'. Supported formats are {PdfHashPrefix} and {ZipHashPrefix}.");
                 }
             }
         }
