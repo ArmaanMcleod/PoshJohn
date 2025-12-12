@@ -2,4 +2,4 @@ out/
 **/bin/
 **/obj/
 .vs/
-john-binaries/
+john/

@@ -1,3 +1,4 @@
+
 FROM ubuntu:22.04
 
 RUN apt-get update \
@@ -15,15 +16,14 @@ RUN apt-get update \
 
 WORKDIR /
 
-COPY . /PoshJohn
-
-RUN git clone --depth 1 https://github.com/openwall/john.git /PoshJohn/john
-
-WORKDIR /PoshJohn/john/src
-
-RUN chmod +x ./configure && ./configure && make -sj$(nproc)
+COPY ./src/ /PoshJohn/src/
+COPY ./scripts/build-john-linux.sh /PoshJohn/scripts/build-john-linux.sh
+COPY ./PowerShellBuildTools/ /PoshJohn/PowerShellBuildTools/
+COPY ./test/ /PoshJohn/test/
+COPY ./global.json /PoshJohn/global.json
 
 WORKDIR /PoshJohn
 
-RUN pwsh -Command ./PowerShellBuildTools/build.ps1 -Task Build
+RUN bash ./scripts/build-john-linux.sh
 
+RUN pwsh -Command ./PowerShellBuildTools/build.ps1 -Task Build
