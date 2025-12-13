@@ -79,19 +79,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: john-Windows
-          path: john/windows
+          path: john/windows/run
 
       - name: Download John Binaries (Linux)
         uses: actions/download-artifact@v4
         with:
           name: john-Linux
-          path: john/linux
+          path: john/linux/run
 
       - name: Download John Binaries (MacOS)
         uses: actions/download-artifact@v4
         with:
           name: john-MacOS
-          path: john/macos
+          path: john/macos/run
 
       - name: Build and test module
         shell: pwsh
