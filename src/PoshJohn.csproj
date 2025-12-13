@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AssemblyName>PoshJohn</AssemblyName>
+    <RootNamespace>PoshJohn</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="System.Management.Automation" Version="7.2.0" PrivateAssets="all" />
+    <PackageReference Include="itext" Version="9.1.0" />
+    <PackageReference Include="itext.bouncy-castle-adapter" Version="9.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)"  />
+  </ItemGroup>
+
+  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') and '$(GITHUB_ACTIONS)' != 'true' ">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
+  </Target>
+
+  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" Exists('/proc/version') and !Exists('$(ProjectDir)../john/linux/run') and '$(GITHUB_ACTIONS)' != 'true' ">
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
+  </Target>
+
+  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" Exists('/usr/bin/sw_vers') and !Exists('$(ProjectDir)../john/macos/run') and '$(GITHUB_ACTIONS)' != 'true' ">
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
+  </Target>
+
+  <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
+    <RemoveDir Directories="$(BaseOutputPath)" />
+    <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
+  </Target>
+
+</Project>

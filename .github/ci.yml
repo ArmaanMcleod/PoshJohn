@@ -1,0 +1,157 @@
+name: Test PoshJohn Module
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+env:
+  BUILD_CONFIGURATION: ${{ fromJSON('["Debug", "Release"]')[github.ref == 'refs/heads/main'] }}
+
+jobs:
+
+  build-john:
+    name: Build John Binaries (${{ matrix.osname }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - osname: Windows
+            os: windows-latest
+            build_script: ./scripts/build-john-windows.ps1
+            john_out: john/windows/run
+          - osname: Linux
+            os: ubuntu-latest
+            build_script: ./scripts/build-john-linux.sh
+            john_out: john/linux/run
+          - osname: MacOS
+            os: macos-latest
+            build_script: ./scripts/build-john-macos.sh
+            john_out: john/macos/run
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build John the Ripper
+        shell: ${{ matrix.osname == 'Windows' && 'pwsh' || 'bash' }}
+        run: ${{ matrix.build_script }}
+
+      - name: Upload John Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-${{ matrix.osname }}
+          path: ${{ matrix.john_out }}
+
+  build-module:
+    name: Build PowerShell Module
+    needs:
+      - build-john
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Repo checkout
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Download John Binaries (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: john-Windows
+          path: john/windows
+
+      - name: Download John Binaries (Linux)
+        uses: actions/download-artifact@v4
+        with:
+          name: john-Linux
+          path: john/linux
+
+      - name: Download John Binaries (MacOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: john-MacOS
+          path: john/macos
+
+      - name: Build and test module
+        shell: pwsh
+        run: ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Build
+
+      - name: Capture PowerShell Module
+        uses: actions/upload-artifact@v4
+        with:
+          name: PSModule
+          path: out/*.nupkg
+
+  test:
+    name: test
+    needs:
+      - build-module
+    runs-on: ${{ matrix.info.os }}
+    permissions:
+      checks: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        info:
+        - name: Windows
+          os: windows-latest
+        - name: Linux
+          os: ubuntu-latest
+        - name: MacOS
+          os: macos-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Restore Built PowerShell Module
+        uses: actions/download-artifact@v4
+        with:
+          name: PSModule
+          path: out
+
+      - name: Install Built PowerShell Module
+        shell: pwsh
+        run: |
+          Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
+          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
+
+      - name: Run Tests - PowerShell
+        shell: pwsh
+        run: |
+          ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Test
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unit Test Results (${{ matrix.info.name }})
+          path: ./out/TestResults/Pester.xml
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: ${{ matrix.info.os == 'ubuntu-latest' && always() }}
+        with:
+          check_name: Unit Test Results (${{ matrix.info.name }})
+          files: |
+            ./out/TestResults/Pester.xml
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/composite@v2
+        if: ${{ matrix.info.os != 'ubuntu-latest' && always() }}
+        with:
+          check_name: Unit Test Results (${{ matrix.info.name }})
+          files: |
+            ./out/TestResults/Pester.xml
