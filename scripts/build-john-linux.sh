@@ -21,19 +21,13 @@ fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
 
-if [[ -n "${GITHUB_WORKSPACE:-}" ]]; then
-  echo "GITHUB_WORKSPACE is set to: $GITHUB_WORKSPACE"
-  REPO_PATH="$GITHUB_WORKSPACE"
-else
-  echo "GITHUB_WORKSPACE is not set. Determining REPO_PATH based on script location."
-  SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-  REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
-fi
-
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
 JOHN_DIR="$REPO_PATH/john/linux"
 JOHN_SRC_DIR="$JOHN_DIR/src"
 JOHN_RUN_DIR="$JOHN_DIR/run"
 
+echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
 echo "JOHN_DIR: $JOHN_DIR"
 echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
