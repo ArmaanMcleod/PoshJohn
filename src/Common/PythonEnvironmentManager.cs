@@ -50,24 +50,39 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
 
     public void InstallPackage(string packageName)
     {
+        _cmdlet?.WriteVerbose("Upgrading pip in the virtual environment before installing package...");
+
+        var pipUpgradeResult = _processRunner.RunCommand(
+            CommandType.VenvPython,
+            "-m pip install --upgrade pip",
+            logOutput: true,
+            failOnStderr: true);
+
+        if (!pipUpgradeResult.Success)
+        {
+            throw new InvalidOperationException($"Failed to upgrade pip: {pipUpgradeResult.StandardError}");
+        }
+
+        _cmdlet?.WriteVerbose("pip upgraded successfully");
+
         _cmdlet?.WriteVerbose($"Installing {packageName} package...");
 
-        var packageCheckResult = _processRunner.RunCommand(CommandType.VenvPython, $"-m pip show {packageName}", logOutput: false, failOnStderr: true);
-        if (packageCheckResult.Success)
+        var pipPackageCheckResult = _processRunner.RunCommand(CommandType.VenvPython, $"-m pip show {packageName}", logOutput: false, failOnStderr: true);
+        if (pipPackageCheckResult.Success)
         {
             _cmdlet?.WriteVerbose($"{packageName} is already installed");
             return;
         }
 
-        var packageInstallResult = _processRunner.RunCommand(
+        var pipPackageInstallResult = _processRunner.RunCommand(
             CommandType.VenvPython,
             $"-m pip install {packageName}",
             logOutput: true,
             failOnStderr: true);
 
-        if (!packageInstallResult.Success)
+        if (!pipPackageInstallResult.Success)
         {
-            throw new InvalidOperationException($"Failed to install {packageName}: {packageInstallResult.StandardError}");
+            throw new InvalidOperationException($"Failed to install {packageName}: {pipPackageInstallResult.StandardError}");
         }
 
         _cmdlet?.WriteVerbose($"{packageName} installed successfully");
