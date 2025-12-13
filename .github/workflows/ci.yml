@@ -23,16 +23,16 @@ jobs:
         include:
           - osname: Windows
             os: windows-latest
-            build_script: ./scripts/build-john-windows.ps1
-            john_out: john/windows/run
+            build_script: ${{ github.workspace }}/scripts/build-john-windows.ps1
+            john_out: ${{ github.workspace }}/john/windows/run
           - osname: Linux
             os: ubuntu-latest
-            build_script: ./scripts/build-john-linux.sh
-            john_out: john/linux/run
+            build_script: ${{ github.workspace }}/scripts/build-john-linux.sh
+            john_out: ${{ github.workspace }}/john/linux/run
           - osname: MacOS
             os: macos-latest
-            build_script: ./scripts/build-john-macos.sh
-            john_out: john/macos/run
+            build_script: ${{ github.workspace }}/scripts/build-john-macos.sh
+            john_out: ${{ github.workspace }}/john/macos/run
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -79,19 +79,19 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: john-Windows
-          path: john/windows/run
+          path: ${{ github.workspace }}/john/windows/run
 
       - name: Download John Binaries (Linux)
         uses: actions/download-artifact@v4
         with:
           name: john-Linux
-          path: john/linux/run
+          path: ${{ github.workspace }}/john/linux/run
 
       - name: Download John Binaries (MacOS)
         uses: actions/download-artifact@v4
         with:
           name: john-MacOS
-          path: john/macos/run
+          path: ${{ github.workspace }}/john/macos/run
 
       - name: Build and test module
         shell: pwsh

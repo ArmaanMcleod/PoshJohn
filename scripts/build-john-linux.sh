@@ -20,8 +20,14 @@ else
 fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
-SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
+
+if [[ -n "$GITHUB_WORKSPACE" ]]; then
+  REPO_PATH="$GITHUB_WORKSPACE"
+else
+  SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+  REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
+fi
+
 JOHN_DIR="$REPO_PATH/john/linux"
 JOHN_SRC_DIR="$JOHN_DIR/src"
 JOHN_RUN_DIR="$JOHN_DIR/run"
