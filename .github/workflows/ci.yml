@@ -27,7 +27,7 @@ jobs:
             john_out: john/windows/run
           - osname: Linux
             os: ubuntu-latest
-            build_script: ./scripts/build-john-linux.sh
+            build_script: sudo ./scripts/build-john-linux.sh
             john_out: john/linux/run
           - osname: MacOS
             os: macos-latest
