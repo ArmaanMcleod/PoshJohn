@@ -46,11 +46,8 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
         }
 
         _cmdlet?.WriteVerbose($"Virtual environment created successfully at: {_fileSystemProvider.VenvDirectoryPath}");
-    }
 
-    public void InstallPackage(string packageName)
-    {
-        _cmdlet?.WriteVerbose("Upgrading pip in the virtual environment before installing package...");
+        _cmdlet?.WriteVerbose("Upgrading pip in the virtual environment...");
 
         var pipUpgradeResult = _processRunner.RunCommand(
             CommandType.VenvPython,
@@ -64,7 +61,10 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
         }
 
         _cmdlet?.WriteVerbose("pip upgraded successfully");
+    }
 
+    public void InstallPackage(string packageName)
+    {
         _cmdlet?.WriteVerbose($"Installing {packageName} package...");
 
         var packageCheckResult = _processRunner.RunCommand(CommandType.VenvPython, $"-m pip show {packageName}", logOutput: false, failOnStderr: true);
