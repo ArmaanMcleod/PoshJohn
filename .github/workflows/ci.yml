@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: PSModule
-          path: out/**
+          path: out/*.nupkg
 
   test:
     name: Test PowerShell Module (${{ matrix.info.name }})
