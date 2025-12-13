@@ -23,16 +23,16 @@ jobs:
         include:
           - osname: Windows
             os: windows-latest
-            build_script: ${{ github.workspace }}/scripts/build-john-windows.ps1
-            john_out: ${{ github.workspace }}/john/windows/run
+            build_script: /scripts/build-john-windows.ps1
+            john_out: /john/windows/run
           - osname: Linux
             os: ubuntu-latest
-            build_script: ${{ github.workspace }}/scripts/build-john-linux.sh
-            john_out: ${{ github.workspace }}/john/linux/run
+            build_script: /scripts/build-john-linux.sh
+            john_out: /john/linux/run
           - osname: MacOS
             os: macos-latest
-            build_script: ${{ github.workspace }}/scripts/build-john-macos.sh
-            john_out: ${{ github.workspace }}/john/macos/run
+            build_script: /scripts/build-john-macos.sh
+            john_out: /john/macos/run
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -42,24 +42,25 @@ jobs:
       - name: Build John the Ripper (Windows)
         if: matrix.osname == 'Windows'
         shell: pwsh
-        run: ${{ matrix.build_script }}
+        run: ${{github.workspace}}${{ matrix.build_script }}
 
       - name: Build John the Ripper (Linux/MacOS)
         if: matrix.osname != 'Windows'
         shell: bash
         run: |
-          chmod +x ${{ matrix.build_script }}
+          scriptPath=${{github.workspace}}${{ matrix.build_script }}
+          chmod +x $scriptPath
           if [ "${{ matrix.osname }}" = "Linux" ]; then
-            sudo ${{ matrix.build_script }}
+            sudo $scriptPath
           else
-            ${{ matrix.build_script }}
+            $scriptPath
           fi
 
       - name: Upload John Binaries
         uses: actions/upload-artifact@v4
         with:
           name: john-${{ matrix.osname }}
-          path: ${{ matrix.john_out }}
+          path: ${{ github.workspace }}${{ matrix.john_out }}
 
   build-module:
     name: Build PowerShell Module
