@@ -27,7 +27,7 @@ if [[ -n "${GITHUB_WORKSPACE:-}" ]]; then
 else
   echo "GITHUB_WORKSPACE is not set. Determining REPO_PATH based on script location."
   SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-  REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
+  REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
 fi
 
 JOHN_DIR="$REPO_PATH/john/linux"
