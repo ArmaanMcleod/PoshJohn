@@ -104,7 +104,7 @@ jobs:
           path: out/*.nupkg
 
   test:
-    name: test
+    name: Test PowerShell Module (${{ matrix.info.name }})
     needs:
       - build-module
     runs-on: ${{ matrix.info.os }}
