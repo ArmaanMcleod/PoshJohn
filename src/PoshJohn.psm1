@@ -10,14 +10,10 @@ function Set-BinariesExecutable {
 
     foreach ($bin in $binaries) {
         $binPath = Join-Path $runDir $bin
+        
         if (Test-Path $binPath -PathType Leaf) {
             $file = Get-Item $binPath
-
-            # Only chmod if not already executable by user, group, and others
-            # 0o111 = 73 decimal, so check all three execute bits
-            if (($file.UnixMode -band 73) -ne 73) {
-                & chmod +x $file.FullName
-            }
+            & chmod +x $file.FullName
         }
     }
 }
