@@ -61,6 +61,7 @@ jobs:
         with:
           name: john-${{ matrix.osname }}
           path: ${{ github.workspace }}${{ matrix.john_out }}
+          if-no-files-found: error
 
   build-module:
     name: Build PowerShell Module
@@ -103,6 +104,7 @@ jobs:
         with:
           name: PSModule
           path: out/*.nupkg
+          if-no-files-found: error
 
   test:
     name: Test PowerShell Module (${{ matrix.info.name }})
@@ -152,6 +154,7 @@ jobs:
         with:
           name: Unit Test Results (${{ matrix.info.name }})
           path: ./out/TestResults/Pester.xml
+          if-no-files-found: error
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
