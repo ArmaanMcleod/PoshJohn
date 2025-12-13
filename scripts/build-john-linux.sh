@@ -20,9 +20,17 @@ else
 fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
-JOHN_DIR="$(dirname "$0")/../john/linux"
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
+JOHN_DIR="$REPO_PATH/john/linux"
 JOHN_SRC_DIR="$JOHN_DIR/src"
 JOHN_RUN_DIR="$JOHN_DIR/run"
+
+echo "SCRIPT_DIR: $SCRIPT_DIR"
+echo "REPO_PATH: $REPO_PATH"
+echo "JOHN_DIR: $JOHN_DIR"
+echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
+echo "JOHN_RUN_DIR: $JOHN_RUN_DIR"
 
 # Clean up any previous build
 if [ -d "$JOHN_DIR" ]; then
@@ -46,9 +54,6 @@ make -s clean
 
 echo "Building John the Ripper..."
 make -sj"$(nproc)"
-
-echo "Listing all files under $JOHN_DIR for troubleshooting:"
-ls -lR "$JOHN_DIR"
 
 echo "Ensuring all binaries are executable..."
 chmod +x $JOHN_RUN_DIR/*
