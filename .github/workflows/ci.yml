@@ -27,7 +27,7 @@ jobs:
             john_out: john/windows/run
           - osname: Linux
             os: ubuntu-latest
-            build_script: sudo ./scripts/build-john-linux.sh
+            build_script: ./scripts/build-john-linux.sh
             john_out: john/linux/run
           - osname: MacOS
             os: macos-latest
@@ -49,7 +49,11 @@ jobs:
         shell: bash
         run: |
           chmod +x ${{ matrix.build_script }}
-          ${{ matrix.build_script }}
+          if [ "${{ matrix.osname }}" = "Linux" ]; then
+            sudo ${{ matrix.build_script }}
+          else
+            ${{ matrix.build_script }}
+          fi
 
       - name: Upload John Binaries
         uses: actions/upload-artifact@v4
