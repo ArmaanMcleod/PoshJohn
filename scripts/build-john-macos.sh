@@ -38,7 +38,8 @@ fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
 JOHN_DIR="$(dirname "$0")/../john/macos"
-SRC_DIR="$JOHN_DIR/src"
+JOHN_SRC_DIR="$JOHN_DIR/src"
+JOHN_RUN_DIR="$JOHN_DIR/run"
 
 # 5. Clean up any previous build
 if [ -d "$JOHN_DIR" ]; then
@@ -52,7 +53,7 @@ echo "Cloning John the Ripper into $JOHN_DIR..."
 git clone --depth 1 "$JOHN_REPO" "$JOHN_DIR"
 
 # 7. Build John the Ripper
-cd "$SRC_DIR"
+cd "$JOHN_SRC_DIR"
 echo "Configuring John the Ripper..."
 chmod +x ./configure
 
@@ -69,4 +70,7 @@ make -s clean
 echo "Building John the Ripper..."
 make -sj"$(sysctl -n hw.ncpu)"
 
-echo "John the Ripper build complete. Binaries are in $JOHN_DIR/run"
+echo "Ensuring all binaries are executable..."
+chmod +x $JOHN_RUN_DIR/*
+
+echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
