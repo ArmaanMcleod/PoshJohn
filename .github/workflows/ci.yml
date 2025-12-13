@@ -156,17 +156,25 @@ jobs:
           path: ./out/TestResults/Pester.xml
           if-no-files-found: error
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+      - name: Publish Test Results (${{ matrix.info.name }})
         if: ${{ matrix.info.os == 'ubuntu-latest' && always() }}
+        uses: EnricoMi/publish-unit-test-result-action/linux@v2
         with:
           check_name: Unit Test Results (${{ matrix.info.name }})
           files: |
             ./out/TestResults/Pester.xml
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
-        if: ${{ matrix.info.os != 'ubuntu-latest' && always() }}
+      - name: Publish Test Results (${{ matrix.info.name }})
+        if: ${{ matrix.info.os == 'macos-latest' && always() }}
+        uses: EnricoMi/publish-unit-test-result-action/macos@v2
+        with:
+          check_name: Unit Test Results (${{ matrix.info.name }})
+          files: |
+            ./out/TestResults/Pester.xml
+
+      - name: Publish Test Results (${{ matrix.info.name }})
+        if: ${{ matrix.info.os == 'windows-latest' && always() }}
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
         with:
           check_name: Unit Test Results (${{ matrix.info.name }})
           files: |
