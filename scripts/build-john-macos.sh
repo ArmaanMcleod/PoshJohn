@@ -71,6 +71,7 @@ echo "Building John the Ripper..."
 make -sj"$(sysctl -n hw.ncpu)"
 
 echo "Ensuring all binaries are executable..."
+ls -l $JOHN_RUN_DIR
 chmod +x $JOHN_RUN_DIR/*
 
 echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
