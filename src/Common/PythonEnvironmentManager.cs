@@ -67,22 +67,22 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
 
         _cmdlet?.WriteVerbose($"Installing {packageName} package...");
 
-        var pipPackageCheckResult = _processRunner.RunCommand(CommandType.VenvPython, $"-m pip show {packageName}", logOutput: false, failOnStderr: true);
-        if (pipPackageCheckResult.Success)
+        var packageCheckResult = _processRunner.RunCommand(CommandType.VenvPython, $"-m pip show {packageName}", logOutput: false, failOnStderr: true);
+        if (packageCheckResult.Success)
         {
             _cmdlet?.WriteVerbose($"{packageName} is already installed");
             return;
         }
 
-        var pipPackageInstallResult = _processRunner.RunCommand(
+        var packageInstallResult = _processRunner.RunCommand(
             CommandType.VenvPython,
             $"-m pip install {packageName}",
             logOutput: true,
             failOnStderr: true);
 
-        if (!pipPackageInstallResult.Success)
+        if (!packageInstallResult.Success)
         {
-            throw new InvalidOperationException($"Failed to install {packageName}: {pipPackageInstallResult.StandardError}");
+            throw new InvalidOperationException($"Failed to install {packageName}: {packageInstallResult.StandardError}");
         }
 
         _cmdlet?.WriteVerbose($"{packageName} installed successfully");
