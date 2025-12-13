@@ -47,8 +47,10 @@ make -s clean
 echo "Building John the Ripper..."
 make -sj"$(nproc)"
 
+echo "Listing all files under $JOHN_DIR for troubleshooting:"
+ls -lR "$JOHN_DIR"
+
 echo "Ensuring all binaries are executable..."
-ls -l $JOHN_RUN_DIR
 chmod +x $JOHN_RUN_DIR/*
 
 echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
