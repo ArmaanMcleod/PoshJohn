@@ -28,26 +28,29 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
 
     public void CreateVirtualEnvironment()
     {
-        if (Directory.Exists(_fileSystemProvider.VenvDirectoryPath))
+        var venvExists = Directory.Exists(_fileSystemProvider.VenvDirectoryPath);
+        
+        if (venvExists)
         {
             _cmdlet?.WriteVerbose($"Virtual environment already exists at: {_fileSystemProvider.VenvDirectoryPath}");
-            return;
         }
-
-        _cmdlet?.WriteVerbose($"Creating virtual environment at: {_fileSystemProvider.VenvDirectoryPath}");
-
-        var venvCreateResult = _processRunner.RunCommand(
-            CommandType.SystemPython,
-            $"-m venv \"{_fileSystemProvider.VenvDirectoryPath}\"",
-            logOutput: true,
-            failOnStderr: true);
-
-        if (!venvCreateResult.Success)
+        else
         {
-            throw new InvalidOperationException($"Failed to create virtual environment: {venvCreateResult.StandardError}");
-        }
+            _cmdlet?.WriteVerbose($"Creating virtual environment at: {_fileSystemProvider.VenvDirectoryPath}");
 
-        _cmdlet?.WriteVerbose($"Virtual environment created successfully at: {_fileSystemProvider.VenvDirectoryPath}");
+            var venvCreateResult = _processRunner.RunCommand(
+                CommandType.SystemPython,
+                $"-m venv \"{_fileSystemProvider.VenvDirectoryPath}\"",
+                logOutput: true,
+                failOnStderr: true);
+
+            if (!venvCreateResult.Success)
+            {
+                throw new InvalidOperationException($"Failed to create virtual environment: {venvCreateResult.StandardError}");
+            }
+
+            _cmdlet?.WriteVerbose($"Virtual environment created successfully at: {_fileSystemProvider.VenvDirectoryPath}");
+        }
 
         UpgradePip();
     }
