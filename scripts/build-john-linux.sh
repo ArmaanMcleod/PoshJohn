@@ -2,12 +2,6 @@
 
 set -euo pipefail
 
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root (e.g., with sudo)"
-  exit 1
-fi
-
-
 # Check and install required system dependencies
 echo "Checking and installing required system dependencies..."
 REQUIRED_PKGS=(build-essential git libssl-dev zlib1g-dev python3 python3-venv python3-pip wget apt-transport-https software-properties-common)
