@@ -10,10 +10,9 @@ function Set-BinariesExecutable {
 
     foreach ($bin in $binaries) {
         $binPath = Join-Path $runDir $bin
-        
+
         if (Test-Path $binPath -PathType Leaf) {
-            $file = Get-Item $binPath
-            & chmod +x $file.FullName
+            & chmod +x $binPath
         }
     }
 }
