@@ -13,8 +13,46 @@ env:
   BUILD_CONFIGURATION: ${{ fromJSON('["Debug", "Release"]')[github.ref == 'refs/heads/main'] }}
 
 jobs:
-  build:
-    name: build
+
+  build-john:
+    name: Build John Binaries (${{ matrix.osname }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - osname: Windows
+            os: windows-latest
+            build_script: ./scripts/build-john-windows.ps1
+            john_out: john/windows/run
+          - osname: Linux
+            os: ubuntu-latest
+            build_script: ./scripts/build-john-linux.sh
+            john_out: john/linux/run
+          - osname: MacOS
+            os: macos-latest
+            build_script: ./scripts/build-john-macos.sh
+            john_out: john/macos/run
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build John the Ripper
+        shell: ${{ matrix.osname == 'Windows' && 'pwsh' || 'bash' }}
+        run: ${{ matrix.build_script }}
+
+      - name: Upload John Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-${{ matrix.osname }}
+          path: ${{ matrix.john_out }}
+
+  build-module:
+    name: Build PowerShell Module
+    needs:
+      - build-john
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
@@ -24,6 +62,24 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+
+      - name: Download John Binaries (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: john-Windows
+          path: john/windows
+
+      - name: Download John Binaries (Linux)
+        uses: actions/download-artifact@v4
+        with:
+          name: john-Linux
+          path: john/linux
+
+      - name: Download John Binaries (MacOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: john-MacOS
+          path: john/macos
 
       - name: Build and test module
         shell: pwsh
@@ -38,7 +94,7 @@ jobs:
   test:
     name: test
     needs:
-      - build
+      - build-module
     runs-on: ${{ matrix.info.os }}
     permissions:
       checks: write

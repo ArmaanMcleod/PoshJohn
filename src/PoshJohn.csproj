@@ -21,12 +21,16 @@
     <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)"  />
   </ItemGroup>
 
-  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') ">
+  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') and '$(GITHUB_ACTIONS)' != 'true' ">
     <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
   </Target>
 
-  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and !Exists('$(ProjectDir)../john/linux/run') ">
+  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" Exists('/proc/version') and !Exists('$(ProjectDir)../john/linux/run') and '$(GITHUB_ACTIONS)' != 'true' ">
     <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
+  </Target>
+
+  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" Exists('/usr/bin/sw_vers') and !Exists('$(ProjectDir)../john/macos/run') and '$(GITHUB_ACTIONS)' != 'true' ">
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
   </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
