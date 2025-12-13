@@ -8,25 +8,22 @@ function Set-BinariesExecutable {
         [string[]]$binaries = @('john', 'zip2john')
     )
 
-    foreach ($bin in $binaries) {
-        $binPath = Join-Path $runDir $bin
-
-        if (Test-Path $binPath -PathType Leaf) {
-            & chmod +x $binPath
+    if (Test-Path $runDir -PathType Container) {
+        foreach ($bin in $binaries) {
+            $binPath = Join-Path $runDir $bin
+            if (Test-Path $binPath -PathType Leaf) {
+                & chmod +x $binPath
+            }
         }
     }
 }
 
 if ($IsLinux) {
     $runDir = Join-Path $PSScriptRoot 'john/linux/run'
-    if (Test-Path $runDir) {
-        Set-BinariesExecutable -runDir $runDir
-    }
+    Set-BinariesExecutable -runDir $runDir
 }
 
 if ($IsMacOS) {
     $runDir = Join-Path $PSScriptRoot 'john/macos/run'
-    if (Test-Path $runDir) {
-        Set-BinariesExecutable -runDir $runDir
-    }
+    Set-BinariesExecutable -runDir $runDir
 }
