@@ -40,7 +40,13 @@ jobs:
           submodules: true
 
       - name: Build John the Ripper
-        shell: ${{ matrix.osname == 'Windows' && 'pwsh' || 'bash' }}
+        if: matrix.osname == 'Windows'
+        shell: pwsh
+        run: ${{ matrix.build_script }}
+
+      - name: Build John the Ripper
+        if: matrix.osname != 'Windows'
+        shell: bash
         run: ${{ matrix.build_script }}
 
       - name: Upload John Binaries
