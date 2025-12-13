@@ -37,8 +37,18 @@ if [[ ":$PATH:" != *":$BREW_PREFIX/bin:"* ]]; then
 fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
-JOHN_DIR="$(dirname "$0")/../john/macos"
-SRC_DIR="$JOHN_DIR/src"
+
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
+JOHN_DIR="$REPO_PATH/john/macos"
+JOHN_SRC_DIR="$JOHN_DIR/src"
+JOHN_RUN_DIR="$JOHN_DIR/run"
+
+echo "SCRIPT_DIR: $SCRIPT_DIR"
+echo "REPO_PATH: $REPO_PATH"
+echo "JOHN_DIR: $JOHN_DIR"
+echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
+echo "JOHN_RUN_DIR: $JOHN_RUN_DIR"
 
 # 5. Clean up any previous build
 if [ -d "$JOHN_DIR" ]; then
@@ -52,7 +62,7 @@ echo "Cloning John the Ripper into $JOHN_DIR..."
 git clone --depth 1 "$JOHN_REPO" "$JOHN_DIR"
 
 # 7. Build John the Ripper
-cd "$SRC_DIR"
+cd "$JOHN_SRC_DIR"
 echo "Configuring John the Ripper..."
 chmod +x ./configure
 
@@ -69,4 +79,4 @@ make -s clean
 echo "Building John the Ripper..."
 make -sj"$(sysctl -n hw.ncpu)"
 
-echo "John the Ripper build complete. Binaries are in $JOHN_DIR/run"
+echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"

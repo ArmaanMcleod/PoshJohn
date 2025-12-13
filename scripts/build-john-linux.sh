@@ -2,12 +2,6 @@
 
 set -euo pipefail
 
-if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root (e.g., with sudo)"
-  exit 1
-fi
-
-
 # Check and install required system dependencies
 echo "Checking and installing required system dependencies..."
 REQUIRED_PKGS=(build-essential git libssl-dev zlib1g-dev python3 python3-venv python3-pip wget apt-transport-https software-properties-common)
@@ -26,8 +20,18 @@ else
 fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
-JOHN_DIR="$(dirname "$0")/../john/linux"
-SRC_DIR="$JOHN_DIR/src"
+
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
+JOHN_DIR="$REPO_PATH/john/linux"
+JOHN_SRC_DIR="$JOHN_DIR/src"
+JOHN_RUN_DIR="$JOHN_DIR/run"
+
+echo "SCRIPT_DIR: $SCRIPT_DIR"
+echo "REPO_PATH: $REPO_PATH"
+echo "JOHN_DIR: $JOHN_DIR"
+echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
+echo "JOHN_RUN_DIR: $JOHN_RUN_DIR"
 
 # Clean up any previous build
 if [ -d "$JOHN_DIR" ]; then
@@ -41,7 +45,7 @@ echo "Cloning John the Ripper into $JOHN_DIR..."
 git clone --depth 1 "$JOHN_REPO" "$JOHN_DIR"
 
 # Build John the Ripper
-cd "$SRC_DIR"
+cd "$JOHN_SRC_DIR"
 echo "Configuring John the Ripper..."
 chmod +x ./configure
 ./configure
@@ -52,4 +56,5 @@ make -s clean
 echo "Building John the Ripper..."
 make -sj"$(nproc)"
 
-echo "John the Ripper build complete. Binaries are in $JOHN_DIR/run"
+echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
+
