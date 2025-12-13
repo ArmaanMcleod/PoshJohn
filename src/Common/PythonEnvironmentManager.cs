@@ -16,12 +16,14 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
     private readonly PSCmdlet _cmdlet;
     private readonly IProcessRunner _processRunner;
     private readonly IFileSystemProvider _fileSystemProvider;
+    private bool _pipUpgraded;
 
     public PythonEnvironmentManager(PSCmdlet cmdlet, IProcessRunner runner, IFileSystemProvider fileSystemProvider)
     {
         _cmdlet = cmdlet;
         _processRunner = runner;
         _fileSystemProvider = fileSystemProvider;
+        _pipUpgraded = false;
     }
 
     public void CreateVirtualEnvironment()
@@ -47,6 +49,16 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
 
         _cmdlet?.WriteVerbose($"Virtual environment created successfully at: {_fileSystemProvider.VenvDirectoryPath}");
 
+        UpgradePip();
+    }
+
+    private void UpgradePip()
+    {
+        if (_pipUpgraded)
+        {
+            return;
+        }
+
         _cmdlet?.WriteVerbose("Upgrading pip in the virtual environment...");
 
         var pipUpgradeResult = _processRunner.RunCommand(
@@ -61,10 +73,13 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
         }
 
         _cmdlet?.WriteVerbose("pip upgraded successfully");
+        _pipUpgraded = true;
     }
 
     public void InstallPackage(string packageName)
     {
+        UpgradePip();
+
         _cmdlet?.WriteVerbose($"Installing {packageName} package...");
 
         var packageCheckResult = _processRunner.RunCommand(CommandType.VenvPython, $"-m pip show {packageName}", logOutput: false, failOnStderr: true);
