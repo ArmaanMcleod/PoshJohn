@@ -46,6 +46,9 @@ echo "Configuring John the Ripper..."
 chmod +x ./configure
 ./configure
 
+echo "Cleaning previous builds..."
+make -s clean
+
 echo "Building John the Ripper..."
 make -sj"$(nproc)"
 
