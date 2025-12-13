@@ -21,7 +21,7 @@ fi
 
 JOHN_REPO="https://github.com/openwall/john.git"
 
-if [[ -n "$GITHUB_WORKSPACE" ]]; then
+if [[ -n "${GITHUB_WORKSPACE:-}" ]]; then
   REPO_PATH="$GITHUB_WORKSPACE"
 else
   SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
