@@ -18,10 +18,16 @@ namespace PoshJohn.Commands;
 [OutputType(typeof(PasswordCrackResult))]
 public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 {
+    #region Parameter Sets
+
     private const string IncrementalWithInputObjectParameterSet = "IncrementalWithInputObject";
     private const string IncrementalWithInputPathParameterSet = "IncrementalWithInputPath";
     private const string WordListWithInputObjectParameterSet = "WordListWithInputObject";
     private const string WordListWithInputPathParameterSet = "WordListWithInputPath";
+
+    #endregion Parameter Sets
+
+    #region Parameters
 
     /// <summary>
     /// The hash object to be cracked. Accepts pipeline input from previous commands.
@@ -72,6 +78,10 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
     [Parameter(Mandatory = false)]
     public string UnlockedFileDirectoryPath { get; set; }
 
+    #endregion Parameters
+
+    #region Private Members
+
     private IProcessRunner _processRunner;
 
     private IFileSystemProvider _fileSystemProvider;
@@ -100,6 +110,13 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
     private const string NoPasswordHashesLeftToCrackMessage = "No password hashes left to crack";
 
+    #endregion Private Members
+
+    #region Protected Methods
+
+    /// <summary>
+    ///  Initializes the cmdlet, setting up necessary components.
+    /// </summary>
     protected override void BeginProcessing()
     {
         try
@@ -139,6 +156,9 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
         }
     }
 
+    /// <summary>
+    /// Processes the record, performing the password cracking.
+    /// </summary>
     protected override void ProcessRecord()
     {
         if (!_initialized)
@@ -214,6 +234,20 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
         }
     }
 
+    #endregion Protected Methods
+
+    #region Private Methods
+
+    /// <summary>
+    /// Parses a line from John the Ripper output to extract cracked password information.
+    /// </summary>
+    /// <param name="line">The line of output from John the Ripper to parse.</param>
+    /// <returns>
+    /// A tuple containing:
+    ///   Success (bool): True if a password was successfully parsed.
+    ///   Password (string): The cracked password, or null if not found.
+    ///   Label (string): The label or file identifier associated with the password, or null if not found.
+    /// </returns>
     private static (bool Success, string Password, string Label) ParseCrackedPasswordLine(string line)
     {
         var base64Match = _base64CrackedPasswordLineRegex.Match(line);
@@ -231,6 +265,11 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
         return (false, null, null);
     }
 
+    /// <summary>
+    /// Parses the output from John the Ripper to create a summary of the password cracking results.
+    /// </summary>
+    /// <param name="output">The raw output string from John the Ripper.</param>
+    /// <returns>A PasswordCrackSummary object containing parsed information.</returns>
     private PasswordCrackSummary ParseJohnOutputToSummary(string output)
     {
         var result = new PasswordCrackSummary
@@ -339,4 +378,6 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
         return result;
     }
+
+    #endregion Private Methods
 }
