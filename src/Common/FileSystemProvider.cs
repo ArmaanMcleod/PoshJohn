@@ -10,27 +10,89 @@ using PoshJohn.Models;
 
 namespace PoshJohn.Common
 {
+    /// <summary>
+    /// Provides an abstraction for file system operations and John the Ripper resource management.
+    /// </summary>
     internal interface IFileSystemProvider
     {
+        /// <summary>
+        /// Deletes and refreshes the John the Ripper pot file.
+        /// </summary>
         void RefreshPotFile();
 
+        /// <summary>
+        /// Gets the path to the John the Ripper pot file.
+        /// </summary>
         string PotPath { get; }
+
+        /// <summary>
+        /// Gets the path to the pdf2john Python script.
+        /// </summary>
         string Pdf2JohnPythonScriptPath { get; }
+
+        /// <summary>
+        /// Gets the path to the zip2john executable.
+        /// </summary>
         string Zip2JohnExePath { get; }
+
+        /// <summary>
+        /// Gets the path to the Python executable in the virtual environment.
+        /// </summary>
         string VenvPythonExePath { get; }
+
+        /// <summary>
+        /// Gets the path to the system Python executable.
+        /// </summary>
         string SystemPythonExePath { get; }
+
+        /// <summary>
+        /// Gets the path to the virtual environment directory.
+        /// </summary>
         string VenvDirectoryPath { get; }
+
+        /// <summary>
+        /// Gets the path to the John the Ripper executable.
+        /// </summary>
         string JohnExePath { get; }
+
+        /// <summary>
+        /// Gets the path to the file to be cracked.
+        /// </summary>
         string FileToCrackPath { get; }
+
+        /// <summary>
+        /// Gets the file format type of the file to be cracked.
+        /// </summary>
         FileFormatType FileToCrackFileFormat { get; }
+
+        /// <summary>
+        /// Gets or sets the path to the hash file.
+        /// </summary>
         string HashFilePath { get; set; }
+
+        /// <summary>
+        /// Gets the dictionary of loaded pot file hash-password pairs.
+        /// </summary>
         Dictionary<string, string> LoadedPotHashPasswords { get; }
+
+        /// <summary>
+        /// Gets the dictionary of loaded input hash entries by file format.
+        /// </summary>
         Dictionary<FileFormatType, Dictionary<string, string>> LoadedInputHashEntries { get; }
+
+        /// <summary>
+        /// Gets the dictionary mapping hash labels to file paths.
+        /// </summary>
         Dictionary<string, string> LabelToFilePaths { get; }
     }
 
+    /// <summary>
+    /// Implements IFileSystemProvider for managing John the Ripper resources, hash files, and pot files.
+    /// </summary>
     internal class FileSystemProvider : IFileSystemProvider
     {
+        #region Private Members
+
         private const string JohnDirName = "john";
         private const string JohnExeBaseName = "john";
         private const string JohnPotFileName = "john.pot";
@@ -53,22 +115,26 @@ namespace PoshJohn.Common
         private const string UnixOSPlatformName = "linux";
         private const string MacOSPlatformName = "macos";
 
-        private string _potPath;
-        private PSCmdlet _cmdlet;
-        private string _fileToCrackPath;
+        private readonly string _potPath;
+        private readonly PSCmdlet _cmdlet;
+        private readonly string _fileToCrackPath;
         private string _hashFilePath;
-        private string _appDataDirectory;
-        private string _packageAssemblyDirectory;
-        private string _pdf2JohnPythonScriptPath;
-        private string _venvDirectoryPath;
-        private string _venvPythonExePath;
-        private string _systemPythonExePath;
-        private string _johnExecutablePath;
-        private string _zip2JohnExecutablePath;
+        private readonly string _appDataDirectory;
+        private readonly string _packageAssemblyDirectory;
+        private readonly string _pdf2JohnPythonScriptPath;
+        private readonly string _venvDirectoryPath;
+        private readonly string _venvPythonExePath;
+        private readonly string _systemPythonExePath;
+        private readonly string _johnExecutablePath;
+        private readonly string _zip2JohnExecutablePath;
         private readonly Dictionary<FileFormatType, Dictionary<string, string>> _loadedInputHashEntries = new();
         private readonly Dictionary<string, string> _loadedPotHashPasswords = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _labelToFilePaths = new(StringComparer.OrdinalIgnoreCase);
-        private FileFormatType _fileToCrackFileFormat;
+        private readonly FileFormatType _fileToCrackFileFormat;
+
+        #endregion Private Members
+
+        #region Public Members
 
         public string PotPath => _potPath;
         public string Pdf2JohnPythonScriptPath => _pdf2JohnPythonScriptPath;
@@ -92,6 +158,9 @@ namespace PoshJohn.Common
         public Dictionary<FileFormatType, Dictionary<string, string>> LoadedInputHashEntries => _loadedInputHashEntries;
         public Dictionary<string, string> LabelToFilePaths => _labelToFilePaths;
 
+        /// <summary>
+        /// Initializes a new instance of the FileSystemProvider class with default settings.
+        /// </summary>
         public FileSystemProvider()
         {
             _appDataDirectory = Path.Combine(
@@ -108,11 +177,19 @@ namespace PoshJohn.Common
             _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, Pdf2JohnPythonScriptName);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the FileSystemProvider class with a PowerShell cmdlet context.
+        /// </summary>
+        /// <param name="cmdlet">The PowerShell cmdlet instance.</param>
         public FileSystemProvider(PSCmdlet cmdlet) : this()
         {
             _cmdlet = cmdlet;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the FileSystemProvider class for hash export operations.
+        /// </summary>
+        /// <param name="config">The export hash configuration.</param>
         public FileSystemProvider(ExportHashConfig config) : this(config.Cmdlet)
         {
             _fileToCrackPath = config.FileToCrackPath;
@@ -120,6 +197,10 @@ namespace PoshJohn.Common
             _hashFilePath = config.HashFilePath;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the FileSystemProvider class for password cracking operations.
+        /// </summary>
+        /// <param name="config">The password crack configuration.</param>
         public FileSystemProvider(PasswordCrackConfig config) : this(config.Cmdlet)
         {
             _hashFilePath = config.HashFilePath;
@@ -133,7 +214,38 @@ namespace PoshJohn.Common
             ParseHashEntries(_hashFilePath);
         }
 
-        private string DetectOSPlatform()
+        /// <inheritdoc/>
+        public void RefreshPotFile()
+        {
+            if (!File.Exists(_potPath))
+            {
+                _cmdlet?.WriteVerbose("Pot file does not exist; no need to refresh.");
+                return;
+            }
+
+            _cmdlet?.WriteWarning($"Refreshing pot file: {_potPath}");
+
+            try
+            {
+                File.Delete(_potPath);
+                _cmdlet?.WriteVerbose("Pot file refreshed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _cmdlet?.WriteWarning($"Failed to refresh pot file: {ex.Message}");
+            }
+        }
+
+        #endregion Public Members
+
+        #region Private Methods
+
+        /// <summary>
+        /// Detects the current operating system platform as a string.
+        /// </summary>
+        /// <returns>The OS platform name (windows, linux, or macos).</returns>
+        /// <exception cref="PlatformNotSupportedException">Thrown if the OS is not supported.</exception>
+        private static string DetectOSPlatform()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -153,9 +265,20 @@ namespace PoshJohn.Common
             }
         }
 
+        /// <summary>
+        /// Combines the app data directory with additional subpaths.
+        /// </summary>
+        /// <param name="paths">Subpaths to combine.</param>
+        /// <returns>The combined path.</returns>
         private string GetAppDataSubPath(params string[] paths)
             => Path.Combine(_appDataDirectory, Path.Combine(paths));
 
+        /// <summary>
+        /// Gets the full path to a resource in the package assembly directory.
+        /// </summary>
+        /// <param name="paths">Subpaths to combine.</param>
+        /// <returns>The full resource path.</returns>
+        /// <exception cref="FileNotFoundException">Thrown if the resource is not found.</exception>
         private string GetPackageAssemblyResourcePath(params string[] paths)
         {
             string subPath = Path.Combine(paths);
@@ -169,6 +292,11 @@ namespace PoshJohn.Common
             return resourcePath;
         }
 
+        /// <summary>
+        /// Finds the path to a bundled executable for the current OS.
+        /// </summary>
+        /// <param name="baseName">The base name of the executable.</param>
+        /// <returns>The full path to the executable.</returns>
         private string FindBundledExePath(string baseName)
         {
             string exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -178,6 +306,11 @@ namespace PoshJohn.Common
             return GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, exeName);
         }
 
+        /// <summary>
+        /// Gets the path to the Python executable in a virtual environment.
+        /// </summary>
+        /// <param name="venvPath">The virtual environment path.</param>
+        /// <returns>The full path to the Python executable.</returns>
         private static string GetVenvPythonExePath(string venvPath)
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -185,6 +318,11 @@ namespace PoshJohn.Common
                 : Path.Combine(venvPath, UnixVenvBinFolder, UnixPythonExe);
         }
 
+        /// <summary>
+        /// Detects the system Python executable path.
+        /// </summary>
+        /// <returns>The path to the system Python executable.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if Python is not found.</exception>
         private static string DetectSystemPythonExePath()
         {
             string systemPythonExePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -198,6 +336,11 @@ namespace PoshJohn.Common
 
             return systemPythonExePath;
         }
+        /// <summary>
+        /// Finds a file in the system PATH.
+        /// </summary>
+        /// <param name="fileName">The file name to search for.</param>
+        /// <returns>The full path if found; otherwise, null.</returns>
         private static string FindInPath(string fileName)
         {
             var paths = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? Array.Empty<string>();
@@ -219,6 +362,10 @@ namespace PoshJohn.Common
             return null;
         }
 
+        /// <summary>
+        /// Parses the John the Ripper pot file and loads hash-password pairs.
+        /// </summary>
+        /// <param name="filePath">The path to the pot file.</param>
         private void ParseKeyValuePotFile(string filePath)
         {
             if (!File.Exists(filePath))
@@ -244,6 +391,11 @@ namespace PoshJohn.Common
             }
         }
 
+        /// <summary>
+        /// Parses the hash file and loads label-hash and file path mappings.
+        /// </summary>
+        /// <param name="filePath">The path to the hash file.</param>
+        /// <exception cref="InvalidDataException">Thrown if the hash file format is invalid.</exception>
         private void ParseHashEntries(string filePath)
         {
             if (!File.Exists(filePath))
@@ -315,27 +467,11 @@ namespace PoshJohn.Common
             }
         }
 
-        public void RefreshPotFile()
-        {
-            if (!File.Exists(_potPath))
-            {
-                _cmdlet?.WriteVerbose("Pot file does not exist; no need to refresh.");
-                return;
-            }
-
-            _cmdlet?.WriteWarning($"Refreshing pot file: {_potPath}");
-
-            try
-            {
-                File.Delete(_potPath);
-                _cmdlet?.WriteVerbose("Pot file refreshed successfully.");
-            }
-            catch (Exception ex)
-            {
-                _cmdlet?.WriteWarning($"Failed to refresh pot file: {ex.Message}");
-            }
-        }
-
+        /// <summary>
+        /// Detects the file format of the file to crack based on its extension.
+        /// </summary>
+        /// <returns>The detected file format type.</returns>
+        /// <exception cref="InvalidDataException">Thrown if the file format is not supported.</exception>
         private FileFormatType DetectFileToCrackFormat()
         {
             var extension = Path.GetExtension(_fileToCrackPath).ToLowerInvariant();
@@ -346,5 +482,7 @@ namespace PoshJohn.Common
                 _ => throw new InvalidDataException($"Unsupported file format: {extension}"),
             };
         }
+
+        #endregion Private Methods
     }
 }

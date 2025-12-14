@@ -5,18 +5,41 @@ using PoshJohn.Enums;
 
 namespace PoshJohn.Common;
 
+/// <summary>
+/// Provides methods for extracting and writing password hashes from files for use with John the Ripper.
+/// </summary>
 internal interface IFileHashProvider
 {
+    /// <summary>
+    /// Extracts a password hash from the target file.
+    /// </summary>
+    /// <returns>The extracted hash string.</returns>
     string ExtractFileHash();
+
+    /// <summary>
+    /// Writes a password hash to the output file.
+    /// Can either append or overwrite based on the append parameter.
+    /// </summary>
+    /// <param name="hash">The hash string to write.</param>
+    /// <param name="append">If true, appends to the file; otherwise, overwrites.</param>
     void WriteFileHash(string hash, bool append);
 }
 
+/// <summary>
+/// Implements IFileHashProvider for extracting and writing password hashes from PDF and ZIP files.
+/// </summary>
 internal sealed class FileHashProvider : IFileHashProvider
 {
     private readonly IFileSystemProvider _fileSystemProvider;
     private readonly IProcessRunner _processRunner;
     private readonly PSCmdlet _cmdlet;
 
+    /// <summary>
+    /// Initializes a new instance of the FileHashProvider class.
+    /// </summary>
+    /// <param name="cmdlet">The PowerShell cmdlet instance.</param>
+    /// <param name="fileSystemProvider">The file system provider.</param>
+    /// <param name="processRunner">The process runner.</param>
     internal FileHashProvider(PSCmdlet cmdlet, IFileSystemProvider fileSystemProvider, IProcessRunner processRunner)
     {
         _fileSystemProvider = fileSystemProvider;
@@ -24,6 +47,7 @@ internal sealed class FileHashProvider : IFileHashProvider
         _cmdlet = cmdlet;
     }
 
+    /// <inheritdoc/>
     public string ExtractFileHash()
     {
         var fileFormat = _fileSystemProvider.FileToCrackFileFormat;
@@ -35,6 +59,7 @@ internal sealed class FileHashProvider : IFileHashProvider
         };
     }
 
+    /// <inheritdoc/>
     public void WriteFileHash(string hash, bool append)
     {
         _cmdlet?.WriteVerbose($"Writing hash to output file: {_fileSystemProvider.HashFilePath}");
@@ -65,6 +90,12 @@ internal sealed class FileHashProvider : IFileHashProvider
         }
     }
 
+    /// <summary>
+    /// Extracts a John the Ripper-compatible hash from a PDF file using the pdf2john script.
+    /// </summary>
+    /// <param name="pdfPath">The path to the PDF file.</param>
+    /// <returns>The extracted hash string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the hash extraction fails.</exception>
     private string ExtractPdfJohnHash(string pdfPath)
     {
         _cmdlet?.WriteVerbose("Extracting PDF John hash");
@@ -83,6 +114,12 @@ internal sealed class FileHashProvider : IFileHashProvider
         return scriptResult.StandardOutput.Trim();
     }
 
+    /// <summary>
+    /// Extracts a John the Ripper-compatible hash from a ZIP file using the zip2john utility.
+    /// </summary>
+    /// <param name="zipPath">The path to the ZIP file.</param>
+    /// <returns>The extracted hash string.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the hash extraction fails.</exception>
     private string ExtractZipJohnHash(string zipPath)
     {
         _cmdlet?.WriteVerbose("Extracting ZIP John hash");

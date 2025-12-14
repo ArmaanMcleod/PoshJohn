@@ -15,15 +15,13 @@ namespace PoshJohn.Commands;
 [OutputType(typeof(HashResult))]
 public sealed class ExportJohnPasswordHashCommand : PSCmdlet
 {
-
-
+    #region Parameters
 
     /// <summary>
     /// Path to the password-protected file.
     /// </summary>
     [Parameter(Mandatory = true)]
     public string InputPath { get; set; }
-
 
     /// <summary>
     /// Path to save the exported hash.
@@ -32,12 +30,15 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
     [Alias("HashPath")]
     public string OutputPath { get; set; }
 
-
     /// <summary>
     /// Append the exported hash to the output file.
     /// </summary>
     [Parameter(Mandatory = false)]
     public SwitchParameter Append { get; set; }
+
+    #endregion Parameters
+
+    #region  Private Members
 
     private const string PyhankoModuleName = "pyhanko";
 
@@ -47,6 +48,13 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
     private FileSystemProvider _fileSystemProvider;
     private IFileHashProvider _fileHashProvider;
 
+    #endregion Private Members
+
+    #region  Protected Methods
+
+    /// <summary>
+    /// Initializes the cmdlet, setting up necessary components.
+    /// </summary>
     protected override void BeginProcessing()
     {
         try
@@ -89,6 +97,9 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
         }
     }
 
+    /// <summary>
+    /// Processes the record, extracting and exporting the password hash.
+    /// </summary>
     protected override void ProcessRecord()
     {
         if (!_initialized)
@@ -124,4 +135,6 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
                 InputPath));
         }
     }
+
+    #endregion Protected Methods
 }

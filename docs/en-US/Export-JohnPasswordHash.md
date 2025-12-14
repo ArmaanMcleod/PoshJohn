@@ -4,7 +4,7 @@ external help file: PoshJohn.dll-Help.xml
 HelpUri: https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Export-JohnPasswordHash.md
 Locale: en-US
 Module Name: PoshJohn
-ms.date: 12/10/2025
+ms.date: 12/14/2025
 PlatyPS schema version: 2024-05-01
 title: Export-JohnPasswordHash
 ---
@@ -13,7 +13,7 @@ title: Export-JohnPasswordHash
 
 ## SYNOPSIS
 
-{{ Fill in the Synopsis }}
+Extracts password hashes from password-protected files for use with John the Ripper.
 
 ## SYNTAX
 
@@ -27,19 +27,33 @@ Export-JohnPasswordHash -InputPath <string> -OutputPath <string> [-Append] [<Com
 
 ## DESCRIPTION
 
-{{ Fill in the Description }}
+`Export-JohnPasswordHash` extracts password hashes from supported password-protected files (PDF and ZIP) and writes them to a file in a format compatible with John the Ripper.
+
+The cmdlet supports appending to existing hash files and outputs a HashResult object for further processing or cracking.
 
 ## EXAMPLES
 
-### Example 1
+### Example 1: Extract hashes from a ZIP file
 
-## PARAMETERS
+```powershell
+Export-JohnPasswordHash -InputPath 'C:\files\protected.zip' -OutputPath 'C:\hashes\hash.txt'
+```
+
+Extracts password hashes from the specified ZIP file and writes them to the text file.
+
+### Example 2: Extract hashes from a PDF file and append to an existing hash file
+
+```powershell
+Export-JohnPasswordHash -InputPath 'C:\files\protected.pdf' -OutputPath 'C:\hashes\hash.txt' -Append
+```
+
+Extracts password hashes from the specified PDF file and appends them to the hash file.
 
 ## PARAMETERS
 
 ### -Append
 
-{{ Fill Append Description }}
+If specified, appends the extracted hashes to the output file instead of overwriting it.
 
 ```yaml
 Type: System.Management.Automation.SwitchParameter
@@ -60,7 +74,9 @@ HelpMessage: ''
 
 ### -InputPath
 
-{{ Fill InputPath Description }}
+Specifies the path to the password-protected file from which to extract password hashes.
+
+Supported file formats include PDF and ZIP supported by John the Ripper.
 
 ```yaml
 Type: System.String
@@ -81,7 +97,9 @@ HelpMessage: ''
 
 ### -OutputPath
 
-{{ Fill OutputPath Description }}
+Specifies the path to the output file where extracted hashes will be written.
+
+The file will be created if it does not exist.
 
 ```yaml
 Type: System.String
@@ -114,12 +132,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ### PoshJohn.Models.HashResult
 
-{{ Fill in the Description }}
+An object containing the extracted password hashes and associated metadata.
 
 ## NOTES
 
-{{ Fill in the Notes }}
+This cmdlet requires John the Ripper and the appropriate 2john utilities to be available on your system. Supported file types depend on the available 2john scripts.
 
 ## RELATED LINKS
 
-- [Online Version]()
+- [Online Version](https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Export-JohnPasswordHash.md)
