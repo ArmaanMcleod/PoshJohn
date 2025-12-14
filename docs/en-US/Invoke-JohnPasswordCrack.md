@@ -71,7 +71,7 @@ Attempts to crack the hashes in text file using John the Ripper's default increm
 Invoke-JohnPasswordCrack -InputPath 'C:\hashes\hash.txt' -WordListPath 'C:\wordlists\rockyou.txt'
 ```
 
-Attempts to crack the hashes in text file using the specified wordlist.
+Attempts to crack the hashes in the text file using the specified wordlist.
 
 ### Example 3: Incremental mode with custom pot file
 
@@ -79,7 +79,7 @@ Attempts to crack the hashes in text file using the specified wordlist.
 Invoke-JohnPasswordCrack -InputPath 'C:\hashes\hash.txt' -IncrementalMode 'ascii' -CustomPotPath 'C:\john\custom.pot'
 ```
 
-Runs an incremental attack using the `'ascii'` mode and stores cracked passwords in custom pot file.
+Runs an incremental attack using the `'ascii'` mode and stores cracked passwords in a custom pot file.
 
 ### Example 4: Crack using HashResult object from pipeline
 
@@ -95,7 +95,7 @@ Extracts hashes and immediately attempts to crack them using a wordlist.
 Invoke-JohnPasswordCrack -InputPath 'C:\hashes\hash.txt' -WordListPath 'C:\wordlists\rockyou.txt' -UnlockedFileDirectoryPath 'C:\unlocked-files'
 ```
 
-Attempts to crack the hashes in text file using the specified wordlist and saves any successfully unlocked files to a directory.
+Attempts to crack the hashes in the text file using the specified wordlist and saves any successfully unlocked files to a directory.
 
 ## PARAMETERS
 

@@ -4,7 +4,7 @@ PoshJohn is a PowerShell wrapper for the popular password-cracking tool [John th
 
 It simplifies the process of using John the Ripper by providing a user-friendly PowerShell interface, making it easier to execute commands and manage password-cracking tasks.
 
-Currently supports Windows, MaxOS, and Linux platforms.
+Currently supports Windows, macOS, and Linux platforms.
 
 Current File Types Supported:
 
@@ -30,7 +30,7 @@ Crack PDF password using a wordlist:
 Export-PoshJohnHash -InputPath "C:\path\to\file.pdf" -OutPath "C:\path\to\hash.txt"
 
 # Crack the generated hash using John the Ripper
-Invoke-PoshJohnPasswordCrack -InputPath "C:\path\to\hash.txt" -WordlistPath "C:\path\to\wordlist.txt"
+Invoke-PoshJohnPasswordCrack -InputPath "C:\path\to\hash.txt" -WordListPath "C:\path\to\wordlist.txt"
 ```
 
 Crack PDF password using brute force:

@@ -115,7 +115,7 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
     #region Protected Methods
 
     /// <summary>
-    ///  Initializes the cmdlet, setting up necessary components.
+    /// Initializes the cmdlet, setting up necessary components.
     /// </summary>
     protected override void BeginProcessing()
     {

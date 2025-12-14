@@ -39,7 +39,7 @@ The cmdlet supports appending to existing hash files and outputs a HashResult ob
 Export-JohnPasswordHash -InputPath 'C:\files\protected.zip' -OutputPath 'C:\hashes\hash.txt'
 ```
 
-Extracts password hashes from the specified ZIP file and writes them to text file.
+Extracts password hashes from the specified ZIP file and writes them to the text file.
 
 ### Example 2: Extract hashes from a PDF file and append to an existing hash file
 
