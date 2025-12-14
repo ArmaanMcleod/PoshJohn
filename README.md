@@ -1,6 +1,8 @@
 # PoshJohn
 
-PoshJohn is a PowerShell wrapper for the popular password-cracking tool [John the Ripper](https://www.openwall.com/john/). It simplifies the process of using John the Ripper by providing a user-friendly PowerShell interface, making it easier to execute commands and manage password-cracking tasks.
+PoshJohn is a PowerShell wrapper for the popular password-cracking tool [John the Ripper](https://www.openwall.com/john/).
+
+It simplifies the process of using John the Ripper by providing a user-friendly PowerShell interface, making it easier to execute commands and manage password-cracking tasks.
 
 Currently supports Windows, MaxOS, and Linux platforms.
 
@@ -55,6 +57,8 @@ Install-Module -Name PoshJohn -Scope AllUsers
 
 ## Contributing
 
-Contributing is quite easy, fork this repo and submit a pull request with the changes. To build this module run `./PowerShellBuildTools/build.ps1` in PowerShell. To test a build run `./PowerShellBuildTools/build.ps1 -Task Test` in PowerShell. This script will ensure all dependencies are installed before running the test suite.
+Contributing is quite easy, fork this repo and submit a pull request with the changes. To build this module run `./PowerShellBuildTools/build.ps1` in PowerShell.
+
+To test a build run `./PowerShellBuildTools/build.ps1 -Task Test` in PowerShell. This script will ensure all dependencies are installed before running the test suite.
 
 Can also build the docker image for linux by running `docker build -f docker/Dockerfile.linux -t john-linux .`.
