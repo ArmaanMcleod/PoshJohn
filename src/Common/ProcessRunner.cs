@@ -7,27 +7,51 @@ using PoshJohn.Models;
 
 namespace PoshJohn.Common;
 
+/// <summary>
+/// Provides an abstraction for running external processes and commands.
+/// </summary>
 internal interface IProcessRunner
 {
+    /// <summary>
+    /// Runs a command of the specified type with arguments and options.
+    /// </summary>
+    /// <param name="type">The type of command to run (e.g., John, Python).</param>
+    /// <param name="arguments">The command-line arguments.</param>
+    /// <param name="logOutput">Whether to log output to the cmdlet's verbose/debug streams.</param>
+    /// <param name="failOnStderr">Whether to treat any stderr output as a failure.</param>
+    /// <returns>The result of the process execution.</returns>
     ProcessResult RunCommand(CommandType type, string arguments, bool logOutput, bool failOnStderr);
 }
 
+/// <summary>
+/// Implements IProcessRunner for running external processes and capturing their output.
+/// </summary>
 internal sealed class ProcessRunner : IProcessRunner
 {
     private readonly PSCmdlet _cmdlet;
     private readonly IFileSystemProvider _fileSystemProvider;
     private readonly string[] _newLineChars = new[] { "\r", "\n" };
 
+    /// <summary>
+    /// Initializes a new instance of the ProcessRunner class with a file system provider.
+    /// </summary>
+    /// <param name="fileSystemProvider">The file system provider for resolving executable paths.</param>
     public ProcessRunner(IFileSystemProvider fileSystemProvider)
     {
         _fileSystemProvider = fileSystemProvider;
     }
 
+    /// <summary>
+    /// Initializes a new instance of the ProcessRunner class with a cmdlet context and file system provider.
+    /// </summary>
+    /// <param name="cmdlet">The PowerShell cmdlet instance for verbose/debug output.</param>
+    /// <param name="fileSystemProvider">The file system provider for resolving executable paths.</param>
     public ProcessRunner(PSCmdlet cmdlet, IFileSystemProvider fileSystemProvider) : this(fileSystemProvider)
     {
         _cmdlet = cmdlet;
     }
 
+    /// <inheritdoc/>
     public ProcessResult RunCommand(CommandType type, string arguments, bool logOutput, bool failOnStderr)
     {
         string exePath = type switch
@@ -41,6 +65,14 @@ internal sealed class ProcessRunner : IProcessRunner
         return RunCommand(exePath, arguments, logOutput, failOnStderr);
     }
 
+    /// <summary>
+    /// Runs a process with the specified command path and arguments, capturing output and error streams.
+    /// </summary>
+    /// <param name="commandPath">The path to the executable to run.</param>
+    /// <param name="arguments">The command-line arguments.</param>
+    /// <param name="logOutput">Whether to log output to the cmdlet's verbose/debug streams.</param>
+    /// <param name="failOnStderr">Whether to treat any stderr output as a failure.</param>
+    /// <returns>The result of the process execution.</returns>
     private ProcessResult RunCommand(string commandPath, string arguments, bool logOutput, bool failOnStderr)
     {
         var startInfo = new ProcessStartInfo

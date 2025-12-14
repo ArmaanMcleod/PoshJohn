@@ -5,12 +5,26 @@ using PoshJohn.Enums;
 
 namespace PoshJohn.Common;
 
+/// <summary>
+/// Provides an abstraction for managing Python virtual environments and packages.
+/// </summary>
 internal interface IPythonEnvironmentManager
 {
+    /// <summary>
+    /// Creates a Python virtual environment if it does not already exist.
+    /// </summary>
     void CreateVirtualEnvironment();
+
+    /// <summary>
+    /// Installs a Python package into the virtual environment.
+    /// </summary>
+    /// <param name="packageName">The name of the package to install.</param>
     void InstallPackage(string packageName);
 }
 
+/// <summary>
+/// Implements IPythonEnvironmentManager for creating and managing Python virtual environments and packages.
+/// </summary>
 internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
 {
     private readonly PSCmdlet _cmdlet;
@@ -18,6 +32,12 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
     private readonly IFileSystemProvider _fileSystemProvider;
     private bool _pipUpgraded;
 
+    /// <summary>
+    /// Initializes a new instance of the PythonEnvironmentManager class.
+    /// </summary>
+    /// <param name="cmdlet">The PowerShell cmdlet instance for verbose output.</param>
+    /// <param name="runner">The process runner for executing Python commands.</param>
+    /// <param name="fileSystemProvider">The file system provider for environment paths.</param>
     public PythonEnvironmentManager(PSCmdlet cmdlet, IProcessRunner runner, IFileSystemProvider fileSystemProvider)
     {
         _cmdlet = cmdlet;
@@ -26,10 +46,11 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
         _pipUpgraded = false;
     }
 
+    /// <inheritdoc/>
     public void CreateVirtualEnvironment()
     {
         var venvExists = Directory.Exists(_fileSystemProvider.VenvDirectoryPath);
-        
+
         if (venvExists)
         {
             _cmdlet?.WriteVerbose($"Virtual environment already exists at: {_fileSystemProvider.VenvDirectoryPath}");
@@ -55,6 +76,10 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
         UpgradePip();
     }
 
+    /// <summary>
+    /// Upgrades pip in the virtual environment if it has not already been upgraded.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if pip upgrade fails.</exception>
     private void UpgradePip()
     {
         if (_pipUpgraded)
@@ -79,6 +104,7 @@ internal sealed class PythonEnvironmentManager : IPythonEnvironmentManager
         _pipUpgraded = true;
     }
 
+    /// <inheritdoc/>
     public void InstallPackage(string packageName)
     {
         UpgradePip();

@@ -8,20 +8,35 @@ using PoshJohn.Models;
 
 namespace PoshJohn.Common;
 
+/// <summary>
+/// Provides an abstraction for unlocking and saving password-protected files.
+/// </summary>
 internal interface IFileUnlockManager
 {
+    /// <summary>
+    /// Unlocks and saves a password-protected file using the provided unlock result.
+    /// </summary>
+    /// <param name="unlockResult">The result containing file, password, and format information.</param>
     void SaveAndUnlockPasswordProtectedFile(PasswordUnlockResult unlockResult);
 }
 
+/// <summary>
+/// Implements IFileUnlockManager for unlocking and saving PDF and ZIP files.
+/// </summary>
 internal sealed class FileUnlockManager : IFileUnlockManager
 {
     private readonly PSCmdlet _cmdlet;
 
+    /// <summary>
+    /// Initializes a new instance of the FileUnlockManager class.
+    /// </summary>
+    /// <param name="cmdlet">The PowerShell cmdlet instance for verbose output.</param>
     public FileUnlockManager(PSCmdlet cmdlet)
     {
         _cmdlet = cmdlet;
     }
 
+    /// <inheritdoc/>
     public void SaveAndUnlockPasswordProtectedFile(PasswordUnlockResult unlockResult)
     {
         switch (unlockResult.FileFormat)
@@ -37,6 +52,11 @@ internal sealed class FileUnlockManager : IFileUnlockManager
         }
     }
 
+    /// <summary>
+    /// Unlocks a password-protected PDF file and saves the unlocked version.
+    /// </summary>
+    /// <param name="unlockResult">The result containing file, password, and output path information.</param>
+    /// <exception cref="PdfException">Thrown if unlocking or saving the PDF fails.</exception>
     private void SaveUnlockedPasswordProtectedPDF(PasswordUnlockResult unlockResult)
     {
         _cmdlet?.WriteVerbose($"Unlocking PDF: {unlockResult.FilePath}");
@@ -61,6 +81,10 @@ internal sealed class FileUnlockManager : IFileUnlockManager
         }
     }
 
+    /// <summary>
+    /// Unlocks a password-protected ZIP file and saves the unlocked version.
+    /// </summary>
+    /// <param name="unlockResult">The result containing file, password, and output path information.</param>
     private void SaveUnlockedPasswordProtectedZIP(PasswordUnlockResult unlockResult)
     {
         _cmdlet?.WriteVerbose($"Unlocking ZIP: {unlockResult.FilePath}");
