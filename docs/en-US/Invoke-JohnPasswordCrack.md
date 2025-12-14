@@ -63,7 +63,7 @@ The cmdlet can also refresh the pot file, specify custom output locations, and s
 Invoke-JohnPasswordCrack -InputPath 'C:\hashes\hash.txt'
 ```
 
-Attempts to crack the hashes in text file using John the Ripper's default incremental mode without specifying `-IncrementalMode`.
+Attempts to crack the hashes in the text file using John the Ripper's default incremental mode without specifying `-IncrementalMode`.
 
 ### Example 2: Crack hashes with a wordlist
 
