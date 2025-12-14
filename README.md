@@ -27,20 +27,20 @@ Crack PDF password using a wordlist:
 
 ```powershell
 # Generate hash from PDF file
-Export-PoshJohnHash -InputPath "C:\path\to\file.pdf" -OutPath "C:\path\to\hash.txt"
+Export-JohnPasswordHash -InputPath "C:\path\to\file.pdf" -OutputPath "C:\path\to\hash.txt"
 
 # Crack the generated hash using John the Ripper
-Invoke-PoshJohnPasswordCrack -InputPath "C:\path\to\hash.txt" -WordListPath "C:\path\to\wordlist.txt"
+Invoke-JohnPasswordCrack -InputPath "C:\path\to\hash.txt" -WordListPath "C:\path\to\wordlist.txt"
 ```
 
 Crack PDF password using brute force:
 
 ```powershell
 # Generate hash from PDF file
-Export-PoshJohnHash -InputPath "C:\path\to\file.pdf" -OutPath "C:\path\to\hash.txt"
+Export-JohnPasswordHash -InputPath "C:\path\to\file.pdf" -OutputPath "C:\path\to\hash.txt"
 
 # Crack the generated hash using John the Ripper with brute force
-Invoke-PoshJohnPasswordCrack -InputPath "C:\path\to\hash.txt"
+Invoke-JohnPasswordCrack -InputPath "C:\path\to\hash.txt"
 ```
 
 ## Installing
