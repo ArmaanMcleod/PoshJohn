@@ -46,9 +46,45 @@ try {
         Write-Warning "pdf2john.py not found in cloned repo at $pdf2johnSrc"
     }
     
+    # Strip unnecessary files to reduce package size
+    Write-Host "Stripping unnecessary files..." -ForegroundColor Cyan
+    $beforeSize = (Get-ChildItem -Path $outputDir -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB
+    
+    $keepPatterns = @(
+        'john.exe', 'zip2john.exe', 'pdf2john.py', 
+        'john.conf', '*.conf', '*.chr',
+        'cygwin1.dll', 'cygcrypto*.dll', 'cygssl*.dll', 'cygz.dll', 
+        'cyggmp*.dll', 'cygcrypt*.dll', 'cyggcc_s*.dll', 'cygbz2*.dll', 'cyggomp*.dll',
+        'cygOpenCL*.dll'
+    )
+    
+    $allFiles = Get-ChildItem -Path $outputDir -File
+    $filesToRemove = $allFiles | Where-Object {
+        $file = $_
+        $keep = $false
+        foreach ($pattern in $keepPatterns) {
+            if ($file.Name -like $pattern) {
+                $keep = $true
+                break
+            }
+        }
+        -not $keep
+    }
+    
+    $removedCount = 0
+    foreach ($file in $filesToRemove) {
+        Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
+        $removedCount++
+    }
+    
+    $afterSize = (Get-ChildItem -Path $outputDir -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB
+    $saved = $beforeSize - $afterSize
+    
+    Write-Host "Removed $removedCount files (saved $([math]::Round($saved, 2)) MB)" -ForegroundColor Green
+    
     $fileCount = (Get-ChildItem $outputDir -Recurse -File).Count
     Write-Host "`nDownload completed successfully!" -ForegroundColor Green
-    Write-Host "Copied $fileCount files to: $outputDir" -ForegroundColor Green
+    Write-Host "Kept $fileCount essential files ($([math]::Round($afterSize, 2)) MB) in: $outputDir" -ForegroundColor Green
     
 }
 catch {
