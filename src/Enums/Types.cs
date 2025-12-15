@@ -9,14 +9,17 @@ internal enum CommandType
     /// John the Ripper executable.
     /// </summary>
     John,
+
     /// <summary>
     /// System Python interpreter.
     /// </summary>
     SystemPython,
+
     /// <summary>
     /// Python interpreter in the virtual environment.
     /// </summary>
     VenvPython,
+
     /// <summary>
     /// zip2john executable for extracting ZIP hashes.
     /// </summary>
@@ -32,6 +35,7 @@ public enum FileFormatType
     /// PKZIP (ZIP archive) file format.
     /// </summary>
     PKZIP,
+
     /// <summary>
     /// PDF file format.
     /// </summary>
