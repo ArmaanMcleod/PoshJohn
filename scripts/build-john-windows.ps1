@@ -49,7 +49,7 @@ try {
     # Strip unnecessary files to reduce package size
     Write-Host "Stripping unnecessary files..." -ForegroundColor Cyan
     $files = Get-ChildItem -Path $outputDir -Recurse -File
-    if ($files.Count -eq 0) {
+    if (-not $files -or $files.Count -eq 0) {
         throw "No files found in $outputDir - download or extraction may have failed"
     }
     $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
@@ -82,7 +82,7 @@ try {
     }
     
     $filesAfter = Get-ChildItem -Path $outputDir -Recurse -File
-    if ($filesAfter.Count -eq 0) {
+    if (-not $filesAfter -or $filesAfter.Count -eq 0) {
         throw "All files were removed from $outputDir - file removal logic may be incorrect"
     }
     $afterSize = ($filesAfter | Measure-Object -Property Length -Sum).Sum / 1MB
