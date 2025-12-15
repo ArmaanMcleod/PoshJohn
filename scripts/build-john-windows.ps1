@@ -52,7 +52,7 @@ try {
     
     $keepPatterns = @(
         'john.exe', 'zip2john.exe', 'pdf2john.py', 
-        'john.conf', '*.conf', '*.chr',
+        '*.conf', '*.chr',
         'cygwin1.dll', 'cygcrypto*.dll', 'cygssl*.dll', 'cygz.dll', 
         'cyggmp*.dll', 'cygcrypt*.dll', 'cyggcc_s*.dll', 'cygbz2*.dll', 'cyggomp*.dll',
         'cygOpenCL*.dll'
