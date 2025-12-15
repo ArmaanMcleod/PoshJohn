@@ -1,5 +1,10 @@
 # PoshJohn
 
+[![GithubActionsWorkflow]][GithubActionsWorkflowYaml]
+[![PoshJohn]][PoshJohnGallery]
+[![PoshJohnDownloads]][PoshJohnGallery]
+[![License]][LicenseBlob]
+
 PoshJohn is a PowerShell wrapper for the popular password-cracking tool [John the Ripper](https://www.openwall.com/john/).
 
 It simplifies the process of using John the Ripper by providing a user-friendly PowerShell interface, making it easier to execute commands and manage password-cracking tasks.
@@ -62,3 +67,12 @@ Contributing is quite easy, fork this repo and submit a pull request with the ch
 To test a build run `./PowerShellBuildTools/build.ps1 -Task Test` in PowerShell. This script will ensure all dependencies are installed before running the test suite.
 
 Can also build the docker image for linux by running `docker build -f docker/Dockerfile.linux -t john-linux .`.
+
+<!-- References -->
+[GithubActionsWorkflow]: https://github.com/ArmaanMcleod/PoshJohn/workflows/Test%20PoshJohn%20Module/badge.svg
+[GithubActionsWorkflowYaml]: https://github.com/ArmaanMcleod/PoshJohn/actions/workflows/ci.yml
+[PoshJohnDownloads]: https://img.shields.io/powershellgallery/dt/PoshJohn
+[PoshJohnGallery]: https://www.powershellgallery.com/packages/PoshJohn/
+[PoshJohn]: https://img.shields.io/powershellgallery/v/PoshJohn?label=PoshJohn
+[License]: https://img.shields.io/badge/license-MIT-blue.svg
+[LicenseBlob]: https://github.com/ArmaanMcleod/PoshJohn/blob/main/LICENSE
