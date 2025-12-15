@@ -56,7 +56,7 @@ make -s clean
 echo "Building John the Ripper..."
 make -sj"$(nproc)"
 
-echo "John the Ripper build complete: $JOHN_RUN_DIR"
+echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
 
 # Strip unnecessary files to reduce package size
 echo "Stripping unnecessary files..."
