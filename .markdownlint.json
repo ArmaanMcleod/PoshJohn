@@ -4,5 +4,6 @@
     "MD040": false,
     "MD013": {
         "line_length": 240
-    }
+    },
+    "MD024": false
 }
