@@ -48,7 +48,7 @@ git clone --depth 1 "$JOHN_REPO" "$JOHN_DIR"
 cd "$JOHN_SRC_DIR"
 echo "Configuring John the Ripper..."
 chmod +x ./configure
-./configure
+./configure --disable-native-tests
 
 echo "Cleaning previous builds..."
 make -s clean

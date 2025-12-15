@@ -71,7 +71,7 @@ chmod +x ./configure
 HOMEBREW_PREFIX="/opt/homebrew"
 GCC_BIN="$HOMEBREW_PREFIX/bin/$(ls $HOMEBREW_PREFIX/bin | grep -E '^gcc-[0-9]+$' | sort -V | tail -n1)"
 
-./configure CC="$GCC_BIN" LDFLAGS="-L$HOMEBREW_PREFIX/lib" CPPFLAGS="-I$HOMEBREW_PREFIX/include"
+./configure CC="$GCC_BIN" LDFLAGS="-L$HOMEBREW_PREFIX/lib" CPPFLAGS="-I$HOMEBREW_PREFIX/include" --disable-native-tests
 
 echo "Cleaning previous builds..."
 make -s clean
