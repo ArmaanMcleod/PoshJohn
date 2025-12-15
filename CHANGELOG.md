@@ -2,8 +2,6 @@
 
 ## Unreleased
 
-## v1.0.0 - 15/12/2025
-
 ### General Cmdlet Updates and Fixes
 
 + Initial version of the `PoshJohn` module (#1).
