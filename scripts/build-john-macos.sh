@@ -87,6 +87,10 @@ cd "$JOHN_RUN_DIR"
 
 # Count before
 BEFORE_COUNT=$(find . -type f | wc -l | tr -d ' ')
+if [ "$BEFORE_COUNT" -eq 0 ]; then
+    echo "Error: No files found in $JOHN_RUN_DIR - build may have failed"
+    exit 1
+fi
 BEFORE_SIZE=$(du -sm . | cut -f1)
 
 # Remove files in root directory only (preserve subdirectories like rules/)
@@ -118,6 +122,10 @@ done
 
 # Count after
 AFTER_COUNT=$(find . -type f | wc -l | tr -d ' ')
+if [ "$AFTER_COUNT" -eq 0 ]; then
+    echo "Error: All files were removed from $JOHN_RUN_DIR - file removal logic may be incorrect"
+    exit 1
+fi
 AFTER_SIZE=$(du -sm . | cut -f1)
 SAVED=$((BEFORE_COUNT - AFTER_COUNT))
 SIZE_SAVED=$((BEFORE_SIZE - AFTER_SIZE))

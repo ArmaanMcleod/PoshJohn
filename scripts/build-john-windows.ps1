@@ -48,7 +48,11 @@ try {
     
     # Strip unnecessary files to reduce package size
     Write-Host "Stripping unnecessary files..." -ForegroundColor Cyan
-    $beforeSize = (Get-ChildItem -Path $outputDir -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB
+    $files = Get-ChildItem -Path $outputDir -Recurse -File
+    if ($files.Count -eq 0) {
+        throw "No files found in $outputDir - download or extraction may have failed"
+    }
+    $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
     
     $keepPatterns = @(
         'john.exe', 'zip2john.exe', 'pdf2john.py', 
@@ -77,7 +81,11 @@ try {
         $removedCount++
     }
     
-    $afterSize = (Get-ChildItem -Path $outputDir -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB
+    $filesAfter = Get-ChildItem -Path $outputDir -Recurse -File
+    if ($filesAfter.Count -eq 0) {
+        throw "All files were removed from $outputDir - file removal logic may be incorrect"
+    }
+    $afterSize = ($filesAfter | Measure-Object -Property Length -Sum).Sum / 1MB
     $saved = $beforeSize - $afterSize
     
     Write-Host "Removed $removedCount files (saved $([math]::Round($saved, 2)) MB)" -ForegroundColor Green
