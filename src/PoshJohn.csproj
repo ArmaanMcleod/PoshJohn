@@ -18,7 +18,7 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)"  />
+    <None Include="../john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)"  />
   </ItemGroup>
 
   <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') and '$(GITHUB_ACTIONS)' != 'true' ">

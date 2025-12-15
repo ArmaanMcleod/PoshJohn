@@ -13,3 +13,4 @@
 
 + Fixed GHA Workflow CI to build and package module correctly (#2).
 + Included up to date documentation in the module package (#3).
++ Stripped unnecessary files from John the Ripper builds to reduce package size (#4).

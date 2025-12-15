@@ -48,7 +48,7 @@ git clone --depth 1 "$JOHN_REPO" "$JOHN_DIR"
 cd "$JOHN_SRC_DIR"
 echo "Configuring John the Ripper..."
 chmod +x ./configure
-./configure
+./configure --disable-native-tests
 
 echo "Cleaning previous builds..."
 make -s clean
@@ -58,3 +58,54 @@ make -sj"$(nproc)"
 
 echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
 
+# Strip unnecessary files to reduce package size
+echo "Stripping unnecessary files..."
+cd "$JOHN_RUN_DIR"
+
+# Count before
+BEFORE_COUNT=$(find . -type f | wc -l)
+if [ "$BEFORE_COUNT" -eq 0 ]; then
+    echo "Error: No files found in $JOHN_RUN_DIR - build may have failed"
+    exit 1
+fi
+BEFORE_SIZE=$(du -sm . | cut -f1)
+
+# Remove files in root directory only (preserve subdirectories like rules/)
+find . -maxdepth 1 -type f | while read -r file; do
+    basename="$(basename "$file")"
+    keep=false
+
+    # Keep specific executables
+    if [[ "$basename" == "john" || "$basename" == "zip2john" ]]; then
+        keep=true
+    # Keep pdf2john.py
+    elif [[ "$basename" == "pdf2john.py" ]]; then
+        keep=true
+    # Keep all .conf files
+    elif [[ "$basename" == *.conf ]]; then
+        keep=true
+    # Keep all .chr files
+    elif [[ "$basename" == *.chr ]]; then
+        keep=true
+    # Keep shared libraries
+    elif [[ "$basename" == libcrypto* || "$basename" == libssl* || "$basename" == libz* || "$basename" == libgmp* ]]; then
+        keep=true
+    fi
+
+    if [ "$keep" = false ]; then
+        rm -f "$file"
+    fi
+done
+
+# Count after
+AFTER_COUNT=$(find . -type f | wc -l)
+if [ "$AFTER_COUNT" -eq 0 ]; then
+    echo "Error: All files were removed from $JOHN_RUN_DIR - file removal logic may be incorrect"
+    exit 1
+fi
+AFTER_SIZE=$(du -sm . | cut -f1)
+SAVED=$((BEFORE_COUNT - AFTER_COUNT))
+SIZE_SAVED=$((BEFORE_SIZE - AFTER_SIZE))
+
+echo "Removed $SAVED files (saved ${SIZE_SAVED}MB)"
+echo "Kept $AFTER_COUNT essential files (${AFTER_SIZE}MB) in $JOHN_RUN_DIR"
