@@ -99,6 +99,18 @@ jobs:
         shell: pwsh
         run: ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Build
 
+      - name: Check package size
+        shell: pwsh
+        run: |
+          $nupkg = Get-Item out/*.nupkg
+          $sizeMB = [math]::Round($nupkg.Length / 1MB, 2)
+          Write-Host "Package size: $sizeMB MB"
+          if ($sizeMB -gt 250) {
+            Write-Error "Package size ($sizeMB MB) exceeds PowerShell Gallery limit of 250 MB"
+            exit 1
+          }
+          Write-Host "Package size is within limits" -ForegroundColor Green
+
       - name: Capture PowerShell Module
         uses: actions/upload-artifact@v4
         with:
