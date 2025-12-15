@@ -1,11 +1,11 @@
 ﻿---
-document-type: cmdlet
-external-help-file: PoshJohn.dll-Help.xml
+document type: cmdlet
+external help file: PoshJohn.dll-Help.xml
 HelpUri: https://github.com/ArmaanMcleod/PoshJohn/blob/main/docs/en-US/Invoke-JohnPasswordCrack.md
 Locale: en-US
-Module-Name: PoshJohn
+Module Name: PoshJohn
 ms.date: 12/14/2025
-PlatyPS-schema-version: 2024-05-01
+PlatyPS schema version: 2024-05-01
 title: Invoke-JohnPasswordCrack
 ---
 
