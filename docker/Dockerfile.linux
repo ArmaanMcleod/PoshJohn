@@ -25,7 +25,7 @@ COPY ./global.json /PoshJohn/global.json
 
 WORKDIR /PoshJohn/scripts
 
-RUN chmod +x ./build-john-linux.sh && dos2unix ./build-john-linux.sh && ./build-john-linux.sh
+RUN chmod +x ./build-john-linux.sh && dos2unix ./build-john-linux.sh && ./build-john-linux.sh > ./build-john-linux.log 2>&1
 
 WORKDIR /PoshJohn/PowerShellBuildTools
 
