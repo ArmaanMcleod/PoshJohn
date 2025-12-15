@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Build and Packaging Improvements
+
++ Add Test workflow, PSGallery and License badges to README.md (#5)
+
 ## v1.0.0 - 15/12/2025
 
 ### General Cmdlet Updates and Fixes
