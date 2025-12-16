@@ -95,7 +95,7 @@ BEFORE_SIZE=$(du -sm . | cut -f1)
 
 # Define what to keep
 KEEP_FILES=("john" "zip2john" "pdf2john.py")
-KEEP_PATTERNS=("*.conf" "*.chr")
+KEEP_PATTERNS=("*.conf" "*.chr" "libcrypto*" "libssl*" "libz*" "libgmp*")
 KEEP_DIRS=("lib" "rules")
 
 # Remove root directory files except essential ones
