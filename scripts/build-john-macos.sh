@@ -93,30 +93,53 @@ if [ "$BEFORE_COUNT" -eq 0 ]; then
 fi
 BEFORE_SIZE=$(du -sm . | cut -f1)
 
-# Remove files in root directory only (preserve subdirectories like rules/)
+# Define what to keep
+KEEP_FILES=("john" "zip2john" "pdf2john.py")
+KEEP_PATTERNS=("*.conf" "*.chr")
+KEEP_DIRS=("lib" "rules")
+
+# Remove root directory files except essential ones
 find . -maxdepth 1 -type f | while read -r file; do
     basename="$(basename "$file")"
     keep=false
 
-    # Keep specific executables
-    if [[ "$basename" == "john" || "$basename" == "zip2john" ]]; then
-        keep=true
-    # Keep pdf2john.py
-    elif [[ "$basename" == "pdf2john.py" ]]; then
-        keep=true
-    # Keep all .conf files
-    elif [[ "$basename" == *.conf ]]; then
-        keep=true
-    # Keep all .chr files
-    elif [[ "$basename" == *.chr ]]; then
-        keep=true
-    # Keep shared libraries
-    elif [[ "$basename" == libcrypto* || "$basename" == libssl* || "$basename" == libz* || "$basename" == libgmp* ]]; then
-        keep=true
+    # Check exact matches
+    for name in "${KEEP_FILES[@]}"; do
+        if [[ "$basename" == "$name" ]]; then
+            keep=true
+            break
+        fi
+    done
+
+    # Check patterns
+    if [ "$keep" = false ]; then
+        for pattern in "${KEEP_PATTERNS[@]}"; do
+            if [[ "$basename" == $pattern ]]; then
+                keep=true
+                break
+            fi
+        done
     fi
 
     if [ "$keep" = false ]; then
         rm -f "$file"
+    fi
+done
+
+# Remove directories not in keep list
+find . -maxdepth 1 -type d ! -name '.' | while read -r dir; do
+    dirname="$(basename "$dir")"
+    keep=false
+
+    for keepdir in "${KEEP_DIRS[@]}"; do
+        if [[ "$dirname" == "$keepdir" ]]; then
+            keep=true
+            break
+        fi
+    done
+
+    if [ "$keep" = false ]; then
+        rm -rf "$dir"
     fi
 done
 

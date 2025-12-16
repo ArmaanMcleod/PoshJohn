@@ -56,6 +56,20 @@ jobs:
             $scriptPath
           fi
 
+      - name: Calculate platform size
+        shell: pwsh
+        run: |
+          $path = "${{github.workspace}}${{ matrix.john_out }}"
+          $sizeMB = [math]::Round((Get-ChildItem $path -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB, 2)
+          Write-Host "${{ matrix.osname }} size: $sizeMB MB"
+          "$sizeMB" | Out-File -FilePath "john-size-${{ matrix.osname }}.txt" -NoNewline
+
+      - name: Upload platform size
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-size-${{ matrix.osname }}
+          path: john-size-${{ matrix.osname }}.txt
+
       - name: Upload John Binaries
         uses: actions/upload-artifact@v4
         with:
@@ -70,6 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
+      pull-requests: write  # Comment on PRs
 
     steps:
       - name: Check out repository
@@ -95,6 +110,12 @@ jobs:
           name: john-MacOS
           path: ${{ github.workspace }}/john/macos/run
 
+      - name: Download platform sizes
+        uses: actions/download-artifact@v4
+        with:
+          pattern: john-size-*
+          path: platform-sizes
+
       - name: Build and test module
         shell: pwsh
         run: ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Build
@@ -110,6 +131,71 @@ jobs:
             exit 1
           }
           Write-Host "Package size is within limits" -ForegroundColor Green
+
+          # Save size for PR comment
+          "PACKAGE_SIZE_MB=$sizeMB" >> $env:GITHUB_ENV
+
+      - name: Comment package size on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sizeMB = process.env.PACKAGE_SIZE_MB;
+            const limit = 250;
+            const percentUsed = ((sizeMB / limit) * 100).toFixed(1);
+
+            // Read platform sizes
+            const fs = require('fs');
+            const windowsSize = fs.readFileSync('platform-sizes/john-size-Windows/john-size-Windows.txt', 'utf8');
+            const linuxSize = fs.readFileSync('platform-sizes/john-size-Linux/john-size-Linux.txt', 'utf8');
+            const macosSize = fs.readFileSync('platform-sizes/john-size-MacOS/john-size-MacOS.txt', 'utf8');
+
+            const body = `## 📦 Package Size Report
+
+            **Size:** ${sizeMB} MB / ${limit} MB (${percentUsed}% of limit)
+
+            ${sizeMB > 240 ? '⚠️ **Warning:** Approaching size limit!' : '✅ Package size is within limits'}
+
+            <details>
+            <summary>Size breakdown by platform</summary>
+
+            | Platform | Size |
+            |----------|------|
+            | Windows  | ${windowsSize} MB |
+            | Linux    | ${linuxSize} MB |
+            | macOS    | ${macosSize} MB |
+
+            </details>`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('📦 Package Size Report')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
 
       - name: Capture PowerShell Module
         uses: actions/upload-artifact@v4

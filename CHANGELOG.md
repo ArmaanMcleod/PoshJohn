@@ -5,6 +5,7 @@
 ### Build and Packaging Improvements
 
 + Add Test workflow, PSGallery and License badges to README.md (#5)
++ Reduce package size by only keeping necessary files in John the Ripper builds (#21).
 
 ## v1.0.0 - 15/12/2025
 
