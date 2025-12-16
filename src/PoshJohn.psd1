@@ -23,6 +23,4 @@
             ReleaseNotes = 'See https://github.com/ArmaanMcleod/PoshJohn/blob/main/CHANGELOG.md'
         }
     }
-
 }
-
