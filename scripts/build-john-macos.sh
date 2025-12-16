@@ -93,21 +93,55 @@ if [ "$BEFORE_COUNT" -eq 0 ]; then
 fi
 BEFORE_SIZE=$(du -sm . | cut -f1)
 
-# Remove files in root directory only (preserve subdirectories like lib/ and rules/)
+# Define what to keep
+KEEP_FILES=("john" "zip2john" "pdf2john.py")
+KEEP_PATTERNS=("*.conf" "*.chr")
+KEEP_DIRS=("lib" "rules")
+
+# Remove root directory files except essential ones
 find . -maxdepth 1 -type f | while read -r file; do
     basename="$(basename "$file")"
+    keep=false
 
-    # Keep essential files
-    if [[ "$basename" == "john" || "$basename" == "zip2john" || "$basename" == "pdf2john.py" || "$basename" == *.conf || "$basename" == *.chr ]]; then
-        continue
+    # Check exact matches
+    for name in "${KEEP_FILES[@]}"; do
+        if [[ "$basename" == "$name" ]]; then
+            keep=true
+            break
+        fi
+    done
+
+    # Check patterns
+    if [ "$keep" = false ]; then
+        for pattern in "${KEEP_PATTERNS[@]}"; do
+            if [[ "$basename" == $pattern ]]; then
+                keep=true
+                break
+            fi
+        done
     fi
 
-    rm -f "$file"
+    if [ "$keep" = false ]; then
+        rm -f "$file"
+    fi
 done
 
-# Remove unnecessary directories (keep lib and rules)
-echo "Removing unnecessary directories..."
-rm -rf ztex opencl dns protobuf ccl_chrome_indexeddb bip-0039
+# Remove directories not in keep list
+find . -maxdepth 1 -type d ! -name '.' | while read -r dir; do
+    dirname="$(basename "$dir")"
+    keep=false
+
+    for keepdir in "${KEEP_DIRS[@]}"; do
+        if [[ "$dirname" == "$keepdir" ]]; then
+            keep=true
+            break
+        fi
+    done
+
+    if [ "$keep" = false ]; then
+        rm -rf "$dir"
+    fi
+done
 
 # Count after
 AFTER_COUNT=$(find . -type f | wc -l | tr -d ' ')

@@ -54,31 +54,35 @@ try {
     }
     $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
     
-    $keepPatterns = @(
-        'john.exe', 'zip2john.exe', 'pdf2john.py', 
-        '*.conf', '*.chr',
-        'cygwin1.dll', 'cygcrypto*.dll', 'cygssl*.dll', 'cygz.dll', 
-        'cyggmp*.dll', 'cygcrypt*.dll', 'cyggcc_s*.dll', 'cygbz2*.dll', 'cyggomp*.dll',
-        'cygOpenCL*.dll'
-    )
+    # Define what to keep
+    $keepFilePatterns = @('john.exe', 'zip2john.exe', 'pdf2john.py', '*.conf', '*.chr', '*.dll')
+    $keepDirs = @('lib', 'rules')
     
-    $allFiles = Get-ChildItem -Path $outputDir -File
-    $filesToRemove = $allFiles | Where-Object {
-        $file = $_
+    $removedCount = 0
+    
+    # Remove root directory files except essential ones
+    $rootFiles = Get-ChildItem -Path $outputDir -File
+    foreach ($file in $rootFiles) {
         $keep = $false
-        foreach ($pattern in $keepPatterns) {
+        foreach ($pattern in $keepFilePatterns) {
             if ($file.Name -like $pattern) {
                 $keep = $true
                 break
             }
         }
-        -not $keep
+        if (-not $keep) {
+            Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
+            $removedCount++
+        }
     }
     
-    $removedCount = 0
-    foreach ($file in $filesToRemove) {
-        Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
-        $removedCount++
+    # Remove directories not in keep list
+    $allDirs = Get-ChildItem -Path $outputDir -Directory
+    foreach ($dir in $allDirs) {
+        if ($dir.Name -notin $keepDirs) {
+            $removedCount += (Get-ChildItem $dir.FullName -Recurse -File).Count
+            Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
     
     $filesAfter = Get-ChildItem -Path $outputDir -Recurse -File
