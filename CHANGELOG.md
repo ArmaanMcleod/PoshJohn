@@ -2,10 +2,12 @@
 
 ## Unreleased
 
+## v1.0.1 - 16/12/2025
+
 ### Build and Packaging Improvements
 
 + Add Test workflow, PSGallery and License badges to README.md (#5)
-+ Reduce package size by only keeping necessary files in John the Ripper builds (#21).
++ Reduce package size from 235 MB to 219 MB (#21).
 
 ## v1.0.0 - 15/12/2025
 
