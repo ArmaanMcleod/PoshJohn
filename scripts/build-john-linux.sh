@@ -70,32 +70,21 @@ if [ "$BEFORE_COUNT" -eq 0 ]; then
 fi
 BEFORE_SIZE=$(du -sm . | cut -f1)
 
-# Remove files in root directory only (preserve subdirectories like rules/)
+# Remove files in root directory only (preserve subdirectories like lib/ and rules/)
 find . -maxdepth 1 -type f | while read -r file; do
     basename="$(basename "$file")"
-    keep=false
 
-    # Keep specific executables
-    if [[ "$basename" == "john" || "$basename" == "zip2john" ]]; then
-        keep=true
-    # Keep pdf2john.py
-    elif [[ "$basename" == "pdf2john.py" ]]; then
-        keep=true
-    # Keep all .conf files
-    elif [[ "$basename" == *.conf ]]; then
-        keep=true
-    # Keep all .chr files
-    elif [[ "$basename" == *.chr ]]; then
-        keep=true
-    # Keep shared libraries
-    elif [[ "$basename" == libcrypto* || "$basename" == libssl* || "$basename" == libz* || "$basename" == libgmp* ]]; then
-        keep=true
+    # Keep essential files
+    if [[ "$basename" == "john" || "$basename" == "zip2john" || "$basename" == "pdf2john.py" || "$basename" == *.conf || "$basename" == *.chr ]]; then
+        continue
     fi
 
-    if [ "$keep" = false ]; then
-        rm -f "$file"
-    fi
+    rm -f "$file"
 done
+
+# Remove unnecessary directories (keep lib and rules)
+echo "Removing unnecessary directories..."
+rm -rf ztex opencl dns protobuf ccl_chrome_indexeddb bip-0039
 
 # Count after
 AFTER_COUNT=$(find . -type f | wc -l)
