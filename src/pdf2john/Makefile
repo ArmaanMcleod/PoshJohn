@@ -16,10 +16,20 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Shared library builds
+libpdfhash.so: $(SRCS)
+	$(CC) -fPIC -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
+libpdfhash.dylib: $(SRCS)
+	$(CC) -fPIC -dynamiclib -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
+pdfhash.dll: $(SRCS)
+	$(CC) -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
 run: $(TARGET)
 	./$(TARGET) sample.pdf
 
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -f $(TARGET) $(OBJS) libpdfhash.so libpdfhash.dylib pdfhash.dll
 
 .PHONY: all clean run

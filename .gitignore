@@ -6,3 +6,6 @@ john/
 mupdf/
 *.o
 *.exe
+*.dll
+*.so
+*.dylib
