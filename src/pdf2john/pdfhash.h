@@ -5,6 +5,9 @@
 #ifdef PDFHASH_EXPORTS
 // When building the DLL
 #define PDFHASH_API __declspec(dllexport)
+#elif defined(PDFHASH_STATIC)
+// When building/using static lib or exe
+#define PDFHASH_API
 #else
 // When consuming the DLL
 #define PDFHASH_API __declspec(dllimport)

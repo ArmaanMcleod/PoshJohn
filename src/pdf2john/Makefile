@@ -10,11 +10,12 @@ OBJS    = $(SRCS:.c=.o)
 
 all: $(TARGET)
 
+# Executable build (standalone, no DLL import/export)
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -DPDFHASH_STATIC -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -DPDFHASH_STATIC -c $< -o $@
 
 # Shared library builds
 libpdfhash.so: $(SRCS)
@@ -26,10 +27,5 @@ libpdfhash.dylib: $(SRCS)
 pdfhash.dll: $(SRCS)
 	$(CC) -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
-run: $(TARGET)
-	./$(TARGET) sample.pdf
-
 clean:
 	rm -f $(TARGET) $(OBJS) libpdfhash.so libpdfhash.dylib pdfhash.dll
-
-.PHONY: all clean run
