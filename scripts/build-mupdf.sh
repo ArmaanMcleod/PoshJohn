@@ -27,5 +27,5 @@ git clone --depth 1 "$MUPDF_REPO" "$MUPDF_REPO_DIR"
 cd "$MUPDF_REPO_DIR"
 echo "Building MuPDF..."
 git submodule update --init --depth 1
-make build=release XCFLAGS="-msse4.1"
+make -j$(nproc) build=release XCFLAGS="-msse4.1" libs
 echo "MuPDF build completed."
