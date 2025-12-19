@@ -7,10 +7,12 @@ MUPDF_REPO="https://github.com/ArtifexSoftware/mupdf.git"
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
 MUPDF_REPO_DIR="$REPO_PATH/mupdf"
+PDF2JOHN_DIR="$REPO_PATH/src/pdf2john"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
 echo "MUPDF_REPO_DIR: $MUPDF_REPO_DIR"
+echo "PDF2JOHN_DIR: $PDF2JOHN_DIR"
 
 # Clone MuPDF only if directory does not exist
 if [ ! -d "$MUPDF_REPO_DIR" ]; then
@@ -26,3 +28,8 @@ echo "Building MuPDF..."
 git submodule update --init --depth 1
 make -j$(nproc) build=release XCFLAGS="-msse4.1" libs
 echo "MuPDF build completed."
+
+cd "$PDF2JOHN_DIR"
+echo "Building pdf2john..."
+make -j$(nproc) libpdfhash.so
+echo "pdf2john build completed."

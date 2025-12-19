@@ -18,27 +18,37 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)"  />
+    <None Include="../john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="./pdf2john/*.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="./pdf2john/*.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="./pdf2john/*.dylib" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!-- Windows -->
   <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
+    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
   </Target>
 
-  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" Exists('/proc/version') and !Exists('$(ProjectDir)../john/linux/run') and '$(GITHUB_ACTIONS)' != 'true' ">
+  <Target Name="PreBuildPDF2JohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-pdf2john-windows.ps1&quot;" />
+  </Target>
+
+  <!-- Linux -->
+  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/proc/version') and !Exists('$(ProjectDir)../john/linux/run') and '$(GITHUB_ACTIONS)' != 'true' ">
     <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
   </Target>
 
-  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" Exists('/usr/bin/sw_vers') and !Exists('$(ProjectDir)../john/macos/run') and '$(GITHUB_ACTIONS)' != 'true' ">
+  <Target Name="PreBuildPDF2JohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/proc/version') and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux-macos.sh" />
+  </Target>
+
+  <!-- macOS -->
+  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/usr/bin/sw_vers') and !Exists('$(ProjectDir)../john/macos/run') and '$(GITHUB_ACTIONS)' != 'true' ">
     <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
   </Target>
 
-  <Target Name="PreBuildMuPDFWindows" BeforeTargets="Build" Condition="'$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../mupdf') and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-mupdf-windows.ps1&quot;" />
-  </Target>
-
-  <Target Name="PreBuildMuPDFLinuxMacOS" BeforeTargets="Build" Condition="'$(OS)' != 'Windows_NT' and !Exists('$(ProjectDir)../mupdf') and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="bash $(ProjectDir)../scripts/build-mupdf-linux-macos.sh" />
+  <Target Name="PreBuildPDF2JohnMacOS" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/usr/bin/sw_vers') and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux-macos.sh" />
   </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">

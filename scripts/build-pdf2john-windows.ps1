@@ -7,6 +7,7 @@ $ErrorActionPreference = "Stop"
 $MUPDF_REPO = "https://github.com/ArtifexSoftware/mupdf.git"
 $RepoPath = Split-Path -Parent $PSScriptRoot
 $MuPDFRepoDir = Join-Path $RepoPath "mupdf"
+$Pdf2JohnDir = Join-Path $RepoPath "src" "pdf2john"
 
 Write-Host "REPO_PATH: $RepoPath"
 Write-Host "MUPDF_REPO_DIR: $MuPDFRepoDir"
@@ -47,7 +48,16 @@ try {
     & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c $makeCmd
 
     Write-Host "MuPDF build completed."
+
+    Push-Location $Pdf2JohnDir
+    Write-Host "Building pdf2john..."
+    $makeCmd = "cd $MuPDFRepoDirMsys && make -j$procCount pdfhash.dll"
+    Write-Host "Running in MSYS2 MinGW64 shell: $makeCmd"
+    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c $makeCmd
+
+    Write-Host "pdf2john build completed."
 }
 finally {
+    Pop-Location
     Pop-Location
 }

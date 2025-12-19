@@ -18,12 +18,16 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -DPDFHASH_STATIC -c $< -o $@
 
 # Shared library builds
+
+# Linux
 libpdfhash.so: $(SRCS)
 	$(CC) -fPIC -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
+# macOS
 libpdfhash.dylib: $(SRCS)
 	$(CC) -fPIC -dynamiclib -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
+# Windows
 pdfhash.dll: $(SRCS)
 	$(CC) -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
