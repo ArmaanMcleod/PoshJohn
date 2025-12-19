@@ -33,6 +33,7 @@ function Convert-ToMsysPath($winPath) {
 }
 
 $MuPDFRepoDirMsys = Convert-ToMsysPath $MuPDFRepoDir
+$Pdf2JohnDirMsys = Convert-ToMsysPath $Pdf2JohnDir
 
 # Build MuPDF
 try {
@@ -40,7 +41,7 @@ try {
     Write-Host "Building MuPDF..."
     git submodule update --init --recursive --depth 1
 
-    # Run make using MSYS2 shell
+    # Run make using MSYS2 shell (direct invocation for live output)
     $procCount = [Environment]::ProcessorCount
     $msys2Shell = "C:\msys64\msys2_shell.cmd"
     $makeCmd = "cd $MuPDFRepoDirMsys && make -j$procCount build=release XCFLAGS='-msse4.1' libs"
@@ -49,15 +50,15 @@ try {
 
     Write-Host "MuPDF build completed."
 
-    Push-Location $Pdf2JohnDir
     Write-Host "Building pdf2john..."
-    $makeCmd = "cd $MuPDFRepoDirMsys && make -j$procCount pdfhash.dll"
+    $makeCmd = "cd $Pdf2JohnDirMsys && make -j$procCount pdfhash.dll"
     Write-Host "Running in MSYS2 MinGW64 shell: $makeCmd"
     & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c $makeCmd
 
     Write-Host "pdf2john build completed."
+
+    exit 0
 }
 finally {
-    Pop-Location
     Pop-Location
 }
