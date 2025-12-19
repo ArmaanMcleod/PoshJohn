@@ -12,16 +12,13 @@ echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
 echo "MUPDF_REPO_DIR: $MUPDF_REPO_DIR"
 
-# Clean up any previous build
-if [ -d "$MUPDF_REPO_DIR" ]; then
-    echo "Removing previous MuPDF build at $MUPDF_REPO_DIR..."
-    rm -rf "$MUPDF_REPO_DIR"
+# Clone MuPDF only if directory does not exist
+if [ ! -d "$MUPDF_REPO_DIR" ]; then
+    echo "Cloning MuPDF into $MUPDF_REPO_DIR..."
+    git clone --depth 1 "$MUPDF_REPO" "$MUPDF_REPO_DIR"
+else
+    echo "MuPDF directory already exists at $MUPDF_REPO_DIR. Skipping clone."
 fi
-
-# Clone MuPDF
-mkdir -p "$MUPDF_REPO_DIR"
-echo "Cloning MuPDF into $MUPDF_REPO_DIR..."
-git clone --depth 1 "$MUPDF_REPO" "$MUPDF_REPO_DIR"
 
 # Build MuPDF
 cd "$MUPDF_REPO_DIR"

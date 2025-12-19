@@ -33,6 +33,14 @@
     <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
   </Target>
 
+  <Target Name="PreBuildMuPDFWindows" BeforeTargets="Build" Condition="'$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../mupdf') and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="powershell -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-mupdf-windows.ps1&quot;" />
+  </Target>
+
+  <Target Name="PreBuildMuPDFLinuxMacOS" BeforeTargets="Build" Condition="'$(OS)' != 'Windows_NT' and !Exists('$(ProjectDir)../mupdf') and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="bash $(ProjectDir)../scripts/build-mupdf-linux-macos.sh" />
+  </Target>
+
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
     <RemoveDir Directories="$(BaseOutputPath)" />
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
