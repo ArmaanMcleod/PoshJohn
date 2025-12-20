@@ -2,6 +2,24 @@
 
 set -euo pipefail
 
+
+# Check and install required system dependencies
+echo "Checking and installing required system dependencies..."
+REQUIRED_PKGS=(build-essential gcc make git libfreetype6-dev libjpeg-dev libopenjp2-7-dev zlib1g-dev)
+MISSING_PKGS=()
+for pkg in "${REQUIRED_PKGS[@]}"; do
+    if ! dpkg -s "$pkg" &> /dev/null; then
+        MISSING_PKGS+=("$pkg")
+    fi
+done
+if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
+    echo "Installing missing packages: ${MISSING_PKGS[*]}"
+    sudo apt-get update
+    sudo apt-get install -y "${MISSING_PKGS[@]}"
+else
+    echo "All required packages are already installed."
+fi
+
 MUPDF_REPO="https://github.com/ArtifexSoftware/mupdf.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
