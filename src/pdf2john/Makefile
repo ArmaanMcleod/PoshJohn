@@ -29,7 +29,11 @@ libpdfhash.dylib: $(SRCS)
 
 # Windows
 pdfhash.dll: $(SRCS)
-	$(CC) -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
+	$(CC) -shared -DPDFHASH_EXPORTS \
+	      -o $@ $^ \
+	      $(CFLAGS) $(LDFLAGS) \
+	      -Wl,--out-implib,libpdfhash.a \
+	      -static-libgcc -static-libstdc++ -static
 
 clean:
-	rm -f $(TARGET) $(OBJS) libpdfhash.so libpdfhash.dylib *.dll
+	rm -f $(TARGET) $(OBJS) *.so *.dylib *.dll *.a

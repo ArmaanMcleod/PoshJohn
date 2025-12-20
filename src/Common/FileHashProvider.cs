@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Management.Automation;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using PoshJohn.Enums;
 
@@ -62,21 +63,17 @@ internal sealed class FileHashProvider : IFileHashProvider
     {
         NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
         {
-            try
-            {
-                if (OperatingSystem.IsWindows())
-                    return NativeLibrary.Load(WindowsPdfHashDll);
-                if (OperatingSystem.IsLinux())
-                    return NativeLibrary.Load(LinuxPdfHashSo);
-                if (OperatingSystem.IsMacOS())
-                    return NativeLibrary.Load(MacOsPdfHashDylib);
-
+            string libraryName =
+                OperatingSystem.IsWindows() ? WindowsPdfHashDll :
+                OperatingSystem.IsLinux() ? LinuxPdfHashSo :
+                OperatingSystem.IsMacOS() ? MacOsPdfHashDylib :
                 throw new PlatformNotSupportedException();
-            }
-            catch (DllNotFoundException ex)
-            {
-                throw new DllNotFoundException("Failed to load the pdfhash native library. Ensure that the required native dependencies are present.", ex);
-            }
+
+            string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), libraryName);
+
+            IntPtr handle = NativeLibrary.Load(libraryPath);
+
+            return handle;
         });
     }
 

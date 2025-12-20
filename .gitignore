@@ -9,3 +9,4 @@ mupdf/
 *.dll
 *.so
 *.dylib
+*.a
