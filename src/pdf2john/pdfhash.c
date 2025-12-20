@@ -94,7 +94,7 @@ static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
  * Example (shortened):
  *   $pdf$2*3*128*-4*1*16*e065f5b7...*32*adcbb91...*32*98cc16d...
  */
-char *get_pdf_hash(const char *path)
+PDFHASH_API char *get_pdf_hash(const char *path)
 {
     if (!path)
         return NULL;
@@ -241,7 +241,7 @@ char *get_pdf_hash(const char *path)
     return result;
 }
 
-void free_pdf_hash(char *ptr)
+PDFHASH_API void free_pdf_hash(char *ptr)
 {
     free(ptr);
 }
