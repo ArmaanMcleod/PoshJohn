@@ -30,7 +30,7 @@
   </Target>
 
   <Target Name="PreBuildPDF2JohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Start-Process pwsh -NoNewWindow -Wait -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$(ProjectDir)../scripts/build-pdf2john-windows.ps1'&quot;" />
+    <Exec Command="pwsh.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;Start-Process pwsh -NoNewWindow -Wait -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$(ProjectDir)../scripts/build-pdf2john-windows.ps1'&quot;" />
   </Target>
 
   <!-- Linux -->
