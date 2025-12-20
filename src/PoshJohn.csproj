@@ -39,7 +39,7 @@
   </Target>
 
   <Target Name="PreBuildPDF2JohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/proc/version') and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux-macos.sh" />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh" />
   </Target>
 
   <!-- macOS -->
@@ -48,7 +48,7 @@
   </Target>
 
   <Target Name="PreBuildPDF2JohnMacOS" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/usr/bin/sw_vers') and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux-macos.sh" />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
   </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
