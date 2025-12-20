@@ -19,9 +19,9 @@
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
-    <None Include="./pdf2john/*.dll" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="./pdf2john/*.so" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="./pdf2john/*.dylib" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="./pdf2john/*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <None Include="./pdf2john/*.so" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <None Include="./pdf2john/*.dylib" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Windows -->
@@ -30,7 +30,7 @@
   </Target>
 
   <Target Name="PreBuildPDF2JohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-pdf2john-windows.ps1&quot;" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Start-Process pwsh -NoNewWindow -Wait -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$(ProjectDir)../scripts/build-pdf2john-windows.ps1'&quot;" />
   </Target>
 
   <!-- Linux -->

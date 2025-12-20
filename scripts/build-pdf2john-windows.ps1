@@ -1,7 +1,3 @@
-#!/usr/bin/env pwsh
-
-# Requires: git, MSYS2/MinGW make in PATH
-
 $ErrorActionPreference = "Stop"
 
 $MUPDF_REPO = "https://github.com/ArtifexSoftware/mupdf.git"
@@ -35,25 +31,35 @@ function Convert-ToMsysPath($winPath) {
 $MuPDFRepoDirMsys = Convert-ToMsysPath $MuPDFRepoDir
 $Pdf2JohnDirMsys = Convert-ToMsysPath $Pdf2JohnDir
 
-# Build MuPDF
+# Use bash.exe (MSYS environment)
+$bash = "C:\msys64\usr\bin\bash.exe"
+
+# Required MinGW64 packages
+$packages = @(
+    'gcc'
+    'make'
+    'pkg-config'
+)
+$pkgList = $packages -join " "
+
+Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
+& $bash -lc "pacman -S --needed --noconfirm $pkgList"
+
+# Build
 try {
     Push-Location $MuPDFRepoDir
     Write-Host "Building MuPDF..."
     git submodule update --init --recursive --depth 1
 
-    # Run make using MSYS2 shell (direct invocation for live output)
     $procCount = [Environment]::ProcessorCount
-    $msys2Shell = "C:\msys64\msys2_shell.cmd"
-    $makeCmd = "cd $MuPDFRepoDirMsys && make -j$procCount build=release XCFLAGS='-msse4.1' libs"
-    Write-Host "Running in MSYS2 MinGW64 shell: $makeCmd"
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c $makeCmd
+
+    Write-Host "Running MuPDF build in MinGW64 environment..."
+    & $bash -lc "cd $MuPDFRepoDirMsys; make -j$procCount build=release XCFLAGS='-msse4.1' libs"
 
     Write-Host "MuPDF build completed."
 
     Write-Host "Building pdf2john..."
-    $makeCmd = "cd $Pdf2JohnDirMsys && make -j$procCount pdfhash.dll"
-    Write-Host "Running in MSYS2 MinGW64 shell: $makeCmd"
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c $makeCmd
+    & $bash -lc "cd $Pdf2JohnDirMsys; make -j$procCount pdfhash.dll"
 
     Write-Host "pdf2john build completed."
 }
