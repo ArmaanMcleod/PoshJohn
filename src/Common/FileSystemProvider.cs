@@ -167,6 +167,11 @@ namespace PoshJohn.Common
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 Assembly.GetExecutingAssembly().GetName().Name);
 
+            if (!Directory.Exists(_appDataDirectory))
+            {
+                Directory.CreateDirectory(_appDataDirectory);
+            }
+
             _packageAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             _johnExecutablePath = FindBundledExePath(JohnExeBaseName);
             _zip2JohnExecutablePath = FindBundledExePath(Zip2JohnExeBaseName);
