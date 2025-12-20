@@ -57,12 +57,12 @@ try {
     $procCount = [Environment]::ProcessorCount
 
     Write-Host "Running MuPDF build in MinGW64 environment..."
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++ mingw32-make -j$procCount build=release XCFLAGS='-msse4.1' libs"
+    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount build=release XCFLAGS='-msse4.1' libs"
 
     Write-Host "MuPDF build completed."
 
     Write-Host "Building pdf2john..."
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++ mingw32-make -j$procCount pdfhash.dll"
+    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount pdfhash.dll"
 
     Write-Host "pdf2john build completed."
 }
