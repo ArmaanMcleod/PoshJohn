@@ -19,7 +19,7 @@ RUN apt-get update \
 WORKDIR /
 
 COPY ./src/ /PoshJohn/src/
-COPY ./scripts/build-john-linux.sh /PoshJohn/scripts/build-john-linux.sh
+COPY ./scripts/build-*-linux.sh /PoshJohn/scripts/
 COPY ./PowerShellBuildTools/ /PoshJohn/PowerShellBuildTools/
 COPY ./test/ /PoshJohn/test/
 COPY ./global.json /PoshJohn/global.json
