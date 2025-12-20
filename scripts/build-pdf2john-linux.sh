@@ -44,7 +44,7 @@ fi
 cd "$MUPDF_REPO_DIR"
 echo "Building MuPDF..."
 git submodule update --init --recursive --depth 1
-make -j$(nproc) build=release XCFLAGS="-msse4.1" libs
+make -j$(nproc) build=release XCFLAGS="-fPIC -msse4.1" libs
 echo "MuPDF build completed."
 
 cd "$PDF2JOHN_DIR"
