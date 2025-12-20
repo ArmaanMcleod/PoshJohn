@@ -224,6 +224,13 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             append_str(result, total, Permshex ? Permshex : "");
         }
     }
+    fz_always(ctx)
+    {
+        if (doc)
+            fz_drop_document(ctx, (fz_document *)doc);
+
+        fz_drop_context(ctx);
+    }
     fz_catch(ctx)
     {
         if (result)
@@ -232,11 +239,6 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             result = NULL;
         }
     }
-
-    if (doc)
-        fz_drop_document(ctx, (fz_document *)doc);
-
-    fz_drop_context(ctx);
 
     return result;
 }

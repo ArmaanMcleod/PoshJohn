@@ -36,14 +36,14 @@ internal sealed class FileHashProvider : IFileHashProvider
     private readonly IProcessRunner _processRunner;
     private readonly PSCmdlet _cmdlet;
 
-    private const string WindowsPdfHashDll = "pdfhash.dll";
-    private const string LinuxPdfHashSo = "libpdfhash.so";
-    private const string MacOsPdfHashDylib = "libpdfhash.dylib";
+    private const string WindowsLibPdfHashDll = "libpdfhash.dll";
+    private const string LinuxLibPdfHashSo = "libpdfhash.so";
+    private const string MacOsLibPdfHashDylib = "libpdfhash.dylib";
 
-    [DllImport("pdfhash", EntryPoint = "get_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libpdfhash", EntryPoint = "get_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr get_pdf_hash([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
-    [DllImport("pdfhash", EntryPoint = "free_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("libpdfhash", EntryPoint = "free_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
     private static extern void free_pdf_hash(IntPtr ptr);
 
     /// <summary>
@@ -64,9 +64,9 @@ internal sealed class FileHashProvider : IFileHashProvider
         NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
         {
             string libraryName =
-                OperatingSystem.IsWindows() ? WindowsPdfHashDll :
-                OperatingSystem.IsLinux() ? LinuxPdfHashSo :
-                OperatingSystem.IsMacOS() ? MacOsPdfHashDylib :
+                OperatingSystem.IsWindows() ? WindowsLibPdfHashDll :
+                OperatingSystem.IsLinux() ? LinuxLibPdfHashSo :
+                OperatingSystem.IsMacOS() ? MacOsLibPdfHashDylib :
                 throw new PlatformNotSupportedException();
 
             string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), libraryName);

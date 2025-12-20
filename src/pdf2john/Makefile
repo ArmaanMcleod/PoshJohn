@@ -28,7 +28,7 @@ libpdfhash.dylib: $(SRCS)
 	$(CC) -fPIC -dynamiclib -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 # Windows
-pdfhash.dll: $(SRCS)
+libpdfhash.dll: $(SRCS)
 	$(CC) -shared -DPDFHASH_EXPORTS \
 	      -o $@ $^ \
 	      $(CFLAGS) $(LDFLAGS) \

@@ -62,7 +62,7 @@ try {
     Write-Host "MuPDF build completed."
 
     Write-Host "Building pdf2john..."
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount pdfhash.dll"
+    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount libpdfhash.dll"
 
     Write-Host "pdf2john build completed."
 }
