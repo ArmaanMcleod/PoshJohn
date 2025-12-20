@@ -30,6 +30,7 @@ WORKDIR /PoshJohn/scripts
 RUN chmod +x ./build-john-linux.sh && dos2unix ./build-john-linux.sh && ./build-john-linux.sh 2>&1 | tee ./build-john-linux.log
 RUN chmod +x ./build-pdf2john-linux.sh && dos2unix ./build-pdf2john-linux.sh && ./build-pdf2john-linux.sh 2>&1 | tee ./build-pdf2john-linux.log
 
-WORKDIR /PoshJohn/PowerShellBuildTools
+WORKDIR /PoshJohn
 
-RUN pwsh -Command ./build.ps1 -Task Build
+RUN pwsh -Command ./PowerShellBuildTools/build.ps1 -Task Build
+RUN pwsh -Command "[System.Reflection.Assembly]::LoadFrom('./test/PoshJohn.TestUtils/bin/Debug/net6.0/PoshJohn.TestUtils.dll'); [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF('SampleProtected.pdf', 'test123')"

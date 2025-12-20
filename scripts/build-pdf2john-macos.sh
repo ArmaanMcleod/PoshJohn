@@ -30,6 +30,8 @@ make -j$(nproc) build=release XCFLAGS="-msse4.1" libs
 echo "MuPDF build completed."
 
 cd "$PDF2JOHN_DIR"
+echo "Cleaning pdf2john build..."
+make clean
 echo "Building pdf2john..."
 make -j$(nproc) libpdfhash.dylib
 echo "pdf2john build completed."
