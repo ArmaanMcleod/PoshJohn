@@ -5,7 +5,7 @@ set -euo pipefail
 
 # Check and install required system dependencies
 echo "Checking and installing required system dependencies..."
-REQUIRED_PKGS=(build-essential gcc make git libfreetype6-dev libjpeg-dev libopenjp2-7-dev zlib1g-dev)
+REQUIRED_PKGS=(build-essential gcc make pkg-config git libfreetype6-dev libjpeg-dev libopenjp2-7-dev zlib1g-dev)
 MISSING_PKGS=()
 for pkg in "${REQUIRED_PKGS[@]}"; do
     if ! dpkg -s "$pkg" &> /dev/null; then
