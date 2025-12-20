@@ -14,8 +14,8 @@ for pkg in "${REQUIRED_PKGS[@]}"; do
 done
 if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
     echo "Installing missing packages: ${MISSING_PKGS[*]}"
-    sudo apt-get update
-    sudo apt-get install -y "${MISSING_PKGS[@]}"
+    apt-get update
+    apt-get install -y "${MISSING_PKGS[@]}"
 else
     echo "All required packages are already installed."
 fi
