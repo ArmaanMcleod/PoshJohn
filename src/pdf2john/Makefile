@@ -32,4 +32,4 @@ pdfhash.dll: $(SRCS)
 	$(CC) -shared -DPDFHASH_EXPORTS -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f $(TARGET) $(OBJS) libpdfhash.so libpdfhash.dylib pdfhash.dll
+	rm -f $(TARGET) $(OBJS) libpdfhash.so libpdfhash.dylib *.dll
