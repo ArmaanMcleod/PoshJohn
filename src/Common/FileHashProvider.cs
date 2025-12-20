@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Management.Automation;
+using System.Runtime.InteropServices;
 using PoshJohn.Enums;
 
 namespace PoshJohn.Common;
@@ -34,6 +35,16 @@ internal sealed class FileHashProvider : IFileHashProvider
     private readonly IProcessRunner _processRunner;
     private readonly PSCmdlet _cmdlet;
 
+    private const string WindowsPdfHashDll = "pdfhash.dll";
+    private const string LinuxPdfHashSo = "libpdfhash.so";
+    private const string MacOsPdfHashDylib = "libpdfhash.dylib";
+
+    [DllImport("pdfhash", EntryPoint = "get_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr get_pdf_hash([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+    [DllImport("pdfhash", EntryPoint = "free_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void free_pdf_hash(IntPtr ptr);
+
     /// <summary>
     /// Initializes a new instance of the FileHashProvider class.
     /// </summary>
@@ -45,6 +56,28 @@ internal sealed class FileHashProvider : IFileHashProvider
         _fileSystemProvider = fileSystemProvider;
         _processRunner = processRunner;
         _cmdlet = cmdlet;
+    }
+
+    static FileHashProvider()
+    {
+        NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
+        {
+            try
+            {
+                if (OperatingSystem.IsWindows())
+                    return NativeLibrary.Load(WindowsPdfHashDll);
+                if (OperatingSystem.IsLinux())
+                    return NativeLibrary.Load(LinuxPdfHashSo);
+                if (OperatingSystem.IsMacOS())
+                    return NativeLibrary.Load(MacOsPdfHashDylib);
+
+                throw new PlatformNotSupportedException();
+            }
+            catch (DllNotFoundException ex)
+            {
+                throw new DllNotFoundException("Failed to load the pdfhash native library. Ensure that the required native dependencies are present.", ex);
+            }
+        });
     }
 
     /// <inheritdoc/>
@@ -100,18 +133,20 @@ internal sealed class FileHashProvider : IFileHashProvider
     {
         _cmdlet?.WriteVerbose("Extracting PDF John hash");
 
-        var scriptResult = _processRunner.RunCommand(
-            CommandType.VenvPython,
-            $"\"{_fileSystemProvider.Pdf2JohnPythonScriptPath}\" \"{pdfPath}\"",
-            logOutput: false,
-            failOnStderr: true);
-
-        if (!scriptResult.Success)
+        IntPtr ptr = get_pdf_hash(pdfPath);
+        if (ptr == IntPtr.Zero)
         {
-            throw new InvalidOperationException($"Failed to extract PDF hash: {scriptResult.StandardError}");
+            throw new Exception("get_pdf_hash returned null");
         }
 
-        return scriptResult.StandardOutput.Trim();
+        try
+        {
+            return Marshal.PtrToStringUTF8(ptr)!;
+        }
+        finally
+        {
+            free_pdf_hash(ptr);
+        }
     }
 
     /// <summary>

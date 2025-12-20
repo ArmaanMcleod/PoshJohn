@@ -4,6 +4,8 @@
 #include "mupdf/fitz.h"
 #include "mupdf/pdf.h"
 
+#include "pdfhash.h"
+
 /* Append a separator '*' to the buffer, if space allows. */
 static void append_sep(char *buf, size_t buflen)
 {
@@ -233,6 +235,13 @@ char *get_pdf_hash(const char *path)
 
     if (doc)
         fz_drop_document(ctx, (fz_document *)doc);
+
     fz_drop_context(ctx);
+
     return result;
+}
+
+void free_pdf_hash(char *ptr)
+{
+    free(ptr);
 }

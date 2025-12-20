@@ -65,6 +65,24 @@ try {
     & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount pdfhash.dll"
 
     Write-Host "pdf2john build completed."
+
+    # Copy only the required DLLs to pdf2john dir
+    $mingwBin = "C:\msys64\mingw64\bin"
+    $coreDlls = @(
+        "libgcc_s_seh-1.dll",
+        "libwinpthread-1.dll"
+    )
+    Write-Host "Copying required DLLs to directory: $Pdf2JohnDir"
+    foreach ($dll in $coreDlls) {
+        $srcDll = Join-Path $mingwBin $dll
+        if (Test-Path $srcDll) {
+            Copy-Item -Path $srcDll -Destination $Pdf2JohnDir -Force
+            Write-Host "Copied $dll"
+        }
+        else {
+            Write-Warning "$dll not found in $mingwBin"
+        }
+    }
 }
 finally {
     Pop-Location
