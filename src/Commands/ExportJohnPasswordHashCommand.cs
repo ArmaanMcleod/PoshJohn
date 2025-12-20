@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Management.Automation;
 using PoshJohn.Common;
-using PoshJohn.Enums;
 using PoshJohn.Models;
 
 namespace PoshJohn.Commands;
@@ -40,10 +39,7 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
 
     #region  Private Members
 
-    private const string PyhankoModuleName = "pyhanko";
-
     private bool _initialized;
-    private IPythonEnvironmentManager _pythonEnvManager;
     private IProcessRunner _processRunner;
     private FileSystemProvider _fileSystemProvider;
     private IFileHashProvider _fileHashProvider;
@@ -74,14 +70,6 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
             });
             _processRunner = new ProcessRunner(this, _fileSystemProvider);
             _fileHashProvider = new FileHashProvider(this, _fileSystemProvider, _processRunner);
-
-            if (_fileSystemProvider.FileToCrackFileFormat == FileFormatType.PDF)
-            {
-                _pythonEnvManager = new PythonEnvironmentManager(this, _processRunner, _fileSystemProvider);
-
-                _pythonEnvManager.CreateVirtualEnvironment();
-                _pythonEnvManager.InstallPackage(PyhankoModuleName);
-            }
 
             _initialized = true;
         }
