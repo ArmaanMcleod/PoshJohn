@@ -97,27 +97,51 @@ static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
 PDFHASH_API char *get_pdf_hash(const char *path)
 {
     if (!path)
+    {
+        fprintf(stderr, "[pdfhash] ERROR: path is NULL\n");
         return NULL;
+    }
 
     fz_context *ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
     if (!ctx)
+    {
+        fprintf(stderr, "[pdfhash] ERROR: failed to create context\n");
         return NULL;
+    }
 
     char *result = NULL;
     pdf_document *doc = NULL;
+    char *Uhex = NULL;
+    char *Ohex = NULL;
+    char *IDhex = NULL;
+    char *Permshex = NULL;
+    const char *StmF = NULL;
+    const char *StrF = NULL;
+    int EncryptMetadata = 1;
 
     fz_try(ctx)
     {
         fz_register_document_handlers(ctx);
         doc = pdf_open_document(ctx, path);
         if (!doc)
+        {
+            fprintf(stderr, "[pdfhash] ERROR: Cannot open PDF: %s\n", path);
             fz_throw(ctx, FZ_ERROR_GENERIC, "Cannot open PDF: %s", path);
+        }
 
         pdf_obj *trailer = pdf_trailer(ctx, doc);
+        if (!trailer)
+        {
+            fprintf(stderr, "[pdfhash] ERROR: trailer is NULL\n");
+            fz_throw(ctx, FZ_ERROR_GENERIC, "No trailer");
+        }
         pdf_obj *encrypt_ref = pdf_dict_gets(ctx, trailer, "Encrypt");
         pdf_obj *enc = pdf_resolve_indirect(ctx, encrypt_ref);
         if (!enc || !pdf_is_dict(ctx, enc))
+        {
+            fprintf(stderr, "[pdfhash] ERROR: No Encrypt dictionary\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "No Encrypt dictionary");
+        }
 
         int V = pdf_to_int(ctx, pdf_dict_gets(ctx, enc, "V"));
         int R = pdf_to_int(ctx, pdf_dict_gets(ctx, enc, "R"));
@@ -134,18 +158,21 @@ PDFHASH_API char *get_pdf_hash(const char *path)
          */
         pdf_obj *Oobj = pdf_dict_gets(ctx, enc, "O");
         pdf_obj *Uobj = pdf_dict_gets(ctx, enc, "U");
-        char *Uhex = hex_from_pdf_string(ctx, Oobj); /* actually User */
-        char *Ohex = hex_from_pdf_string(ctx, Uobj); /* actually Owner */
+        Uhex = hex_from_pdf_string(ctx, Oobj); /* actually User */
+        Ohex = hex_from_pdf_string(ctx, Uobj); /* actually Owner */
+        if (!Uhex || !Ohex)
+        {
+            fprintf(stderr, "[pdfhash] ERROR: Ohex or Uhex is NULL\n");
+            fz_throw(ctx, FZ_ERROR_GENERIC, "Ohex or Uhex is NULL");
+        }
 
-        /* Get the first element of the ID array as hex. */
         pdf_obj *IDarr = pdf_dict_gets(ctx, trailer, "ID");
-        char *IDhex = hex_from_id_array(ctx, IDarr);
-
-        /* AES-256 extras (only used if R >= 6) */
-        char *Permshex = NULL;
-        const char *StmF = NULL;
-        const char *StrF = NULL;
-        int EncryptMetadata = 1;
+        IDhex = hex_from_id_array(ctx, IDarr);
+        if (!IDhex)
+        {
+            fprintf(stderr, "[pdfhash] ERROR: IDhex is NULL\n");
+            fz_throw(ctx, FZ_ERROR_GENERIC, "IDhex is NULL");
+        }
 
         if (R >= 6)
         {
@@ -163,6 +190,10 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
             pdf_obj *perms_obj = pdf_dict_gets(ctx, enc, "Perms");
             Permshex = hex_from_pdf_string(ctx, perms_obj);
+            if (perms_obj && !Permshex)
+            {
+                fprintf(stderr, "[pdfhash] WARNING: Permshex is NULL for R >= 6\n");
+            }
         }
 
         int Olen = Ohex ? (int)(strlen(Ohex) / 2) : 0;
@@ -176,7 +207,10 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
         result = (char *)calloc(1, total);
         if (!result)
+        {
+            fprintf(stderr, "[pdfhash] ERROR: Allocation failure\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "Allocation failure");
+        }
 
         /* Build hash string in pdf2john.py order: ID -> O -> U */
         strncat(result, "$pdf$", total - 1);
@@ -226,6 +260,14 @@ PDFHASH_API char *get_pdf_hash(const char *path)
     }
     fz_always(ctx)
     {
+        if (Uhex)
+            free(Uhex);
+        if (Ohex)
+            free(Ohex);
+        if (IDhex)
+            free(IDhex);
+        if (Permshex)
+            free(Permshex);
         if (doc)
             fz_drop_document(ctx, (fz_document *)doc);
 

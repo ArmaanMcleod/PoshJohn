@@ -133,7 +133,7 @@ internal sealed class FileHashProvider : IFileHashProvider
         IntPtr ptr = get_pdf_hash(pdfPath);
         if (ptr == IntPtr.Zero)
         {
-            throw new Exception("get_pdf_hash returned null");
+            throw new InvalidOperationException("get_pdf_hash returned null");
         }
 
         try
