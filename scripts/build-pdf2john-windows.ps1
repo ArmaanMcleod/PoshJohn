@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 $ErrorActionPreference = "Stop"
 
 $MUPDF_REPO = "https://github.com/ArtifexSoftware/mupdf.git"
