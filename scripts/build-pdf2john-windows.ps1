@@ -56,8 +56,6 @@ try {
     & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c $makeCmd
 
     Write-Host "pdf2john build completed."
-
-    exit 0
 }
 finally {
     Pop-Location
