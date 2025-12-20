@@ -33,19 +33,20 @@ function Convert-ToMsysPath($winPath) {
 $MuPDFRepoDirMsys = Convert-ToMsysPath $MuPDFRepoDir
 $Pdf2JohnDirMsys = Convert-ToMsysPath $Pdf2JohnDir
 
-# Use bash.exe (MSYS environment)
-$bash = "C:\msys64\usr\bin\bash.exe"
 
-# Required MinGW64 packages
+# Use msys2_shell.cmd (MSYS2 MinGW64 environment)
+$msys2Shell = "C:\msys64\msys2_shell.cmd"
+
+# Ensure required MSYS2  packages are installed
 $packages = @(
-    'gcc'
-    'make'
-    'pkg-config'
+    'mingw-w64-x86_64-pkgconf'
+    'mingw-w64-x86_64-gcc'
+    'mingw-w64-x86_64-make'
 )
 $pkgList = $packages -join " "
 
 Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
-& $bash -lc "pacman -S --needed --noconfirm $pkgList"
+& $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "pacman --needed --noconfirm -S $pkgList"
 
 # Build
 try {
@@ -56,12 +57,12 @@ try {
     $procCount = [Environment]::ProcessorCount
 
     Write-Host "Running MuPDF build in MinGW64 environment..."
-    & $bash -lc "cd $MuPDFRepoDirMsys; make -j$procCount build=release XCFLAGS='-msse4.1' libs"
+    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++ mingw32-make -j$procCount build=release XCFLAGS='-msse4.1' libs"
 
     Write-Host "MuPDF build completed."
 
     Write-Host "Building pdf2john..."
-    & $bash -lc "cd $Pdf2JohnDirMsys; make -j$procCount pdfhash.dll"
+    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc CXX=/mingw64/bin/g++ mingw32-make -j$procCount pdfhash.dll"
 
     Write-Host "pdf2john build completed."
 }
