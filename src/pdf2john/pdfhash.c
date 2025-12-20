@@ -258,20 +258,38 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             append_str(result, total, Permshex ? Permshex : "");
         }
     }
+
     fz_always(ctx)
     {
+        /* Free only if allocated, then set to NULL for safety */
         if (Uhex)
+        {
             free(Uhex);
+            Uhex = NULL;
+        }
         if (Ohex)
+        {
             free(Ohex);
+            Ohex = NULL;
+        }
         if (IDhex)
+        {
             free(IDhex);
+            IDhex = NULL;
+        }
         if (Permshex)
+        {
             free(Permshex);
-        if (doc)
-            fz_drop_document(ctx, (fz_document *)doc);
+            Permshex = NULL;
+        }
 
-        fz_drop_context(ctx);
+        /* Drop document last, after all MuPDF object usage is done */
+        if (doc)
+        {
+            fz_drop_document(ctx, (fz_document *)doc);
+            doc = NULL;
+        }
+        /* Do NOT drop context here; do it after fz_catch. */
     }
     fz_catch(ctx)
     {
@@ -280,6 +298,12 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             free(result);
             result = NULL;
         }
+    }
+
+    /* Now safe to drop context after fz_catch */
+    if (ctx)
+    {
+        fz_drop_context(ctx);
     }
 
     return result;
