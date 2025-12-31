@@ -37,6 +37,12 @@ $Pdf2JohnDirMsys = Convert-ToMsysPath $Pdf2JohnDir
 # Use msys2_shell.cmd (MSYS2 MinGW64 environment)
 $msys2Shell = "C:\msys64\msys2_shell.cmd"
 
+# Install MSYS2 if not already installed
+if (-not (Test-Path $msys2Shell)) {
+    Write-Host "Installing MSYS2..."
+    winget install -e --id MSYS2.MSYS2
+}
+
 # Ensure required MSYS2  packages are installed
 $packages = @(
     'mingw-w64-x86_64-pkgconf'
