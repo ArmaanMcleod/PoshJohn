@@ -50,6 +50,8 @@ echo "MuPDF build completed."
 cd "$PDF2JOHN_DIR"
 echo "Cleaning pdf2john build..."
 make clean
-echo "Building pdf2john..."
+echo "Building libpdfhash.so..."
 make -j$(nproc) libpdfhash.so
+echo "Building pdf2john..."
+make -j$(nproc)
 echo "pdf2john build completed."

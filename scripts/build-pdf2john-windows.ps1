@@ -90,7 +90,10 @@ Write-Host "MuPDF build completed."
 Write-Host "Cleaning pdf2john build..."
 Invoke-Mingw64 "cd $Pdf2JohnDirMsys && mingw32-make clean" -IgnoreError
 
-Write-Host "Building pdf2john..."
+Write-Host "Building libpdfhash.dll..."
 Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount libpdfhash.dll"
+
+Write-Host "Building pdf2john.exe..."
+Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount"
 
 Write-Host "pdf2john build completed."
