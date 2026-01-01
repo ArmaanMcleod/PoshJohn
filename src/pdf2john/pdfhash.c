@@ -6,6 +6,9 @@
 
 #include "pdfhash.h"
 
+/* PDF Standard Security Handler revision numbers */
+#define PDF_REVISION_AES256 5 /* Revision 5 introduced AES-256 encryption with OE/UE keys */
+
 // Logging callback support
 static log_callback_pdf_hash_t g_log_callback = NULL;
 PDFHASH_API void set_log_callback_pdf_hash(log_callback_pdf_hash_t callback)
@@ -90,18 +93,18 @@ static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
  * Build a PDF password hash string in the same format as pdf2john.py.
  *
  * Output format:
- *   $pdf$V*R*keylen*P*flags*IDlen*IDhex*Olen*Ohex*Ulen*Uhex[ *CF*StmF*StrF*EncryptMetadata*PermsLen*Permshex ]
+ *   $pdf$V*R*keylen*P*flags*IDlen*IDhex*Olen*Ohex*Ulen*Uhex[ *OElen*OEhex*UElen*UEhex ]
  *
  * Where:
  *   V              = Algorithm version
  *   R              = Revision number
  *   keylen         = Key length in bits
  *   P              = Permissions integer
- *   flags          = EncryptMetadata flag (or 1 for older revisions)
+ *   flags          = EncryptMetadata flag (defaults to 1 if not present)
  *   IDlen/IDhex    = Length and hex of first element of document ID array
  *   Olen/Ohex      = Length and hex of Owner key
  *   Ulen/Uhex      = Length and hex of User key
- *   AES-256 extras = Only present if R >= 6 (CF, StmF, StrF, EncryptMetadata, PermsLen, Permshex)
+ *   AES-256 only   = OElen/OEhex (Owner Encryption seed), UElen/UEhex (User Encryption seed)
  *
  * Example (shortened):
  *   $pdf$2*3*128*-4*1*16*e065f5b7...*32*adcbb91...*32*98cc16d...
@@ -128,10 +131,8 @@ PDFHASH_API char *get_pdf_hash(const char *path)
     char *Uhex = NULL;
     char *Ohex = NULL;
     char *IDhex = NULL;
-    char *Permshex = NULL;
-    const char *StmF = NULL;
-    const char *StrF = NULL;
-    int EncryptMetadata = 1;
+    char *OEhex = NULL;
+    char *UEhex = NULL;
 
     fz_try(ctx)
     {
@@ -193,37 +194,28 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             fz_throw(ctx, FZ_ERROR_GENERIC, "IDhex is NULL");
         }
 
-        if (R >= 6)
+        /* For AES-256 encryption, also extract OE and UE */
+        if (R >= PDF_REVISION_AES256)
         {
-            pdf_obj *stmf_obj = pdf_dict_gets(ctx, enc, "StmF");
-            if (stmf_obj && pdf_is_name(ctx, stmf_obj))
-                StmF = pdf_to_name(ctx, stmf_obj);
-
-            pdf_obj *strf_obj = pdf_dict_gets(ctx, enc, "StrF");
-            if (strf_obj && pdf_is_name(ctx, strf_obj))
-                StrF = pdf_to_name(ctx, strf_obj);
-
-            pdf_obj *em_obj = pdf_dict_gets(ctx, enc, "EncryptMetadata");
-            if (em_obj && pdf_is_bool(ctx, em_obj))
-                EncryptMetadata = pdf_to_bool(ctx, em_obj);
-
-            pdf_obj *perms_obj = pdf_dict_gets(ctx, enc, "Perms");
-            Permshex = hex_from_pdf_string(ctx, perms_obj);
-            if (perms_obj && !Permshex)
-            {
-                log_message("[pdfhash] WARNING: Permshex is NULL for R >= 6");
-                fprintf(stderr, "[pdfhash] WARNING: Permshex is NULL for R >= 6\n");
-            }
+            pdf_obj *OEobj = pdf_dict_gets(ctx, enc, "OE");
+            pdf_obj *UEobj = pdf_dict_gets(ctx, enc, "UE");
+            OEhex = hex_from_pdf_string(ctx, OEobj);
+            UEhex = hex_from_pdf_string(ctx, UEobj);
         }
+
+        /* Read EncryptMetadata flag (defaults to 1 if not present) */
+        int flags = 1;
+        pdf_obj *em_obj = pdf_dict_gets(ctx, enc, "EncryptMetadata");
+        if (em_obj && pdf_is_bool(ctx, em_obj))
+            flags = pdf_to_bool(ctx, em_obj);
 
         int Olen = Ohex ? (int)(strlen(Ohex) / 2) : 0;
         int Ulen = Uhex ? (int)(strlen(Uhex) / 2) : 0;
         int IDlen = IDhex ? (int)(strlen(IDhex) / 2) : 0;
-        int PermsLen = Permshex ? (int)(strlen(Permshex) / 2) : 0;
+        int OElen = OEhex ? (int)(strlen(OEhex) / 2) : 0;
+        int UElen = UEhex ? (int)(strlen(UEhex) / 2) : 0;
 
-        int flags = (R >= 6) ? EncryptMetadata : 1;
-
-        size_t total = 256 + (Ohex ? strlen(Ohex) : 0) + (Uhex ? strlen(Uhex) : 0) + (IDhex ? strlen(IDhex) : 0) + (Permshex ? strlen(Permshex) : 0);
+        size_t total = 256 + (Ohex ? strlen(Ohex) : 0) + (Uhex ? strlen(Uhex) : 0) + (IDhex ? strlen(IDhex) : 0) + (OEhex ? strlen(OEhex) : 0) + (UEhex ? strlen(UEhex) : 0);
 
         result = (char *)calloc(1, total);
         if (!result)
@@ -233,7 +225,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             fz_throw(ctx, FZ_ERROR_GENERIC, "Allocation failure");
         }
 
-        /* Build hash string in pdf2john.py order: ID -> O -> U */
+        /* Build hash string in pdf2john.py order: ID -> O -> U (-> OE -> UE for AES-256) */
         strncat(result, "$pdf$", total - 1);
         append_int(result, total, V);
         append_sep(result, total);
@@ -258,25 +250,31 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         append_str(result, total, Ohex);
         append_sep(result, total);
 
-        /* Finally U (User) */
+        /* Then U (User) */
         append_int(result, total, Ulen);
         append_sep(result, total);
         append_str(result, total, Uhex);
 
-        if (R >= 6)
+        /* For AES-256 encryption, append OE and UE */
+        if (R >= PDF_REVISION_AES256)
         {
-            append_sep(result, total);
-            append_str(result, total, ""); /* CF blank */
-            append_sep(result, total);
-            append_str(result, total, StmF ? StmF : "");
-            append_sep(result, total);
-            append_str(result, total, StrF ? StrF : "");
-            append_sep(result, total);
-            append_int(result, total, EncryptMetadata);
-            append_sep(result, total);
-            append_int(result, total, PermsLen);
-            append_sep(result, total);
-            append_str(result, total, Permshex ? Permshex : "");
+            /* OE (oeseed) */
+            if (OEhex)
+            {
+                append_sep(result, total);
+                append_int(result, total, OElen);
+                append_sep(result, total);
+                append_str(result, total, OEhex);
+            }
+
+            /* UE (ueseed) */
+            if (UEhex)
+            {
+                append_sep(result, total);
+                append_int(result, total, UElen);
+                append_sep(result, total);
+                append_str(result, total, UEhex);
+            }
         }
     }
 
@@ -298,10 +296,15 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             free(IDhex);
             IDhex = NULL;
         }
-        if (Permshex)
+        if (OEhex)
         {
-            free(Permshex);
-            Permshex = NULL;
+            free(OEhex);
+            OEhex = NULL;
+        }
+        if (UEhex)
+        {
+            free(UEhex);
+            UEhex = NULL;
         }
 
         /* Drop document last, after all MuPDF object usage is done */
