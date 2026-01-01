@@ -11,6 +11,9 @@ $RepoPath   = Split-Path -Parent $PSScriptRoot
 $MuPDFRepoDir = Join-Path $RepoPath "mupdf"
 $Pdf2JohnDir  = Join-Path $RepoPath "src" "pdf2john"
 
+$helperModulePath = Join-Path -Path $RepoPath -ChildPath "PowerShellBuildTools/tools/helper.psm1"
+Import-Module $helperModulePath -Force
+
 Write-Host "REPO_PATH: $RepoPath"
 Write-Host "MUPDF_REPO_DIR: $MuPDFRepoDir"
 
