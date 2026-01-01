@@ -672,5 +672,55 @@ Describe 'PoshJohn Tests' {
                 Remove-Item -Path $wordListPath -ErrorAction SilentlyContinue
             }
         }
+
+        Context 'Pdf2john Hash Tests' {
+            BeforeAll {
+                $venvPath = Join-Path -Path $TestDrive -ChildPath 'venv'
+                if ($IsWindows) {
+                    $pythonExe = "python.exe"
+                    $venvPythonExe = Join-Path -Path $venvPath -ChildPath "Scripts\$pythonExe"
+                }
+                else {
+                    $pythonExe = "python3"
+                    $venvPythonExe = Join-Path -Path $venvPath -ChildPath "bin/$pythonExe"
+                }
+
+                & $pythonExe -m venv $venvPath
+                & $venvPythonExe -m pip install --upgrade pip
+                & $venvPythonExe -m pip install pyhanko
+
+                $pythonScriptPath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.py' | Select-Object -First 1 -ExpandProperty FullName
+                $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.exe' | Select-Object -First 1 -ExpandProperty FullName
+
+                if (-not $pythonScriptPath) {
+                    throw "pdf2john.py not found in module path: $modulePath"
+                }
+                if (-not $exePath) {
+                    throw "pdf2john.exe not found in module path: $modulePath. Did you build the project?"
+                }
+            }
+
+            It "Should generate same pdf2john hash for Python and C pdfhash library using '<Algorithm>' encryption" -TestCases @(
+                @{ Algorithm = "RC4-40" },
+                @{ Algorithm = "RC4-128" },
+                @{ Algorithm = "AES-128" },
+                @{ Algorithm = "AES-256" }
+            ) -Tag 'pdf2john-hash' {
+                param($Algorithm)
+
+                $samplePdfPath = Join-Path -Path $TestDrive -ChildPath "SampleProtected_$Algorithm.pdf"
+                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($samplePdfPath, $samplePDFPassword, $Algorithm)
+
+                $pythonHash = & $venvPythonExe $pythonScriptPath $samplePdfPath
+                $exeHash = & $exePath $samplePdfPath
+
+                $exeHash | Should -Be $pythonHash
+            }
+
+            AfterAll {
+                Remove-Item -Path "$TestDrive/SampleProtected_*.pdf" -Recurse -Force -ErrorAction SilentlyContinue
+                Remove-Item -Path $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
     }
 }

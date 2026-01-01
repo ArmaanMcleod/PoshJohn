@@ -22,6 +22,7 @@
     <None Include="./pdf2john/*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
     <None Include="./pdf2john/*.so" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
     <None Include="./pdf2john/*.dylib" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
+    <None Include="./pdf2john/*.exe" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Windows -->
