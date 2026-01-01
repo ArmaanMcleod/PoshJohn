@@ -4,10 +4,12 @@ param([switch]$ReBuild)
 
 $ErrorActionPreference = "Stop"
 
+# --- Basic paths -------------------------------------------------------------
+
 $MUPDF_REPO = "https://github.com/ArtifexSoftware/mupdf.git"
-$RepoPath = Split-Path -Parent $PSScriptRoot
+$RepoPath   = Split-Path -Parent $PSScriptRoot
 $MuPDFRepoDir = Join-Path $RepoPath "mupdf"
-$Pdf2JohnDir = Join-Path $RepoPath "src" "pdf2john"
+$Pdf2JohnDir  = Join-Path $RepoPath "src" "pdf2john"
 
 Write-Host "REPO_PATH: $RepoPath"
 Write-Host "MUPDF_REPO_DIR: $MuPDFRepoDir"
@@ -17,71 +19,78 @@ if ($ReBuild -and (Test-Path $MuPDFRepoDir)) {
     Remove-Item -Recurse -Force $MuPDFRepoDir
 }
 
-# Clone MuPDF only if directory does not exist
+# --- Clone MuPDF (no shallow clone, no submodules) --------------------------
+
 if (-not (Test-Path $MuPDFRepoDir)) {
     Write-Host "Cloning MuPDF into $MuPDFRepoDir..."
-    git clone --depth 1 $MUPDF_REPO $MuPDFRepoDir
-}
-else {
+    Invoke-Git "clone $MUPDF_REPO $MuPDFRepoDir"
+} else {
     Write-Host "MuPDF directory already exists at $MuPDFRepoDir. Skipping clone."
 }
 
-# Convert Windows path to MSYS2 path
-function Convert-ToMsysPath($winPath) {
-    $msysPath = $winPath -replace '\\', '/'
-    if ($msysPath -match '^([A-Za-z]):') {
-        $drive = $matches[1].ToLower()
-        $rest = $msysPath.Substring(2)
-        return "/$drive$rest"
-    }
-    return $msysPath
-}
-
-$MuPDFRepoDirMsys = Convert-ToMsysPath $MuPDFRepoDir
-$Pdf2JohnDirMsys = Convert-ToMsysPath $Pdf2JohnDir
-
-
-# Use msys2_shell.cmd (MSYS2 MinGW64 environment)
-$msys2Shell = "C:\msys64\msys2_shell.cmd"
-
-# Install MSYS2 if not already installed
-if (-not (Test-Path $msys2Shell)) {
-    Write-Host "Installing MSYS2..."
-    winget install -e --id MSYS2.MSYS2
-}
-
-# Ensure required MSYS2  packages are installed
-$packages = @(
-    'mingw-w64-x86_64-pkgconf'
-    'mingw-w64-x86_64-gcc'
-    'mingw-w64-x86_64-make'
-)
-$pkgList = $packages -join " "
-
-Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
-& $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "pacman --needed --noconfirm -S $pkgList"
-
-# Build
+# Ensure Git LFS assets (fonts, etc.) are present and submodules updated
+Push-Location $MuPDFRepoDir
 try {
-    Push-Location $MuPDFRepoDir
-    Write-Host "Building MuPDF..."
-    git submodule update --init --recursive --depth 1
-
-    $procCount = [Environment]::ProcessorCount
-
-    Write-Host "Running MuPDF build in MinGW64 environment..."
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount build=release XCFLAGS='-msse4.1' libs"
-
-    Write-Host "MuPDF build completed."
-
-    Write-Host "Cleaning pdf2john build..."
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && mingw32-make clean"
-
-    Write-Host "Building pdf2john..."
-    & $msys2Shell -defterm -here -no-start -mingw64 -shell bash -c "export PATH=/mingw64/bin:$PATH; cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount libpdfhash.dll"
-
-    Write-Host "pdf2john build completed."
+    Write-Host "Ensuring Git LFS assets are pulled and submodules are updated..."
+    Invoke-Git "submodule update --init --recursive"
+    Invoke-Git "lfs install"
+    Invoke-Git "lfs pull"
 }
 finally {
     Pop-Location
 }
+
+# --- Path conversion for MSYS2 ----------------------------------------------
+
+$MuPDFRepoDirMsys = Convert-ToMsysPath $MuPDFRepoDir
+$Pdf2JohnDirMsys  = Convert-ToMsysPath $Pdf2JohnDir
+
+# --- MSYS2 / MinGW64 bootstrap ----------------------------------------------
+
+$msys2Root = "C:\msys64"
+$envExe    = Join-Path $msys2Root "usr\bin\env.exe"
+
+if (-not (Test-Path $envExe)) {
+    Write-Host "MSYS2 not found at $msys2Root. Installing via winget..."
+    Invoke-Winget "install -e --id MSYS2.MSYS2"
+}
+
+if (-not (Test-Path $envExe)) {
+    throw "MSYS2 installation not found at $envExe even after install attempt."
+}
+
+# --- Ensure required MinGW64 packages ---------------------------------------
+
+$packages = @(
+    'mingw-w64-x86_64-pkg-config'
+    'mingw-w64-x86_64-gcc'
+    'mingw-w64-x86_64-make'
+    'mingw-w64-x86_64-python'
+)
+
+$pkgList = $packages -join " "
+
+Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
+Invoke-Mingw64 "pacman --needed --noconfirm -S $pkgList"
+
+# --- Build MuPDF ------------------------------------------------------------
+
+$procCount = [Environment]::ProcessorCount
+
+Write-Host "Running MuPDF resource generation in MinGW64 environment..."
+Invoke-Mingw64 "cd $MuPDFRepoDirMsys && mingw32-make generate"
+
+Write-Host "Running MuPDF build in MinGW64 environment..."
+Invoke-Mingw64 "cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount build=release XCFLAGS='-msse4.1' libs"
+
+Write-Host "MuPDF build completed."
+
+# --- Build pdf2john using the same environment -------------------------
+
+Write-Host "Cleaning pdf2john build..."
+Invoke-Mingw64 "cd $Pdf2JohnDirMsys && mingw32-make clean" -IgnoreError
+
+Write-Host "Building pdf2john..."
+Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount libpdfhash.dll"
+
+Write-Host "pdf2john build completed."
