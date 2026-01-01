@@ -25,6 +25,8 @@ extern "C"
     // Exported function
     PDFHASH_API char *get_pdf_hash(const char *path);
     PDFHASH_API void free_pdf_hash(char *ptr);
+    typedef void (*log_callback_pdf_hash_t)(const char *message);
+    PDFHASH_API void set_log_callback_pdf_hash(log_callback_pdf_hash_t callback);
 
 #ifdef __cplusplus
 }

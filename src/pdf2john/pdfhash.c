@@ -6,6 +6,18 @@
 
 #include "pdfhash.h"
 
+// Logging callback support
+static log_callback_pdf_hash_t g_log_callback = NULL;
+PDFHASH_API void set_log_callback_pdf_hash(log_callback_pdf_hash_t callback)
+{
+    g_log_callback = callback;
+}
+static void log_message(const char *msg)
+{
+    if (g_log_callback)
+        g_log_callback(msg);
+}
+
 /* Append a separator '*' to the buffer, if space allows. */
 static void append_sep(char *buf, size_t buflen)
 {
@@ -98,6 +110,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 {
     if (!path)
     {
+        log_message("[pdfhash] ERROR: path is NULL");
         fprintf(stderr, "[pdfhash] ERROR: path is NULL\n");
         return NULL;
     }
@@ -105,6 +118,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
     fz_context *ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
     if (!ctx)
     {
+        log_message("[pdfhash] ERROR: failed to create context");
         fprintf(stderr, "[pdfhash] ERROR: failed to create context\n");
         return NULL;
     }
@@ -125,6 +139,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         doc = pdf_open_document(ctx, path);
         if (!doc)
         {
+            log_message("[pdfhash] ERROR: Cannot open PDF");
             fprintf(stderr, "[pdfhash] ERROR: Cannot open PDF: %s\n", path);
             fz_throw(ctx, FZ_ERROR_GENERIC, "Cannot open PDF: %s", path);
         }
@@ -132,6 +147,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         pdf_obj *trailer = pdf_trailer(ctx, doc);
         if (!trailer)
         {
+            log_message("[pdfhash] ERROR: trailer is NULL");
             fprintf(stderr, "[pdfhash] ERROR: trailer is NULL\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "No trailer");
         }
@@ -139,6 +155,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         pdf_obj *enc = pdf_resolve_indirect(ctx, encrypt_ref);
         if (!enc || !pdf_is_dict(ctx, enc))
         {
+            log_message("[pdfhash] ERROR: No Encrypt dictionary");
             fprintf(stderr, "[pdfhash] ERROR: No Encrypt dictionary\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "No Encrypt dictionary");
         }
@@ -162,6 +179,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         Ohex = hex_from_pdf_string(ctx, Uobj); /* actually Owner */
         if (!Uhex || !Ohex)
         {
+            log_message("[pdfhash] ERROR: Ohex or Uhex is NULL");
             fprintf(stderr, "[pdfhash] ERROR: Ohex or Uhex is NULL\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "Ohex or Uhex is NULL");
         }
@@ -170,6 +188,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         IDhex = hex_from_id_array(ctx, IDarr);
         if (!IDhex)
         {
+            log_message("[pdfhash] ERROR: IDhex is NULL");
             fprintf(stderr, "[pdfhash] ERROR: IDhex is NULL\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "IDhex is NULL");
         }
@@ -192,6 +211,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             Permshex = hex_from_pdf_string(ctx, perms_obj);
             if (perms_obj && !Permshex)
             {
+                log_message("[pdfhash] WARNING: Permshex is NULL for R >= 6");
                 fprintf(stderr, "[pdfhash] WARNING: Permshex is NULL for R >= 6\n");
             }
         }
@@ -208,6 +228,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         result = (char *)calloc(1, total);
         if (!result)
         {
+            log_message("[pdfhash] ERROR: Allocation failure");
             fprintf(stderr, "[pdfhash] ERROR: Allocation failure\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "Allocation failure");
         }
