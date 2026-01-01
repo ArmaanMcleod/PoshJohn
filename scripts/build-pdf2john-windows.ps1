@@ -1,5 +1,7 @@
 #!/usr/bin/env pwsh
 
+param([switch]$ReBuild)
+
 $ErrorActionPreference = "Stop"
 
 $MUPDF_REPO = "https://github.com/ArtifexSoftware/mupdf.git"
@@ -9,6 +11,11 @@ $Pdf2JohnDir = Join-Path $RepoPath "src" "pdf2john"
 
 Write-Host "REPO_PATH: $RepoPath"
 Write-Host "MUPDF_REPO_DIR: $MuPDFRepoDir"
+
+if ($ReBuild -and (Test-Path $MuPDFRepoDir)) {
+    Write-Host "Rebuild requested. Removing existing MuPDF directory..."
+    Remove-Item -Recurse -Force $MuPDFRepoDir
+}
 
 # Clone MuPDF only if directory does not exist
 if (-not (Test-Path $MuPDFRepoDir)) {
