@@ -1,5 +1,5 @@
 Describe 'PoshJohn Tests' {
-    
+
     BeforeAll {
         $repoPath = (Get-Item -Path $PSScriptRoot).Parent.FullName
         $modulePath = Join-Path -Path $repoPath -ChildPath 'out' -AdditionalChildPath 'PoshJohn'
@@ -27,7 +27,7 @@ Describe 'PoshJohn Tests' {
     Context 'Export-JohnPasswordHash' {
 
         It 'Should export PDF passwords to John the Ripper format' -Tag 'export-hash', 'pdf' {
-            [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+            [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
             $output = Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
             $output | Should -BeOfType [PoshJohn.Models.HashResult]
             $output.HashFilePath | Should -Be $sampleProtectedPdfHashPath
@@ -48,7 +48,7 @@ Describe 'PoshJohn Tests' {
             for ($i = 1; $i -le 2; $i++) {
                 $pdfPath = Join-Path -Path $TestDrive -ChildPath "SampleProtected$i.pdf"
                 $password = "test$i"
-                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($pdfPath, $password)
+                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($pdfPath, $password, "RC4-40")
                 $output = Export-JohnPasswordHash -InputPath $pdfPath -OutputPath $sampleProtectedPdfHashPath -Append
                 $output | Should -BeOfType [PoshJohn.Models.HashResult]
                 $output.HashFilePath | Should -Be $sampleProtectedPdfHashPath
@@ -76,7 +76,7 @@ Describe 'PoshJohn Tests' {
             $hashLine | Should -HaveCount 1
 
             $splitHash = $hashLine.Split('::')
-            
+
             $firstPart = $splitHash[0].Split(':')
             $firstPart | Should -HaveCount 2
             $firstPart[0] | Should -Be (Split-Path -Path $sampleProtectedZipPath -Leaf)
@@ -130,7 +130,7 @@ Describe 'PoshJohn Tests' {
             Context 'Using John the Ripper to crack PDF password hashes on individual PDF files using brute-force' {
 
                 BeforeEach {
-                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
                 }
 
                 It 'Should crack password hashes using John the Ripper using default incremental mode' -Tag 'pipeline-input' {
@@ -197,7 +197,7 @@ Describe 'PoshJohn Tests' {
                     @{ IncrementalMode = 'alnum'; Password = 'aB1' }
                 ) {
                     param($IncrementalMode, $Password)
-                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $Password)
+                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $Password, "RC4-40")
                     Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
                     $crackResult = Invoke-JohnPasswordCrack -InputPath $sampleProtectedPdfHashPath -IncrementalMode $IncrementalMode
                     $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
@@ -234,12 +234,12 @@ Describe 'PoshJohn Tests' {
             Context 'Using John the Ripper to crack PDF password using the same PDF file using brute-force' {
 
                 BeforeAll {
-                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, "test123")
+                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, "test123", "RC4-40")
                 }
 
                 It 'Should crack password hashes using John the Ripper using default incremental mode' -Tag 'pot-file' {
                     Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
-                    
+
                     $crackResult = Invoke-JohnPasswordCrack -InputPath $sampleProtectedPdfHashPath
                     $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
                     $crackResult.RawOutput | Should -Match $samplePDFPassword
@@ -301,7 +301,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult = Invoke-JohnPasswordCrack -InputPath $sampleProtectedPdfHashPath -RefreshPot -WarningVariable warnings
                     $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
                     $crackResult.RawOutput | Should -Match $samplePDFPassword
-                    
+
                     $crackResult.Summary.FormatGroups | Should -HaveCount 1
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
@@ -313,7 +313,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password | Should -Be $samplePDFPassword
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FilePath | Should -Be $sampleProtectedPdfPath
                     $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FileFormat | Should -Be 'PDF'
-                    
+
                     $warnings | Should -Not -BeNullOrEmpty
                     $warnings | Should -HaveCount 1
                     $warnings[0] | Should -Be "Refreshing pot file: $($crackResult.PotPath)"
@@ -343,15 +343,15 @@ Describe 'PoshJohn Tests' {
                 }
 
                 It 'Should crack password hashes using John the Ripper using default incremental mode and custom pot path' {
-                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
 
                     Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
-                    
+
                     $crackResult = Invoke-JohnPasswordCrack -InputPath $sampleProtectedPdfHashPath -CustomPotPath $customPotPath
                     Test-Path $customPotPath | Should -BeTrue
                     $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
                     $crackResult.RawOutput | Should -Match $samplePDFPassword
-                    
+
                     $crackResult.Summary.FormatGroups | Should -HaveCount 1
                     $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
                     $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
@@ -376,12 +376,12 @@ Describe 'PoshJohn Tests' {
                 }
 
                 It 'Should crack password hashes using John the Ripper using default incremental mode and refreshed custom pot path' {
-                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
 
                     Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
                     $crackResult = Invoke-JohnPasswordCrack -InputPath $sampleProtectedPdfHashPath -CustomPotPath $customPotPath -RefreshPot -WarningVariable warnings
                     Test-Path $customPotPath | Should -BeTrue
-                    
+
                     $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
                     $crackResult.RawOutput | Should -Match $samplePDFPassword
                     $crackResult.Summary.FormatGroups | Should -HaveCount 1
@@ -428,7 +428,7 @@ Describe 'PoshJohn Tests' {
                     for ($i = 1; $i -le 3; $i++) {
                         $pdfPath = Join-Path -Path $TestDrive -ChildPath "SampleProtected$i.pdf"
                         $password = "test$i"
-                        [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($pdfPath, $password)
+                        [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($pdfPath, $password, "RC4-40")
                         Export-JohnPasswordHash -InputPath $pdfPath -OutputPath $combinedHashPath -Append
                     }
 
@@ -440,7 +440,7 @@ Describe 'PoshJohn Tests' {
                     $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
                     $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
                     $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 3
-                    
+
                     for ($i = 1; $i -le 3; $i++) {
                         $password = "test$i"
                         $crackResult.RawOutput | Should -Match $password
@@ -477,7 +477,7 @@ Describe 'PoshJohn Tests' {
                 }
 
                 It 'Should output unlocked files to custom directory' -Tag 'unlocked-dir' {
-                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+                    [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
 
                     Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
 
@@ -619,7 +619,7 @@ Describe 'PoshJohn Tests' {
             }
 
             It 'Should crack password hashes using John the Ripper with a wordlist which contains the password' {
-                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
 
                 @($samplePDFPassword, 'password2') | Set-Content -Path $wordListPath
                 Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
@@ -650,7 +650,7 @@ Describe 'PoshJohn Tests' {
             }
 
             It 'Should not crack password hashes using John the Ripper with a wordlist which doesn''t contain the password' {
-                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword)
+                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, "RC4-40")
 
                 @('password1', 'password2') | Set-Content -Path $wordListPath
                 Export-JohnPasswordHash -InputPath $sampleProtectedPdfPath -OutputPath $sampleProtectedPdfHashPath
