@@ -9,12 +9,37 @@
 /* PDF Standard Security Handler revision numbers */
 #define PDF_REVISION_AES256 5 /* Revision 5 introduced AES-256 encryption with OE/UE keys */
 
+/* Buffer size for integer to string conversion (INT_MIN = -2147483648 = 11 chars + null) */
+#define INT_STRING_BUFFER_SIZE 16
+
+/* Hex digit lookup table for lowercase hex conversion */
+static const char HEX_DIGITS[] = "0123456789abcdef";
+
+/* Separator character used in the hash string */
+#define BUFFER_SEPARATOR '*'
+
+/* Default encryption key length in bits for older PDF revisions */
+#define DEFAULT_KEY_LENGTH_BITS 40
+
+/* Hash format prefix for PDF password hashes */
+#define HASH_PREFIX "$pdf$"
+
+/* Base buffer size for hash string (for prefix, separators, integers, etc.) */
+#define HASH_BASE_BUFFER_SIZE 256
+
+/* Default value for EncryptMetadata flag (1 = metadata is encrypted) */
+#define DEFAULT_ENCRYPT_METADATA 1
+
 // Logging callback support
 static log_callback_pdf_hash_t g_log_callback = NULL;
+
+/* Set the logging callback function */
 PDFHASH_API void set_log_callback_pdf_hash(log_callback_pdf_hash_t callback)
 {
     g_log_callback = callback;
 }
+
+/* Internal logging function */
 static void log_message(const char *msg)
 {
     if (g_log_callback)
@@ -27,7 +52,7 @@ static void append_sep(char *buf, size_t buflen)
     size_t n = strlen(buf);
     if (n + 1 < buflen)
     {
-        buf[n] = '*';
+        buf[n] = BUFFER_SEPARATOR;
         buf[n + 1] = '\0';
     }
 }
@@ -35,7 +60,7 @@ static void append_sep(char *buf, size_t buflen)
 /* Append an integer value as a string to the buffer. */
 static void append_int(char *buf, size_t buflen, int val)
 {
-    char tmp[32];
+    char tmp[INT_STRING_BUFFER_SIZE];
     snprintf(tmp, sizeof(tmp), "%d", val);
     strncat(buf, tmp, buflen - strlen(buf) - 1);
 }
@@ -51,16 +76,18 @@ static void append_str(char *buf, size_t buflen, const char *s)
 /* Convert binary data to a lowercase hexadecimal string. */
 static char *hex_lower(const unsigned char *data, size_t len)
 {
-    static const char *hex = "0123456789abcdef";
     char *out = (char *)malloc(len * 2 + 1);
     if (!out)
         return NULL;
+
     for (size_t i = 0; i < len; ++i)
     {
-        out[2 * i] = hex[(data[i] >> 4) & 0xF];
-        out[2 * i + 1] = hex[data[i] & 0xF];
+        out[2 * i] = HEX_DIGITS[(data[i] >> 4) & 0xF];
+        out[2 * i + 1] = HEX_DIGITS[data[i] & 0xF];
     }
+
     out[len * 2] = '\0';
+
     return out;
 }
 
@@ -69,12 +96,15 @@ static char *hex_from_pdf_string(fz_context *ctx, pdf_obj *str_obj)
 {
     if (!str_obj)
         return NULL;
+
     pdf_obj *o = pdf_resolve_indirect(ctx, str_obj);
     if (!o || !pdf_is_string(ctx, o))
         return NULL;
 
     size_t len = pdf_to_str_len(ctx, o);
+
     const char *bytes = pdf_to_str_buf(ctx, o);
+
     return hex_lower((const unsigned char *)bytes, len);
 }
 
@@ -85,7 +115,9 @@ static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
 {
     if (!id_obj || !pdf_is_array(ctx, id_obj) || pdf_array_len(ctx, id_obj) < 1)
         return NULL;
+
     pdf_obj *id0 = pdf_array_get(ctx, id_obj, 0); /* First element */
+
     return hex_from_pdf_string(ctx, id0);
 }
 
@@ -152,6 +184,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
             fprintf(stderr, "[pdfhash] ERROR: trailer is NULL\n");
             fz_throw(ctx, FZ_ERROR_GENERIC, "No trailer");
         }
+
         pdf_obj *encrypt_ref = pdf_dict_gets(ctx, trailer, "Encrypt");
         pdf_obj *enc = pdf_resolve_indirect(ctx, encrypt_ref);
         if (!enc || !pdf_is_dict(ctx, enc))
@@ -165,7 +198,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         int R = pdf_to_int(ctx, pdf_dict_gets(ctx, enc, "R"));
         int P = pdf_to_int(ctx, pdf_dict_gets(ctx, enc, "P"));
 
-        int key_len = 40;
+        int key_len = DEFAULT_KEY_LENGTH_BITS;
         pdf_obj *length_obj = pdf_dict_gets(ctx, enc, "Length");
         if (length_obj && pdf_is_int(ctx, length_obj))
             key_len = pdf_to_int(ctx, length_obj);
@@ -204,7 +237,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         }
 
         /* Read EncryptMetadata flag (defaults to 1 if not present) */
-        int flags = 1;
+        int flags = DEFAULT_ENCRYPT_METADATA;
         pdf_obj *em_obj = pdf_dict_gets(ctx, enc, "EncryptMetadata");
         if (em_obj && pdf_is_bool(ctx, em_obj))
             flags = pdf_to_bool(ctx, em_obj);
@@ -215,7 +248,12 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         int OElen = OEhex ? (int)(strlen(OEhex) / 2) : 0;
         int UElen = UEhex ? (int)(strlen(UEhex) / 2) : 0;
 
-        size_t total = 256 + (Ohex ? strlen(Ohex) : 0) + (Uhex ? strlen(Uhex) : 0) + (IDhex ? strlen(IDhex) : 0) + (OEhex ? strlen(OEhex) : 0) + (UEhex ? strlen(UEhex) : 0);
+        size_t total = HASH_BASE_BUFFER_SIZE +
+                       (Ohex ? strlen(Ohex) : 0) +
+                       (Uhex ? strlen(Uhex) : 0) +
+                       (IDhex ? strlen(IDhex) : 0) +
+                       (OEhex ? strlen(OEhex) : 0) +
+                       (UEhex ? strlen(UEhex) : 0);
 
         result = (char *)calloc(1, total);
         if (!result)
@@ -226,7 +264,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
         }
 
         /* Build hash string in pdf2john.py order: ID -> O -> U (-> OE -> UE for AES-256) */
-        strncat(result, "$pdf$", total - 1);
+        strncat(result, HASH_PREFIX, total - 1);
         append_int(result, total, V);
         append_sep(result, total);
         append_int(result, total, R);
@@ -333,6 +371,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
     return result;
 }
 
+/* Free the allocated PDF hash string */
 PDFHASH_API void free_pdf_hash(char *ptr)
 {
     free(ptr);
