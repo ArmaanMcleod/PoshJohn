@@ -47,7 +47,7 @@ public static class FileHelpers
                 "AES-256" => EncryptionConstants.ENCRYPTION_AES_256,
                 "RC4-128" => EncryptionConstants.STANDARD_ENCRYPTION_128,
                 "RC4-40" => EncryptionConstants.STANDARD_ENCRYPTION_40,
-                _ => throw new ArgumentException($"Unsupported encryption algorithm: {encryptionAlgorithm}", nameof(encryptionAlgorithm)),
+                _ => throw new ArgumentException($"Unsupported encryption algorithm: {encryptionAlgorithm}. Only AES-128, AES-256, RC4-128, and RC4-40 are supported.", nameof(encryptionAlgorithm)),
             };
             var writerProperties = new WriterProperties()
                 .SetStandardEncryption(
