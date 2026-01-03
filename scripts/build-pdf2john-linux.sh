@@ -47,6 +47,7 @@ git submodule update --init --recursive --depth 1
 make -j$(nproc) build=release XCFLAGS="-fPIC -msse4.1" libs
 echo "MuPDF build completed."
 
+# Build pdf2john
 cd "$PDF2JOHN_DIR"
 echo "Cleaning pdf2john build..."
 make clean
