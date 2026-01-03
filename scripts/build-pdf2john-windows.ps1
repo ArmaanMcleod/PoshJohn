@@ -26,7 +26,7 @@ if ($ReBuild -and (Test-Path $MuPDFRepoDir)) {
 
 if (-not (Test-Path $MuPDFRepoDir)) {
     Write-Host "Cloning MuPDF into $MuPDFRepoDir..."
-    Invoke-Git "clone $MUPDF_REPO $MuPDFRepoDir"
+    Invoke-Git "clone $MUPDF_REPO $MuPDFRepoDir --depth 1"
 } else {
     Write-Host "MuPDF directory already exists at $MuPDFRepoDir. Skipping clone."
 }
@@ -35,7 +35,7 @@ if (-not (Test-Path $MuPDFRepoDir)) {
 Push-Location $MuPDFRepoDir
 try {
     Write-Host "Ensuring Git LFS assets are pulled and submodules are updated..."
-    Invoke-Git "submodule update --init --recursive"
+    Invoke-Git "submodule update --init --recursive --depth 1"
     Invoke-Git "lfs install"
     Invoke-Git "lfs pull"
 }
