@@ -16,40 +16,49 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
+    <!-- PowerShell module files (all platforms) -->
+    <None Include="PoshJohn.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PoshJohn.psm1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <!-- John the Ripper files (all platforms) -->
     <None Include="../john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
-    <None Include="./pdf2john/*.dll" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-    <None Include="./pdf2john/*.so" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-    <None Include="./pdf2john/*.dylib" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
-    <None Include="./pdf2john/*.exe" CopyToOutputDirectory="PreserveNewest" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 
-  <!-- Windows -->
-  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and !Exists('$(ProjectDir)../john/windows/run') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
-  </Target>
-
-  <Target Name="PreBuildPDF2JohnWindows" BeforeTargets="Build" Condition=" '$(OS)' == 'Windows_NT' and '$(GITHUB_ACTIONS)' != 'true'">
+  <!-- Windows Build Tasks -->
+  <Target Name="PreBuildWindows" BeforeTargets="Build" Condition=" $([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows))) and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" Condition="!Exists('$(ProjectDir)../john/windows/run')" />
     <Exec Command="pwsh.exe -NoProfile -ExecutionPolicy Bypass -Command &quot;Start-Process pwsh -NoNewWindow -Wait -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','$(ProjectDir)../scripts/build-pdf2john-windows.ps1'&quot;" />
   </Target>
 
-  <!-- Linux -->
-  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/proc/version') and !Exists('$(ProjectDir)../john/linux/run') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
-  </Target>
-
-  <Target Name="PreBuildPDF2JohnLinux" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/proc/version') and '$(GITHUB_ACTIONS)' != 'true'">
+  <!-- Linux Build Tasks -->
+  <Target Name="PreBuildLinux" BeforeTargets="Build" Condition=" $([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux))) and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" Condition="!Exists('$(ProjectDir)../john/linux/run')" />
     <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh" />
   </Target>
 
-  <!-- macOS -->
-  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/usr/bin/sw_vers') and !Exists('$(ProjectDir)../john/macos/run') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
+  <!-- macOS Build Tasks -->
+  <Target Name="PreBuildMacOS" BeforeTargets="Build" Condition=" $([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX))) and '$(GITHUB_ACTIONS)' != 'true'">
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" Condition="!Exists('$(ProjectDir)../john/macos/run')" />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
   </Target>
 
-  <Target Name="PreBuildPDF2JohnMacOS" BeforeTargets="Build" Condition=" '$(OS)' != 'Windows_NT' and Exists('/usr/bin/sw_vers') and '$(GITHUB_ACTIONS)' != 'true'">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
+  <!-- Copy pdf2john files after publish -->
+  <Target Name="CopyPdf2JohnFiles" AfterTargets="Publish">
+    <!-- Windows files -->
+    <Copy SourceFiles="$(ProjectDir)pdf2john\libpdfhash.dll" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows))) AND Exists('$(ProjectDir)pdf2john\libpdfhash.dll')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john\pdf2john.exe" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows))) AND Exists('$(ProjectDir)pdf2john\pdf2john.exe')" />
+
+    <!-- Linux files -->
+    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.so" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux))) AND Exists('$(ProjectDir)pdf2john/libpdfhash.so')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john/pdf2john" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux))) AND Exists('$(ProjectDir)pdf2john/pdf2john')" />
+
+    <!-- macOS files -->
+    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.dylib" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX))) AND Exists('$(ProjectDir)pdf2john/libpdfhash.dylib')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john/pdf2john" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX))) AND Exists('$(ProjectDir)pdf2john/pdf2john')" />
   </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
