@@ -34,6 +34,7 @@ echo "Cleaning pdf2john build..."
 make clean
 echo "Building libpdfhash.dylib..."
 make -j$(nproc) libpdfhash.dylib
-echo "Building pdf2john.exe..."
+echo "Building pdf2john..."
 make -j$(nproc)
+chmod +x pdf2john
 echo "pdf2john build completed."

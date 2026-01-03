@@ -54,4 +54,5 @@ echo "Building libpdfhash.so..."
 make -j$(nproc) libpdfhash.so
 echo "Building pdf2john..."
 make -j$(nproc)
+chmod +x pdf2john
 echo "pdf2john build completed."
