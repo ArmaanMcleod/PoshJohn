@@ -679,10 +679,12 @@ Describe 'PoshJohn Tests' {
                 if ($IsWindows) {
                     $pythonExe = "python.exe"
                     $venvPythonExe = Join-Path -Path $venvPath -ChildPath "Scripts\$pythonExe"
+                    $pdf2JohnExe = "pdf2john.exe"
                 }
                 else {
                     $pythonExe = "python3"
                     $venvPythonExe = Join-Path -Path $venvPath -ChildPath "bin/$pythonExe"
+                    $pdf2JohnExe = "pdf2john"
                 }
 
                 & $pythonExe -m venv $venvPath
@@ -690,13 +692,14 @@ Describe 'PoshJohn Tests' {
                 & $venvPythonExe -m pip install pyhanko
 
                 $pythonScriptPath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.py' | Select-Object -First 1 -ExpandProperty FullName
-                $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.exe' | Select-Object -First 1 -ExpandProperty FullName
+                $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter $pdf2JohnExe | Select-Object -First 1 -ExpandProperty FullName
 
                 if (-not $pythonScriptPath) {
                     throw "pdf2john.py not found in module path: $modulePath"
                 }
+
                 if (-not $exePath) {
-                    throw "pdf2john.exe not found in module path: $modulePath. Did you build the project?"
+                    throw "$pdf2JohnExe not found in module path: $modulePath. Did you build the project?"
                 }
             }
 
@@ -711,10 +714,18 @@ Describe 'PoshJohn Tests' {
                 $samplePdfPath = Join-Path -Path $TestDrive -ChildPath "SampleProtected_$Algorithm.pdf"
                 [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($samplePdfPath, $samplePDFPassword, $Algorithm)
 
+                [PoshJohn.TestUtils.FileHelpers]::GetPasswordProtectedPDFEncryptionType($samplePdfPath, $samplePDFPassword) | Should -Be $Algorithm
+
                 $pythonHash = & $venvPythonExe $pythonScriptPath $samplePdfPath
                 $exeHash = & $exePath $samplePdfPath
 
                 $exeHash | Should -Be $pythonHash
+
+                if ($IsLinux) {
+                    $valgrindOutput = valgrind --leak-check=full --error-exitcode=1 $exePath $samplePdfPath 2>&1 | Out-String
+                    $LASTEXITCODE | Should -Be 0 -Because "Valgrind should not detect memory errors"
+                    $valgrindOutput | Should -Match "no leaks are possible|All heap blocks were freed" -Because "Valgrind output: $valgrindOutput"
+                }
             }
 
             AfterAll {
