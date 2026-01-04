@@ -46,19 +46,18 @@
     <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
   </Target>
 
-  <!-- Copy pdf2john files after publish -->
-  <Target Name="CopyPdf2JohnFiles" AfterTargets="Publish">
+  <!-- Copy pdf2john files after pre-build -->
+  <Target Name="CopyPdf2JohnFiles" AfterTargets="Build">
     <!-- Windows files -->
-    <Copy SourceFiles="$(ProjectDir)pdf2john\libpdfhash.dll" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows))) AND Exists('$(ProjectDir)pdf2john\libpdfhash.dll')" />
-    <Copy SourceFiles="$(ProjectDir)pdf2john\pdf2john.exe" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows))) AND Exists('$(ProjectDir)pdf2john\pdf2john.exe')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john\libpdfhash.dll" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john\libpdfhash.dll')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john\pdf2john.exe" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john\pdf2john.exe')" />
 
     <!-- Linux files -->
-    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.so" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux))) AND Exists('$(ProjectDir)pdf2john/libpdfhash.so')" />
-    <Copy SourceFiles="$(ProjectDir)pdf2john/pdf2john" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux))) AND Exists('$(ProjectDir)pdf2john/pdf2john')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.so" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john/libpdfhash.so')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john/pdf2john" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john/pdf2john')" />
 
     <!-- macOS files -->
-    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.dylib" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX))) AND Exists('$(ProjectDir)pdf2john/libpdfhash.dylib')" />
-    <Copy SourceFiles="$(ProjectDir)pdf2john/pdf2john" DestinationFolder="$(PublishDir)" Condition="$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX))) AND Exists('$(ProjectDir)pdf2john/pdf2john')" />
+    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.dylib" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john/libpdfhash.dylib')" />
   </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
