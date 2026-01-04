@@ -44,7 +44,18 @@ fi
 cd "$MUPDF_REPO_DIR"
 echo "Building MuPDF..."
 git submodule update --init --recursive --depth 1
-make -j$(nproc) build=release XCFLAGS="-fPIC -msse4.1" libs
+
+# Detect architecture and set appropriate flags
+ARCH="$(uname -m)"
+if [ "$ARCH" = "x86_64" ]; then
+    echo "Detected x86_64 architecture, using SSE4.1 optimizations"
+    XCFLAGS="-fPIC -msse4.1"
+else
+    echo "Detected $ARCH architecture, skipping x86-specific optimizations"
+    XCFLAGS="-fPIC"
+fi
+
+make -j$(nproc) build=release XCFLAGS="$XCFLAGS" libs
 echo "MuPDF build completed."
 
 # Build pdf2john
