@@ -14,8 +14,8 @@ env:
 
 jobs:
 
-  build-john:
-    name: Build John Binaries (${{ matrix.osname }})
+  pre-build-john-pdf2john:
+    name: Pre-Build John & pdf2john (${{ matrix.osname }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
