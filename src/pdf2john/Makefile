@@ -1,8 +1,7 @@
 CC      = gcc
 CFLAGS  = -Wall -Wextra -O2 -I../../mupdf/include
 LDFLAGS = -L../../mupdf/build/release \
-		  -lmupdf -lmupdf-third \
-		  -lfreetype -ljpeg -lopenjp2 -lz -lm
+		  -lmupdf -lmupdf-third -lz -lm
 
 TARGET  = pdf2john
 SRCS    = pdf2john.c pdfhash.c
