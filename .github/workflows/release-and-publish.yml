@@ -80,6 +80,7 @@ jobs:
   publish-module:
     name: Publish Module to PowerShell Gallery
     if: startsWith(github.ref, 'refs/tags/v')
+    needs: [upload-release-assets]
     runs-on: ubuntu-latest
     permissions:
       contents: write
