@@ -1,4 +1,4 @@
-name: Release and Publish
+name: Publish PowerShell Module and Assets
 
 on:
   release:
