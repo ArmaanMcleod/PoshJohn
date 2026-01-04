@@ -5,6 +5,7 @@
 ### Build and Packaging Improvements
 
 + Add `release-and-publish.yml` workflow for downloading external John asset during install (#29).
+  + Download John the Ripper from GitHub release assets during module import to reduce package size.
 
 ## v1.0.1 - 16/12/2025
 
