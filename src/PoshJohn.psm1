@@ -26,8 +26,7 @@ $private:DownloadJohnAssets = {
         $asset = $release.assets | Where-Object { $_.name -eq $AssetName } | Select-Object -First 1
 
         if (-not $asset) {
-            Write-Warning "Could not find $AssetName in release $tag. John the Ripper functionality may be limited."
-            return
+            throw "Could not find $AssetName in release $tag"
         }
 
         # Download the asset
