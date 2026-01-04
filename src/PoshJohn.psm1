@@ -22,6 +22,8 @@ $private:DownloadJohnAssets = {
         $tag = "v$moduleVersion"
         $apiUrl = "https://api.github.com/repos/$repo/releases/tags/$tag"
 
+        Write-Verbose "Fetching release info from: $apiUrl"
+
         $release = Invoke-RestMethod -Uri $apiUrl -ErrorAction Stop
         $asset = $release.assets | Where-Object { $_.name -eq $AssetName } | Select-Object -First 1
 
@@ -56,8 +58,7 @@ $private:DownloadJohnAssets = {
         Write-Verbose "Successfully downloaded and extracted John the Ripper assets to: $OutputDir"
     }
     catch {
-        Write-Warning "Failed to download John the Ripper assets: $_"
-        Write-Warning "John the Ripper functionality may be limited."
+        throw "Module import failed. Failed to download John the Ripper assets: $_"
     }
 }
 
