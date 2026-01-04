@@ -52,10 +52,10 @@ internal sealed class FileHashProvider : IFileHashProvider
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void PdfHashLogCallback([MarshalAs(UnmanagedType.LPUTF8Str)] string message);
 
-    private static string? _lastNativeError;
+    private static string _lastNativeError;
     private static readonly PdfHashLogCallback _logCallback = message => _lastNativeError = message;
     private static bool _logCallbackRegistered;
-    private static readonly object _logCallbackLock = new object();
+    private static readonly object _logCallbackLock = new();
 
     /// <summary>
     /// Initializes a new instance of the FileHashProvider class.
