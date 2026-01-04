@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Build and Packaging Improvements
+
++ Add `release-and-publish.yml` workflow for downloading external John asset during install (#29).
+
 ## v1.0.1 - 16/12/2025
 
 ### Build and Packaging Improvements
