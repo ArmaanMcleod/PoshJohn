@@ -105,8 +105,8 @@ jobs:
         env:
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
 
-  upload-binaries:
-    name: Upload John Binaries to Release
+  upload-release-assets:
+    name: Upload John Assets to Release
     needs: [build-john-windows, build-john-linux, build-john-macos]
     runs-on: ubuntu-latest
     permissions:
@@ -117,7 +117,7 @@ jobs:
         with:
           path: artifacts
 
-      - name: Upload John binaries to release
+      - name: Upload John assets to release
         uses: softprops/action-gh-release@v1
         with:
           files: |
