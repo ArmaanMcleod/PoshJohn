@@ -54,10 +54,10 @@ $private:DownloadJohnAssets = {
         # Clean up temp file
         Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
 
-        Write-Verbose "Successfully downloaded and extracted John the Ripper binaries to: $OutputDir"
+        Write-Verbose "Successfully downloaded and extracted John the Ripper assets to: $OutputDir"
     }
     catch {
-        Write-Warning "Failed to download John the Ripper binaries: $_"
+        Write-Warning "Failed to download John the Ripper assets: $_"
         Write-Warning "John the Ripper functionality may be limited."
     }
 }
