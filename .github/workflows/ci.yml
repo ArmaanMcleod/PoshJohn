@@ -233,13 +233,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: PSModule
-          path: out
+          path: ${{ github.workspace }}/out
 
       - name: Install Built PowerShell Module
         shell: pwsh
         run: |
           Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
-          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
+          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath ${{ github.workspace }}/out
 
       - name: Run Tests - PowerShell
         shell: pwsh
