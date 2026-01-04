@@ -141,25 +141,25 @@ jobs:
           name: john-MacOS
           path: ${{ github.workspace }}/john/macos/run
 
-      - name: Download pdf2john files (Windows)
+      - name: Download pdf2john Binaries (Windows)
         uses: actions/download-artifact@v4
         with:
           name: pdf2john-Windows
           path: ${{ github.workspace }}/src/pdf2john/windows/run
 
-      - name: Download pdf2john files (Linux)
+      - name: Download pdf2john Binaries (Linux)
         uses: actions/download-artifact@v4
         with:
           name: pdf2john-Linux
           path: ${{ github.workspace }}/src/pdf2john/linux/run
 
-      - name: Download pdf2john files (MacOS)
+      - name: Download pdf2john Binaries (MacOS)
         uses: actions/download-artifact@v4
         with:
           name: pdf2john-MacOS
           path: ${{ github.workspace }}/src/pdf2john/macos/run
 
-      - name: Download platform sizes
+      - name: Download John OS Platform Sizes
         uses: actions/download-artifact@v4
         with:
           pattern: john-size-*
@@ -169,7 +169,7 @@ jobs:
         shell: pwsh
         run: ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Build
 
-      - name: Check package size
+      - name: Check Package Total Size
         shell: pwsh
         run: |
           $nupkg = Get-Item out/*.nupkg
