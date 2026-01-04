@@ -201,15 +201,15 @@ jobs:
 
             const body = `## 📦 Package Size Report
 
-            **Size:** ${sizeMB} MB / ${limit} MB (${percentUsed}% of limit)
+            **Total Package Size:** ${sizeMB} MB / ${limit} MB (${percentUsed}% of limit)
 
             ${sizeMB > 240 ? '⚠️ **Warning:** Approaching size limit!' : '✅ Package size is within limits'}
 
             <details>
-            <summary>Size breakdown by platform</summary>
+            <summary>John the Ripper binary sizes by platform</summary>
 
-            | Platform | Size |
-            |----------|------|
+            | Platform | John Size |
+            |----------|-----------|
             | Windows  | ${windowsSize} MB |
             | Linux    | ${linuxSize} MB |
             | macOS    | ${macosSize} MB |
