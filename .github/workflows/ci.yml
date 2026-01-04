@@ -23,16 +23,16 @@ jobs:
         include:
           - osname: Windows
             os: windows-latest
-            build_script: /scripts/build-john-windows.ps1
-            john_out: /john/windows/run
+            john_build_script: /scripts/build-john-windows.ps1
+            john_build_out: /john/windows/run
           - osname: Linux
             os: ubuntu-latest
-            build_script: /scripts/build-john-linux.sh
-            john_out: /john/linux/run
+            john_build_script: /scripts/build-john-linux.sh
+            john_build_out: /john/linux/run
           - osname: MacOS
             os: macos-latest
-            build_script: /scripts/build-john-macos.sh
-            john_out: /john/macos/run
+            john_build_script: /scripts/build-john-macos.sh
+            john_build_out: /john/macos/run
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -42,13 +42,13 @@ jobs:
       - name: Build John the Ripper (Windows)
         if: matrix.osname == 'Windows'
         shell: pwsh
-        run: ${{github.workspace}}${{ matrix.build_script }}
+        run: ${{github.workspace}}${{ matrix.john_build_script }}
 
       - name: Build John the Ripper (Linux/MacOS)
         if: matrix.osname != 'Windows'
         shell: bash
         run: |
-          scriptPath=${{github.workspace}}${{ matrix.build_script }}
+          scriptPath=${{github.workspace}}${{ matrix.john_build_script }}
           chmod +x $scriptPath
           if [ "${{ matrix.osname }}" = "Linux" ]; then
             sudo $scriptPath
@@ -59,7 +59,7 @@ jobs:
       - name: Calculate platform size
         shell: pwsh
         run: |
-          $path = "${{github.workspace}}${{ matrix.john_out }}"
+          $path = "${{github.workspace}}${{ matrix.john_build_out }}"
           $sizeMB = [math]::Round((Get-ChildItem $path -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB, 2)
           Write-Host "${{ matrix.osname }} size: $sizeMB MB"
           "$sizeMB" | Out-File -FilePath "john-size-${{ matrix.osname }}.txt" -NoNewline
@@ -74,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: john-${{ matrix.osname }}
-          path: ${{ github.workspace }}${{ matrix.john_out }}
+          path: ${{ github.workspace }}${{ matrix.john_build_out }}
           if-no-files-found: error
 
   build-module:
