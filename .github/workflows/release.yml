@@ -1,0 +1,128 @@
+name: Release and Publish
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  build-john-windows:
+    name: Build John for Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build John for Windows
+        shell: pwsh
+        run: |
+          ./scripts/build-john-windows.ps1
+
+      - name: Create Windows archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path john/windows/run/* -DestinationPath john-windows-x64.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-windows-x64
+          path: john-windows-x64.zip
+          retention-days: 1
+
+  build-john-linux:
+    name: Build John for Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build John for Linux
+        run: |
+          sudo ./scripts/build-john-linux.sh
+
+      - name: Create Linux archive
+        run: |
+          tar -czf john-linux-x64.tar.gz -C john/linux/run .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-linux-x64
+          path: john-linux-x64.tar.gz
+          retention-days: 1
+
+  build-john-macos:
+    name: Build John for macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build John for macOS
+        run: |
+          ./scripts/build-john-macos.sh
+
+      - name: Create macOS archive
+        run: |
+          tar -czf john-macos-arm64.tar.gz -C john/macos/run .
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-macos-arm64
+          path: john-macos-arm64.tar.gz
+          retention-days: 1
+
+  publish-module:
+    name: Publish Module to PowerShell Gallery
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Download PowerShell module artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          commit: ${{ github.sha }}
+          name: PSModule
+
+      - name: Upload nupkg as release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: '*.nupkg'
+
+      - name: Publish to PowerShell Gallery
+        shell: pwsh
+        run: >-
+          dotnet nuget push '*.nupkg'
+          --api-key $env:PSGALLERY_API_KEY
+          --source 'https://www.powershellgallery.com/api/v2/package'
+          --no-symbols
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+
+  upload-binaries:
+    name: Upload John Binaries to Release
+    needs: [build-john-windows, build-john-linux, build-john-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload John binaries to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/john-windows-x64/john-windows-x64.zip
+            artifacts/john-linux-x64/john-linux-x64.tar.gz
+            artifacts/john-macos-arm64/john-macos-arm64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
