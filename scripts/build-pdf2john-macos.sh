@@ -37,7 +37,8 @@ else
     XCFLAGS="-fPIC"
 fi
 
-make -j$(nproc) build=release XCFLAGS="$XCFLAGS" libs
+NCPU=$(sysctl -n hw.ncpu)
+make -j$NCPU build=release XCFLAGS="$XCFLAGS" libs
 echo "MuPDF build completed."
 
 # Build pdf2john
@@ -45,9 +46,9 @@ cd "$PDF2JOHN_DIR"
 echo "Cleaning pdf2john build..."
 make clean
 echo "Building libpdfhash.dylib..."
-make -j$(nproc) libpdfhash.dylib
+make -j$NCPU libpdfhash.dylib
 echo "Building pdf2john..."
-make -j$(nproc)
+make -j$NCPU
 chmod +x pdf2john
 
 # Move files to macos/run directory
