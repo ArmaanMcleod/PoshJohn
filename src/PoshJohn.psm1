@@ -47,7 +47,7 @@ $private:DownloadJohnAssets = {
             # Linux/macOS (tar.gz)
             & tar -xzf $tempFile -C $OutputDir
             if ($LASTEXITCODE -ne 0) {
-                throw "Failed to extract tar.gz archive: $tempFile"
+                throw "Tar extraction failed with exit code $LASTEXITCODE while extracting '$tempFile' to '$OutputDir'."
             }
         }
 
