@@ -244,7 +244,7 @@ jobs:
       - name: Run Tests - PowerShell
         shell: pwsh
         run: |
-          ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Test
+          ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task TestPackage
 
       - name: Upload Test Results
         if: always()
