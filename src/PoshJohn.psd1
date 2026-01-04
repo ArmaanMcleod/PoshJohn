@@ -21,7 +21,7 @@
             LicenseUri   = 'https://github.com/ArmaanMcleod/PoshJohn/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/ArmaanMcleod/PoshJohn'
             ReleaseNotes = 'See https://github.com/ArmaanMcleod/PoshJohn/blob/main/CHANGELOG.md'
-            Prerelease   = 'alpha'
+            Prerelease   = 'alpha1'
         }
     }
 }
