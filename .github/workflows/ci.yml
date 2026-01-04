@@ -14,8 +14,8 @@ env:
 
 jobs:
 
-  pre-build-john-pdf2john:
-    name: Pre-Build John & pdf2john (${{ matrix.osname }})
+  build-native-binaries:
+    name: Build Native Binaries (${{ matrix.osname }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -122,7 +122,7 @@ jobs:
   build-module:
     name: Build PowerShell Module
     needs:
-      - build-john
+      - build-native-binaries
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
