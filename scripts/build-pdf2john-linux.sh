@@ -56,4 +56,10 @@ make -j$(nproc) libpdfhash.so
 echo "Building pdf2john..."
 make -j$(nproc)
 chmod +x pdf2john
-echo "pdf2john build completed."
+
+# Move files to linux/run directory
+OUTPUT_DIR="$PDF2JOHN_DIR/linux/run"
+mkdir -p "$OUTPUT_DIR"
+mv libpdfhash.so "$OUTPUT_DIR/"
+mv pdf2john "$OUTPUT_DIR/"
+echo "pdf2john build completed. Files moved to $OUTPUT_DIR"

@@ -26,6 +26,9 @@
 
     <!-- John the Ripper files (all platforms) -->
     <None Include="../john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
+
+    <!-- pdf2john files (all platforms) -->
+    <None Include="pdf2john/**/run/**" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Windows Build Tasks -->
@@ -44,20 +47,6 @@
   <Target Name="PreBuildMacOS" BeforeTargets="Build" Condition=" $([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX))) and '$(GITHUB_ACTIONS)' != 'true'">
     <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" Condition="!Exists('$(ProjectDir)../john/macos/run')" />
     <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
-  </Target>
-
-  <!-- Copy pdf2john files after pre-build -->
-  <Target Name="CopyPdf2JohnFiles" AfterTargets="Build">
-    <!-- Windows files -->
-    <Copy SourceFiles="$(ProjectDir)pdf2john\libpdfhash.dll" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john\libpdfhash.dll')" />
-    <Copy SourceFiles="$(ProjectDir)pdf2john\pdf2john.exe" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john\pdf2john.exe')" />
-
-    <!-- Linux files -->
-    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.so" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john/libpdfhash.so')" />
-    <Copy SourceFiles="$(ProjectDir)pdf2john/pdf2john" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john/pdf2john')" />
-
-    <!-- macOS files -->
-    <Copy SourceFiles="$(ProjectDir)pdf2john/libpdfhash.dylib" DestinationFolder="$(PublishDir)" Condition="Exists('$(ProjectDir)pdf2john/libpdfhash.dylib')" />
   </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">

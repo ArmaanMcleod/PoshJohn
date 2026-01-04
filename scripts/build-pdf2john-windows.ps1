@@ -50,31 +50,38 @@ $Pdf2JohnDirMsys  = Convert-ToMsysPath $Pdf2JohnDir
 
 # --- MSYS2 / MinGW64 bootstrap ----------------------------------------------
 
-$msys2Root = "C:\msys64"
-$envExe    = Join-Path $msys2Root "usr\bin\env.exe"
-
-if (-not (Test-Path $envExe)) {
-    Write-Host "MSYS2 not found at $msys2Root. Installing via winget..."
-    Invoke-Winget "install -e --id MSYS2.MSYS2"
+if ($env:GITHUB_ACTIONS -eq "true") {
+    Write-Host "Running in GitHub Actions, using pre-installed MSYS2"
 }
+else {
+    Write-Host "Checking for MSYS2 installation..."
 
-if (-not (Test-Path $envExe)) {
-    throw "MSYS2 installation not found at $envExe even after install attempt."
+    $msys2Root = "C:\msys64"
+    $envExe    = Join-Path $msys2Root "usr\bin\env.exe"
+
+    if (-not (Test-Path $envExe)) {
+        Write-Host "MSYS2 not found at $msys2Root. Installing via winget..."
+        Invoke-Winget "install -e --id MSYS2.MSYS2"
+    }
+
+    if (-not (Test-Path $envExe)) {
+        throw "MSYS2 installation not found at $envExe even after install attempt."
+    }
+
+    # --- Ensure required MinGW64 packages ---------------------------------------
+
+    $packages = @(
+        'mingw-w64-x86_64-pkg-config'
+        'mingw-w64-x86_64-gcc'
+        'mingw-w64-x86_64-make'
+        'mingw-w64-x86_64-python'
+    )
+
+    $pkgList = $packages -join " "
+
+    Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
+    Invoke-Mingw64 "pacman --needed --noconfirm -S $pkgList"
 }
-
-# --- Ensure required MinGW64 packages ---------------------------------------
-
-$packages = @(
-    'mingw-w64-x86_64-pkg-config'
-    'mingw-w64-x86_64-gcc'
-    'mingw-w64-x86_64-make'
-    'mingw-w64-x86_64-python'
-)
-
-$pkgList = $packages -join " "
-
-Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
-Invoke-Mingw64 "pacman --needed --noconfirm -S $pkgList"
 
 # --- Build MuPDF ------------------------------------------------------------
 
@@ -100,3 +107,16 @@ Write-Host "Building pdf2john.exe..."
 Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount"
 
 Write-Host "pdf2john build completed."
+
+# --- Move files to windows/run directory ------------------------------------
+
+$WindowsRunDir = Join-Path $Pdf2JohnDir "windows" "run"
+if (-not (Test-Path $WindowsRunDir)) {
+    New-Item -ItemType Directory -Path $WindowsRunDir -Force | Out-Null
+}
+
+Write-Host "Moving build artifacts to $WindowsRunDir..."
+Move-Item -Path (Join-Path $Pdf2JohnDir "libpdfhash.dll") -Destination $WindowsRunDir -Force
+Move-Item -Path (Join-Path $Pdf2JohnDir "pdf2john.exe") -Destination $WindowsRunDir -Force
+
+Write-Host "Build artifacts moved to Windows/run directory."

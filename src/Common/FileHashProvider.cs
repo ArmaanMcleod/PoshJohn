@@ -36,6 +36,12 @@ internal sealed class FileHashProvider : IFileHashProvider
     private readonly IProcessRunner _processRunner;
     private readonly PSCmdlet _cmdlet;
 
+
+    private const string Pdf2JohnDir = "pdf2john";
+    private const string Pdf2JohnRunDir = "run";
+    private const string Pdf2JohnWindowsDir = "windows";
+    private const string Pdf2JohnLinuxDir = "linux";
+    private const string Pdf2JohnMacOsDir = "macos";
     private const string WindowsLibPdfHashDll = "libpdfhash.dll";
     private const string LinuxLibPdfHashSo = "libpdfhash.so";
     private const string MacOsLibPdfHashDylib = "libpdfhash.dylib";
@@ -74,13 +80,13 @@ internal sealed class FileHashProvider : IFileHashProvider
     {
         NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
         {
-            string libraryName =
-                OperatingSystem.IsWindows() ? WindowsLibPdfHashDll :
-                OperatingSystem.IsLinux() ? LinuxLibPdfHashSo :
-                OperatingSystem.IsMacOS() ? MacOsLibPdfHashDylib :
+            string subLibraryPath =
+                OperatingSystem.IsWindows() ? Path.Combine(Pdf2JohnDir, Pdf2JohnWindowsDir, Pdf2JohnRunDir, WindowsLibPdfHashDll) :
+                OperatingSystem.IsLinux() ? Path.Combine(Pdf2JohnDir, Pdf2JohnLinuxDir, Pdf2JohnRunDir, LinuxLibPdfHashSo) :
+                OperatingSystem.IsMacOS() ? Path.Combine(Pdf2JohnDir, Pdf2JohnMacOsDir, Pdf2JohnRunDir, MacOsLibPdfHashDylib) :
                 throw new PlatformNotSupportedException();
 
-            string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), libraryName);
+            string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), subLibraryPath);
 
             IntPtr handle = NativeLibrary.Load(libraryPath);
 
@@ -131,7 +137,7 @@ internal sealed class FileHashProvider : IFileHashProvider
         }
     }
 
-    private void EnsureLogCallbackRegistered()
+    private static void EnsureLogCallbackRegistered()
     {
         if (_logCallbackRegistered) return;
         lock (_logCallbackLock)

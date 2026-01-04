@@ -25,14 +25,20 @@ jobs:
             os: windows-latest
             john_build_script: /scripts/build-john-windows.ps1
             john_build_out: /john/windows/run
+            pdf2john_build_script: /scripts/build-pdf2john-windows.ps1
+            pdf2john_build_out: /src/pdf2john/windows/run
           - osname: Linux
             os: ubuntu-latest
             john_build_script: /scripts/build-john-linux.sh
             john_build_out: /john/linux/run
+            pdf2john_build_script: /scripts/build-pdf2john-linux.sh
+            pdf2john_build_out: /src/pdf2john/linux/run
           - osname: MacOS
             os: macos-latest
             john_build_script: /scripts/build-john-macos.sh
+            pdf2john_build_script: /scripts/build-pdf2john-macos.sh
             john_build_out: /john/macos/run
+            pdf2john_build_out: /src/pdf2john/macos/run
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -56,7 +62,35 @@ jobs:
             $scriptPath
           fi
 
-      - name: Calculate platform size
+      - name: Setup MSYS2
+        if: matrix.osname == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+
+      - name: Build pdf2john (Windows)
+        if: matrix.osname == 'Windows'
+        shell: pwsh
+        run: |
+          ${{github.workspace}}${{ matrix.pdf2john_build_script }}
+
+      - name: Build pdf2john (Linux/MacOS)
+        if: matrix.osname != 'Windows'
+        shell: bash
+        run: |
+          scriptPath=${{github.workspace}}${{ matrix.pdf2john_build_script }}
+          chmod +x $scriptPath
+          if [ "${{ matrix.osname }}" = "Linux" ]; then
+            sudo $scriptPath
+          else
+            $scriptPath
+          fi
+
+      - name: Calculate John Package Size
         shell: pwsh
         run: |
           $path = "${{github.workspace}}${{ matrix.john_build_out }}"
@@ -64,7 +98,7 @@ jobs:
           Write-Host "${{ matrix.osname }} size: $sizeMB MB"
           "$sizeMB" | Out-File -FilePath "john-size-${{ matrix.osname }}.txt" -NoNewline
 
-      - name: Upload platform size
+      - name: Upload John Package Size
         uses: actions/upload-artifact@v4
         with:
           name: john-size-${{ matrix.osname }}
@@ -75,6 +109,13 @@ jobs:
         with:
           name: john-${{ matrix.osname }}
           path: ${{ github.workspace }}${{ matrix.john_build_out }}
+          if-no-files-found: error
+
+      - name: Upload pdf2john Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-${{ matrix.osname }}
+          path: ${{ github.workspace }}${{ matrix.pdf2john_build_out }}
           if-no-files-found: error
 
   build-module:
@@ -109,6 +150,24 @@ jobs:
         with:
           name: john-MacOS
           path: ${{ github.workspace }}/john/macos/run
+
+      - name: Download pdf2john files (Windows)
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf2john-Windows
+          path: ${{ github.workspace }}/src/pdf2john/windows/run
+
+      - name: Download pdf2john files (Linux)
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf2john-Linux
+          path: ${{ github.workspace }}/src/pdf2john/linux/run
+
+      - name: Download pdf2john files (MacOS)
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf2john-MacOS
+          path: ${{ github.workspace }}/src/pdf2john/macos/run
 
       - name: Download platform sizes
         uses: actions/download-artifact@v4
