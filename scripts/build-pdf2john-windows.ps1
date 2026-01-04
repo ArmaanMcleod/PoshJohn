@@ -50,39 +50,33 @@ $Pdf2JohnDirMsys  = Convert-ToMsysPath $Pdf2JohnDir
 
 # --- MSYS2 / MinGW64 bootstrap ----------------------------------------------
 
-if ($env:GITHUB_ACTIONS -eq "true") {
-    Write-Host "Running in GitHub Actions, using pre-installed MSYS2"
+Write-Host "Checking for MSYS2 installation..."
+
+$msys2Root = "C:\msys64"
+$envExe    = Join-Path $msys2Root "usr\bin\env.exe"
+
+if (-not (Test-Path $envExe)) {
+    Write-Host "MSYS2 not found at $msys2Root. Installing via winget..."
+    Invoke-Winget "install -e --id MSYS2.MSYS2"
 }
-else {
-    Write-Host "Checking for MSYS2 installation..."
 
-    $msys2Root = "C:\msys64"
-    $envExe    = Join-Path $msys2Root "usr\bin\env.exe"
-
-    if (-not (Test-Path $envExe)) {
-        Write-Host "MSYS2 not found at $msys2Root. Installing via winget..."
-        Invoke-Winget "install -e --id MSYS2.MSYS2"
-    }
-
-    if (-not (Test-Path $envExe)) {
-        throw "MSYS2 installation not found at $envExe even after install attempt."
-    }
-
-    # --- Ensure required MinGW64 packages ---------------------------------------
-
-    $packages = @(
-        'make'
-        'mingw-w64-x86_64-pkg-config'
-        'mingw-w64-x86_64-gcc'
-        'mingw-w64-x86_64-make'
-        'unzip'
-    )
-
-    $pkgList = $packages -join " "
-
-    Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
-    Invoke-Mingw64 "pacman --needed --noconfirm -S $pkgList"
+if (-not (Test-Path $envExe)) {
+    throw "MSYS2 installation not found at $envExe even after install attempt."
 }
+
+# --- Ensure required MinGW64 packages ---------------------------------------
+
+$packages = @(
+    'mingw-w64-x86_64-pkg-config'
+    'mingw-w64-x86_64-gcc'
+    'make'
+    'unzip'
+)
+
+$pkgList = $packages -join " "
+
+Write-Host "Ensuring MSYS2 MinGW64 packages are installed..."
+Invoke-Mingw64 "pacman --needed --noconfirm -S $pkgList"
 
 # --- Build MuPDF ------------------------------------------------------------
 
