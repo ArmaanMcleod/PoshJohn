@@ -101,7 +101,7 @@ jobs:
           path: ${{ github.workspace }}${{ matrix.john_build_out }}
           if-no-files-found: error
 
-      - name: Upload pdf2john Files
+      - name: Upload pdf2john Binaries
         uses: actions/upload-artifact@v4
         with:
           name: pdf2john-${{ matrix.osname }}
