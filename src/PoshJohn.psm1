@@ -46,6 +46,9 @@ $private:DownloadJohnAssets = {
         } else {
             # Linux/macOS (tar.gz)
             & tar -xzf $tempFile -C $OutputDir
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to extract tar.gz archive: $tempFile"
+            }
         }
 
         # Clean up temp file
