@@ -71,6 +71,7 @@ else {
     # --- Ensure required MinGW64 packages ---------------------------------------
 
     $packages = @(
+        'make'
         'mingw-w64-x86_64-pkg-config'
         'mingw-w64-x86_64-gcc'
         'mingw-w64-x86_64-make'
