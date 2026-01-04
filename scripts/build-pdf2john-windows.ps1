@@ -74,7 +74,7 @@ else {
         'mingw-w64-x86_64-pkg-config'
         'mingw-w64-x86_64-gcc'
         'mingw-w64-x86_64-make'
-        'mingw-w64-x86_64-python'
+        'unzip'
     )
 
     $pkgList = $packages -join " "
@@ -88,23 +88,23 @@ else {
 $procCount = [Environment]::ProcessorCount
 
 Write-Host "Running MuPDF resource generation in MinGW64 environment..."
-Invoke-Mingw64 "cd $MuPDFRepoDirMsys && mingw32-make generate"
+Invoke-Mingw64 "cd $MuPDFRepoDirMsys && make generate"
 
 Write-Host "Running MuPDF build in MinGW64 environment..."
-Invoke-Mingw64 "cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount build=release XCFLAGS='-msse4.1' libs"
+Invoke-Mingw64 "cd $MuPDFRepoDirMsys && CC=/mingw64/bin/gcc make -j$procCount build=release XCFLAGS='-msse4.1' libs"
 
 Write-Host "MuPDF build completed."
 
 # --- Build pdf2john using the same environment -------------------------
 
 Write-Host "Cleaning pdf2john build..."
-Invoke-Mingw64 "cd $Pdf2JohnDirMsys && mingw32-make clean" -IgnoreError
+Invoke-Mingw64 "cd $Pdf2JohnDirMsys && make clean" -IgnoreError
 
 Write-Host "Building libpdfhash.dll..."
-Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount libpdfhash.dll"
+Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc make -j$procCount libpdfhash.dll"
 
 Write-Host "Building pdf2john.exe..."
-Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc mingw32-make -j$procCount"
+Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc make -j$procCount"
 
 Write-Host "pdf2john build completed."
 
@@ -118,5 +118,3 @@ if (-not (Test-Path $WindowsRunDir)) {
 Write-Host "Moving build artifacts to $WindowsRunDir..."
 Move-Item -Path (Join-Path $Pdf2JohnDir "libpdfhash.dll") -Destination $WindowsRunDir -Force
 Move-Item -Path (Join-Path $Pdf2JohnDir "pdf2john.exe") -Destination $WindowsRunDir -Force
-
-Write-Host "Build artifacts moved to Windows/run directory."
