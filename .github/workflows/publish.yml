@@ -76,9 +76,73 @@ jobs:
           path: john-macos-arm64.tar.gz
           retention-days: 1
 
+  upload-release-assets:
+    name: Upload John Assets to Release
+    needs: [build-john-windows, build-john-linux, build-john-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload John assets to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/john-windows-x64/john-windows-x64.zip
+            artifacts/john-linux-x64/john-linux-x64.tar.gz
+            artifacts/john-macos-arm64/john-macos-arm64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-module:
+    name: Test PowerShell Module ${{ matrix.info.name }}
+    needs: [upload-release-assets]
+    runs-on: ${{ matrix.info.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        info:
+          - name: Windows
+            os: windows-latest
+          - name: Linux
+            os: ubuntu-latest
+          - name: MacOS
+            os: macos-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Download PowerShell module artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          commit: ${{ github.sha }}
+          name: PSModule
+          path: out
+
+      - name: Install Built PowerShell Module
+        shell: pwsh
+        run: |
+          # Extract the nupkg
+          Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
+          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
+
+      - name: Run Tests - PowerShell
+        shell: pwsh
+        run: |
+          ./PowerShellBuildTools/build.ps1 -Configuration Release -Task TestPackage
+
   publish-module:
     name: Publish Module to PowerShell Gallery
-    needs: [upload-release-assets]
+    needs: [test-module]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -87,7 +151,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
-          submodules: true
+          fetch-depth: 0
 
       - name: Verify commit is on main branch
         id: check_main
@@ -111,18 +175,6 @@ jobs:
           name: PSModule
           path: out
 
-      - name: Install Built PowerShell Module
-        shell: pwsh
-        run: |
-          # Extract the nupkg
-          Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
-          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
-
-      - name: Run Tests - PowerShell
-        shell: pwsh
-        run: |
-          ./PowerShellBuildTools/build.ps1 -Configuration Release -Task TestPackage
-
       - name: Upload nupkg as release asset
         uses: softprops/action-gh-release@v1
         with:
@@ -139,25 +191,3 @@ jobs:
           --no-symbols
         env:
           PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
-
-  upload-release-assets:
-    name: Upload John Assets to Release
-    needs: [build-john-windows, build-john-linux, build-john-macos]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Upload John assets to release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            artifacts/john-windows-x64/john-windows-x64.zip
-            artifacts/john-linux-x64/john-linux-x64.tar.gz
-            artifacts/john-macos-arm64/john-macos-arm64.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
