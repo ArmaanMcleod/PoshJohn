@@ -47,6 +47,7 @@ jobs:
 
       - name: Build John for Linux
         run: |
+          chmod +x ./scripts/build-john-linux.sh
           sudo ./scripts/build-john-linux.sh
 
       - name: Create Linux archive
@@ -70,6 +71,7 @@ jobs:
 
       - name: Build John for macOS
         run: |
+          chmod +x ./scripts/build-john-macos.sh
           ./scripts/build-john-macos.sh
 
       - name: Create macOS archive
