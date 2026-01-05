@@ -125,6 +125,7 @@ jobs:
           files: 'out/*.nupkg'
 
       - name: Publish to PowerShell Gallery
+        if: github.event.release.target_commitish == 'main'
         shell: pwsh
         run: >-
           dotnet nuget push 'out/*.nupkg'
