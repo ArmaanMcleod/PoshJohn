@@ -1,4 +1,4 @@
-name: Publish PowerShell Module and Assets
+name: Publish PoshJohn Module and Assets
 
 on:
   release:
