@@ -117,7 +117,7 @@ jobs:
       - name: Run Tests - PowerShell
         shell: pwsh
         run: |
-          ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task TestPackage
+          ./PowerShellBuildTools/build.ps1 -Configuration Release -Task TestPackage
 
       - name: Upload nupkg as release asset
         uses: softprops/action-gh-release@v1
