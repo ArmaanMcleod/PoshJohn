@@ -95,6 +95,8 @@ function Set-BinariesExecutable {
     }
 }
 
+# Main module import logic
+# Handle platform-specific John the Ripper asset installation
 try {
     if ($IsWindows) {
         $runDir = Join-Path $PSScriptRoot 'john/windows/run'
