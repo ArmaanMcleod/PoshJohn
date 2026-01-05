@@ -89,7 +89,7 @@ jobs:
           path: out/*.nupkg
           if-no-files-found: error
 
-  test:
+  test-module:
     name: Test PowerShell Module (${{ matrix.info.name }})
     needs:
       - build-module
