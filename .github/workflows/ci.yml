@@ -15,7 +15,7 @@ env:
 jobs:
 
   build-john:
-    name: Build John Binaries (${{ matrix.osname }})
+    name: Build John Assets (${{ matrix.osname }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -56,7 +56,7 @@ jobs:
             $scriptPath
           fi
 
-      - name: Upload John Binaries
+      - name: Upload John Assets
         uses: actions/upload-artifact@v4
         with:
           name: john-${{ matrix.osname }}
@@ -120,7 +120,7 @@ jobs:
           name: PSModule
           path: out
 
-      - name: Download John Binaries
+      - name: Download John Assets
         uses: actions/download-artifact@v4
         with:
           name: john-${{ matrix.info.name }}
