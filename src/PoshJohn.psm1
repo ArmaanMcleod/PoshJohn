@@ -18,6 +18,10 @@ function Install-JohnAssets {
     $manifestPath = Join-Path $PSScriptRoot 'PoshJohn.psd1'
     $manifest = Import-PowerShellDataFile -Path $manifestPath
     $moduleVersion = $manifest.ModuleVersion
+    $preRelease = $manifest.PrivateData.PSData.Prerelease
+    if ($preRelease) {
+        $moduleVersion += "-$preRelease"
+    }
 
     # Get specific release from GitHub matching module version
     $repo = 'ArmaanMcleod/PoshJohn'
