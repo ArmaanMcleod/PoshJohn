@@ -89,6 +89,20 @@ jobs:
         with:
           submodules: true
 
+      - name: Verify commit is on main branch
+        id: check_main
+        shell: pwsh
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor ${{ github.sha }} origin/main
+          if ($LASTEXITCODE -eq 0) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "on_main=true"
+            Write-Host "✓ Commit is on main branch"
+          } else {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "on_main=false"
+            Write-Host "⚠ Commit is NOT on main branch - will skip PowerShell Gallery publish"
+          }
+
       - name: Download PowerShell module artifact
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -116,7 +130,7 @@ jobs:
           fail_on_unmatched_files: true
 
       - name: Publish to PowerShell Gallery
-        if: github.event.release.target_commitish == 'main'
+        if: steps.check_main.outputs.on_main == 'true'
         shell: pwsh
         run: >-
           dotnet nuget push 'out/*.nupkg'
