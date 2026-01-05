@@ -138,6 +138,9 @@ jobs:
 
           # Copy John artifacts to the extracted module
           $destPath = Join-Path $modulePath "john/$('${{ matrix.info.name }}'.ToLower())/run"
+          if (Test-Path $destPath) {
+              throw "Extracted module should not already contain john artifacts at $destPath"
+          }
           New-Item -ItemType Directory -Force -Path $destPath | Out-Null
           Copy-Item -Path john-artifacts/${{ matrix.info.name }}/* -Destination $destPath -Recurse -Force
 
