@@ -78,24 +78,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Download John Binaries (Windows)
-        uses: actions/download-artifact@v4
-        with:
-          name: john-Windows
-          path: ${{ github.workspace }}/john/windows/run
-
-      - name: Download John Binaries (Linux)
-        uses: actions/download-artifact@v4
-        with:
-          name: john-Linux
-          path: ${{ github.workspace }}/john/linux/run
-
-      - name: Download John Binaries (MacOS)
-        uses: actions/download-artifact@v4
-        with:
-          name: john-MacOS
-          path: ${{ github.workspace }}/john/macos/run
-
       - name: Build module
         shell: pwsh
         run: ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Build
@@ -138,11 +120,26 @@ jobs:
           name: PSModule
           path: out
 
+      - name: Download John Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: john-${{ matrix.info.name }}
+          path: john-artifacts/${{ matrix.info.name }}
+
       - name: Install Built PowerShell Module
         shell: pwsh
         run: |
+          # Extract the nupkg
           Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
           Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
+
+          # Find the extracted module directory
+          $modulePath = Get-ChildItem -Path out/PoshJohn -Directory | Select-Object -First 1 -ExpandProperty FullName
+
+          # Copy John artifacts to the extracted module
+          $destPath = Join-Path $modulePath "john/$('${{ matrix.info.name }}'.ToLower())/run"
+          New-Item -ItemType Directory -Force -Path $destPath | Out-Null
+          Copy-Item -Path john-artifacts/${{ matrix.info.name }}/* -Destination $destPath -Recurse -Force
 
       - name: Run Tests - PowerShell
         shell: pwsh
