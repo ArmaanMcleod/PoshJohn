@@ -113,6 +113,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: 'out/*.nupkg'
+          fail_on_unmatched_files: true
 
       - name: Publish to PowerShell Gallery
         if: github.event.release.target_commitish == 'main'
