@@ -168,6 +168,7 @@ jobs:
             Add-Content -Path $env:GITHUB_OUTPUT -Value "on_main=false"
             Write-Host "⚠ Commit is NOT on main branch - will skip PowerShell Gallery publish"
           }
+          exit 0
 
       - name: Download PowerShell module artifact
         uses: dawidd6/action-download-artifact@v6
