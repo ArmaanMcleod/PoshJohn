@@ -1,38 +1,196 @@
-name: Publish module
+name: Publish PoshJohn Module and Assets
 
 on:
   release:
     types:
-    - published
+      - published
 
 jobs:
-  publish:
-    name: publish
-    if: startsWith(github.ref, 'refs/tags/v')
+  build-john-windows:
+    name: Build John for Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build John for Windows
+        shell: pwsh
+        run: |
+          ./scripts/build-john-windows.ps1
+
+      - name: Create Windows archive
+        shell: pwsh
+        run: |
+          Compress-Archive -Path john/windows/run/* -DestinationPath john-windows-x64.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-windows-x64
+          path: john-windows-x64.zip
+          retention-days: 1
+
+  build-john-linux:
+    name: Build John for Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build John for Linux
+        run: |
+          chmod +x ./scripts/build-john-linux.sh
+          sudo ./scripts/build-john-linux.sh
+
+      - name: Create Linux archive
+        run: |
+          tar -czvf john-linux-x64.tar.gz -C john/linux/run .
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-linux-x64
+          path: john-linux-x64.tar.gz
+          retention-days: 1
+
+  build-john-macos:
+    name: Build John for macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build John for macOS
+        run: |
+          chmod +x ./scripts/build-john-macos.sh
+          ./scripts/build-john-macos.sh
+
+      - name: Create macOS archive
+        run: |
+          tar -czvf john-macos-arm64.tar.gz -C john/macos/run .
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-macos-arm64
+          path: john-macos-arm64.tar.gz
+          retention-days: 1
+
+  upload-release-assets:
+    name: Upload John Assets to Release
+    needs: [build-john-windows, build-john-linux, build-john-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload John assets to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/john-windows-x64/john-windows-x64.zip
+            artifacts/john-linux-x64/john-linux-x64.tar.gz
+            artifacts/john-macos-arm64/john-macos-arm64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-module:
+    name: Test PowerShell Module ${{ matrix.info.name }}
+    needs: [upload-release-assets]
+    runs-on: ${{ matrix.info.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        info:
+          - name: Windows
+            os: windows-latest
+          - name: Linux
+            os: ubuntu-latest
+          - name: MacOS
+            os: macos-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Download PowerShell module artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          commit: ${{ github.sha }}
+          name: PSModule
+          path: out
+
+      - name: Install Built PowerShell Module
+        shell: pwsh
+        run: |
+          # Extract the nupkg
+          Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
+          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
+
+      - name: Run Tests - PowerShell
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./PowerShellBuildTools/build.ps1 -Configuration Release -Task TestPackage
+
+  publish-module:
+    name: Publish Module to PowerShell Gallery
+    needs: [test-module]
     runs-on: ubuntu-latest
     permissions:
       contents: write
       actions: write
-
     steps:
-    - name: Download
-      uses: dawidd6/action-download-artifact@v6
-      with:
-        workflow: ci.yml
-        commit: ${{ github.sha }}
-        name: PSModule
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    - name: Upload nupkg as release asset
-      uses: softprops/action-gh-release@v1
-      with:
-        files: '*.nupkg'
+      - name: Verify commit is on main branch
+        id: check_main
+        shell: pwsh
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor ${{ github.sha }} origin/main
+          if ($LASTEXITCODE -eq 0) {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "on_main=true"
+            Write-Host "✓ Commit is on main branch"
+          } else {
+            Add-Content -Path $env:GITHUB_OUTPUT -Value "on_main=false"
+            Write-Host "⚠ Commit is NOT on main branch - will skip PowerShell Gallery publish"
+          }
+          exit 0
 
-    - name: Publish to the PowerShell Gallery
-      shell: pwsh
-      run: >-
-        dotnet nuget push '*.nupkg'
-        --api-key $env:PSGALLERY_API_KEY
-        --source 'https://www.powershellgallery.com/api/v2/package'
-        --no-symbols
-      env:
-        PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+      - name: Download PowerShell module artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          commit: ${{ github.sha }}
+          name: PSModule
+          path: out
+
+      - name: Upload nupkg as release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: 'out/*.nupkg'
+          fail_on_unmatched_files: true
+
+      - name: Publish to PowerShell Gallery
+        if: steps.check_main.outputs.on_main == 'true'
+        shell: pwsh
+        run: >-
+          dotnet nuget push 'out/*.nupkg'
+          --api-key $env:PSGALLERY_API_KEY
+          --source 'https://www.powershellgallery.com/api/v2/package'
+          --no-symbols
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}

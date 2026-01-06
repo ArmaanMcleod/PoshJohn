@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Build and Packaging Improvements
+
++ Modify `publish.yml` workflow to also add John The Ripper Assets to GitHub Release (#29).
+  + Download John the Ripper from GitHub release assets during module import to reduce package size.
+
 ## v1.0.1 - 16/12/2025
 
 ### Build and Packaging Improvements
