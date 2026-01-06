@@ -8,7 +8,10 @@ function Install-JohnAssets {
         [string]$AssetName,
 
         [Parameter(Mandatory = $true)]
-        [string]$OutputDir
+        [string]$OutputDir,
+
+        [Parameter(Mandatory = $false)]
+        [string]$GitHubToken
     )
 
     Write-Information "Downloading John the Ripper GitHub release asset: $AssetName" -InformationAction Continue
@@ -30,7 +33,13 @@ function Install-JohnAssets {
 
     Write-Information "Fetching release info from: $apiUrl" -InformationAction Continue
 
-    $release = Invoke-RestMethod -Uri $apiUrl
+    # Prepare headers for authenticated requests if token is provided
+    $headers = @{}
+    if ($GitHubToken) {
+        $headers['Authorization'] = "Bearer $GitHubToken"
+    }
+
+    $release = Invoke-RestMethod -Uri $apiUrl -Headers $headers
     $asset = $release.assets | Where-Object { $_.name -eq $AssetName } | Select-Object -First 1
 
     if (-not $asset) {
@@ -98,17 +107,20 @@ function Set-BinariesExecutable {
 # Main module import logic
 # Handle platform-specific John the Ripper asset installation
 try {
+    # Check for GitHub token in environment (for CI/CD scenarios)
+    $githubToken = $env:GITHUB_TOKEN
+
     if ($IsWindows) {
         $runDir = Join-Path $PSScriptRoot 'john/windows/run'
         if (-not (Test-Path $runDir)) {
-            Install-JohnAssets -AssetName 'john-windows-x64.zip' -OutputDir $runDir
+            Install-JohnAssets -AssetName 'john-windows-x64.zip' -OutputDir $runDir -GitHubToken $githubToken
         }
     }
 
     elseif ($IsLinux) {
         $runDir = Join-Path $PSScriptRoot 'john/linux/run'
         if (-not (Test-Path $runDir)) {
-            Install-JohnAssets -AssetName 'john-linux-x64.tar.gz' -OutputDir $runDir
+            Install-JohnAssets -AssetName 'john-linux-x64.tar.gz' -OutputDir $runDir -GitHubToken $githubToken
         }
         Set-BinariesExecutable -RunDir $runDir
     }
@@ -116,7 +128,7 @@ try {
     elseif ($IsMacOS) {
         $runDir = Join-Path $PSScriptRoot 'john/macos/run'
         if (-not (Test-Path $runDir)) {
-            Install-JohnAssets -AssetName 'john-macos-arm64.tar.gz' -OutputDir $runDir
+            Install-JohnAssets -AssetName 'john-macos-arm64.tar.gz' -OutputDir $runDir -GitHubToken $githubToken
         }
         Set-BinariesExecutable -RunDir $runDir
     }

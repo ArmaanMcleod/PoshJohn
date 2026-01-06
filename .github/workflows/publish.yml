@@ -137,6 +137,8 @@ jobs:
 
       - name: Run Tests - PowerShell
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./PowerShellBuildTools/build.ps1 -Configuration Release -Task TestPackage
 
