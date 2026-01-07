@@ -4,8 +4,10 @@
 
 ### Build and Packaging Improvements
 
-+ Modify `publish.yml` workflow to also add John The Ripper Assets to GitHub Release (#29).
-  + Download John the Ripper from GitHub release assets during module import to reduce package size.
++ Install John assets externally during module import to reduce module package size (#29).
+  + Download John the Ripper from GitHub release assets.
++ Remove OS Run Directory from John Files (#30).
+  + Removes `windows/run`, `linux/run` and `macos/run` OS directories and includes John files directly into `john` folder.
 
 ## v1.0.1 - 16/12/2025
 
