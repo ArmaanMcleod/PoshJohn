@@ -109,28 +109,26 @@ function Set-BinariesExecutable {
 try {
     # Check for GitHub token in environment (for CI/CD scenarios)
     $githubToken = $env:GITHUB_TOKEN
+    $johnDir = Join-Path $PSScriptRoot 'john'
 
     if ($IsWindows) {
-        $runDir = Join-Path $PSScriptRoot 'john/windows/run'
-        if (-not (Test-Path $runDir)) {
-            Install-JohnAssets -AssetName 'john-windows-x64.zip' -OutputDir $runDir -GitHubToken $githubToken
+        if (-not (Test-Path $johnDir)) {
+            Install-JohnAssets -AssetName 'john-windows-x64.zip' -OutputDir $johnDir -GitHubToken $githubToken
         }
     }
 
     elseif ($IsLinux) {
-        $runDir = Join-Path $PSScriptRoot 'john/linux/run'
-        if (-not (Test-Path $runDir)) {
-            Install-JohnAssets -AssetName 'john-linux-x64.tar.gz' -OutputDir $runDir -GitHubToken $githubToken
+        if (-not (Test-Path $johnDir)) {
+            Install-JohnAssets -AssetName 'john-linux-x64.tar.gz' -OutputDir $johnDir -GitHubToken $githubToken
         }
-        Set-BinariesExecutable -RunDir $runDir
+        Set-BinariesExecutable -RunDir $johnDir
     }
 
     elseif ($IsMacOS) {
-        $runDir = Join-Path $PSScriptRoot 'john/macos/run'
-        if (-not (Test-Path $runDir)) {
-            Install-JohnAssets -AssetName 'john-macos-arm64.tar.gz' -OutputDir $runDir -GitHubToken $githubToken
+        if (-not (Test-Path $johnDir)) {
+            Install-JohnAssets -AssetName 'john-macos-arm64.tar.gz' -OutputDir $johnDir -GitHubToken $githubToken
         }
-        Set-BinariesExecutable -RunDir $runDir
+        Set-BinariesExecutable -RunDir $johnDir
     }
 }
 catch {
