@@ -1,4 +1,5 @@
-# Download John the Ripper pre-built binaries for Windows
+#!/usr/bin/env pwsh
+
 [CmdletBinding()]
 param()
 
