@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using PoshJohn.Enums;
 using PoshJohn.Models;
@@ -270,7 +269,7 @@ namespace PoshJohn.Common
         /// <returns>The full path to the executable.</returns>
         private string FindBundledExePath(string baseName)
         {
-            string exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            string exeName = OperatingSystem.IsWindows()
                 ? $"{baseName}{ExeFileExtension}"
                 : baseName;
 
@@ -284,7 +283,7 @@ namespace PoshJohn.Common
         /// <returns>The full path to the Python executable.</returns>
         private static string GetVenvPythonExePath(string venvPath)
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            return OperatingSystem.IsWindows()
                 ? Path.Combine(venvPath, WindowsVenvScriptsFolder, WindowsPythonExe)
                 : Path.Combine(venvPath, UnixVenvBinFolder, UnixPythonExe);
         }
@@ -296,7 +295,7 @@ namespace PoshJohn.Common
         /// <exception cref="InvalidOperationException">Thrown if Python is not found.</exception>
         private static string DetectSystemPythonExePath()
         {
-            string systemPythonExePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            string systemPythonExePath = OperatingSystem.IsWindows()
                 ? FindInPath(WindowsPythonExe)
                 : FindInPath(UnixPythonExe);
 
