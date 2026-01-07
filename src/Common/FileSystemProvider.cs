@@ -96,7 +96,6 @@ namespace PoshJohn.Common
         private const string JohnDirName = "john";
         private const string JohnExeBaseName = "john";
         private const string JohnPotFileName = "john.pot";
-        private const string JohnRunDirName = "run";
         private const string Pdf2JohnPythonScriptName = "pdf2john.py";
         private const string Zip2JohnExeBaseName = "zip2john";
         private const string WindowsPythonExe = "python.exe";
@@ -110,10 +109,7 @@ namespace PoshJohn.Common
         private const string PdfHashPrefix = "$pdf$";
         private const string WindowsZipHashPrefix = "$pkzip2$";
         private const string UnixZipHashPrefix = "$pkzip$";
-        private static readonly string ZipHashPrefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsZipHashPrefix : UnixZipHashPrefix;
-        private const string WindowsOSPlatformName = "windows";
-        private const string UnixOSPlatformName = "linux";
-        private const string MacOSPlatformName = "macos";
+        private static readonly string ZipHashPrefix = OperatingSystem.IsWindows() ? WindowsZipHashPrefix : UnixZipHashPrefix;
 
         private readonly string _potPath;
         private readonly PSCmdlet _cmdlet;
@@ -174,7 +170,7 @@ namespace PoshJohn.Common
             _venvPythonExePath = GetVenvPythonExePath(_venvDirectoryPath);
             _systemPythonExePath = DetectSystemPythonExePath();
             _potPath = GetAppDataSubPath(JohnPotFileName);
-            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, Pdf2JohnPythonScriptName);
+            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, Pdf2JohnPythonScriptName);
         }
 
         /// <summary>
@@ -241,31 +237,6 @@ namespace PoshJohn.Common
         #region Private Methods
 
         /// <summary>
-        /// Detects the current operating system platform as a string.
-        /// </summary>
-        /// <returns>The OS platform name (windows, linux, or macos).</returns>
-        /// <exception cref="PlatformNotSupportedException">Thrown if the OS is not supported.</exception>
-        private static string DetectOSPlatform()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return WindowsOSPlatformName;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return UnixOSPlatformName;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return MacOSPlatformName;
-            }
-            else
-            {
-                throw new PlatformNotSupportedException("Unsupported operating system platform.");
-            }
-        }
-
-        /// <summary>
         /// Combines the app data directory with additional subpaths.
         /// </summary>
         /// <param name="paths">Subpaths to combine.</param>
@@ -303,7 +274,7 @@ namespace PoshJohn.Common
                 ? $"{baseName}{ExeFileExtension}"
                 : baseName;
 
-            return GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, exeName);
+            return GetPackageAssemblyResourcePath(JohnDirName, exeName);
         }
 
         /// <summary>
