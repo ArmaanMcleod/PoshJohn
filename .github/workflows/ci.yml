@@ -24,15 +24,15 @@ jobs:
           - osname: Windows
             os: windows-latest
             build_script: /scripts/build-john-windows.ps1
-            john_out: /john/windows/run
+            john_out: /john
           - osname: Linux
             os: ubuntu-latest
             build_script: /scripts/build-john-linux.sh
-            john_out: /john/linux/run
+            john_out: /john
           - osname: MacOS
             os: macos-latest
             build_script: /scripts/build-john-macos.sh
-            john_out: /john/macos/run
+            john_out: /john
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -137,7 +137,7 @@ jobs:
           $modulePath = Get-ChildItem -Path out/PoshJohn -Directory | Select-Object -First 1 -ExpandProperty FullName
 
           # Copy John artifacts to the extracted module
-          $destPath = Join-Path $modulePath "john/$('${{ matrix.info.name }}'.ToLower())/run"
+          $destPath = Join-Path $modulePath "john"
           if (Test-Path $destPath) {
               throw "Extracted module should not already contain john artifacts at $destPath"
           }

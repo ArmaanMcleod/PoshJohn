@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using PoshJohn.Enums;
 using PoshJohn.Models;
@@ -96,7 +95,6 @@ namespace PoshJohn.Common
         private const string JohnDirName = "john";
         private const string JohnExeBaseName = "john";
         private const string JohnPotFileName = "john.pot";
-        private const string JohnRunDirName = "run";
         private const string Pdf2JohnPythonScriptName = "pdf2john.py";
         private const string Zip2JohnExeBaseName = "zip2john";
         private const string WindowsPythonExe = "python.exe";
@@ -110,10 +108,7 @@ namespace PoshJohn.Common
         private const string PdfHashPrefix = "$pdf$";
         private const string WindowsZipHashPrefix = "$pkzip2$";
         private const string UnixZipHashPrefix = "$pkzip$";
-        private static readonly string ZipHashPrefix = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsZipHashPrefix : UnixZipHashPrefix;
-        private const string WindowsOSPlatformName = "windows";
-        private const string UnixOSPlatformName = "linux";
-        private const string MacOSPlatformName = "macos";
+        private static readonly string ZipHashPrefix = OperatingSystem.IsWindows() ? WindowsZipHashPrefix : UnixZipHashPrefix;
 
         private readonly string _potPath;
         private readonly PSCmdlet _cmdlet;
@@ -174,7 +169,7 @@ namespace PoshJohn.Common
             _venvPythonExePath = GetVenvPythonExePath(_venvDirectoryPath);
             _systemPythonExePath = DetectSystemPythonExePath();
             _potPath = GetAppDataSubPath(JohnPotFileName);
-            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, Pdf2JohnPythonScriptName);
+            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, Pdf2JohnPythonScriptName);
         }
 
         /// <summary>
@@ -241,31 +236,6 @@ namespace PoshJohn.Common
         #region Private Methods
 
         /// <summary>
-        /// Detects the current operating system platform as a string.
-        /// </summary>
-        /// <returns>The OS platform name (windows, linux, or macos).</returns>
-        /// <exception cref="PlatformNotSupportedException">Thrown if the OS is not supported.</exception>
-        private static string DetectOSPlatform()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return WindowsOSPlatformName;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return UnixOSPlatformName;
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return MacOSPlatformName;
-            }
-            else
-            {
-                throw new PlatformNotSupportedException("Unsupported operating system platform.");
-            }
-        }
-
-        /// <summary>
         /// Combines the app data directory with additional subpaths.
         /// </summary>
         /// <param name="paths">Subpaths to combine.</param>
@@ -299,11 +269,11 @@ namespace PoshJohn.Common
         /// <returns>The full path to the executable.</returns>
         private string FindBundledExePath(string baseName)
         {
-            string exeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            string exeName = OperatingSystem.IsWindows()
                 ? $"{baseName}{ExeFileExtension}"
                 : baseName;
 
-            return GetPackageAssemblyResourcePath(JohnDirName, DetectOSPlatform(), JohnRunDirName, exeName);
+            return GetPackageAssemblyResourcePath(JohnDirName, exeName);
         }
 
         /// <summary>
@@ -313,7 +283,7 @@ namespace PoshJohn.Common
         /// <returns>The full path to the Python executable.</returns>
         private static string GetVenvPythonExePath(string venvPath)
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            return OperatingSystem.IsWindows()
                 ? Path.Combine(venvPath, WindowsVenvScriptsFolder, WindowsPythonExe)
                 : Path.Combine(venvPath, UnixVenvBinFolder, UnixPythonExe);
         }
@@ -325,7 +295,7 @@ namespace PoshJohn.Common
         /// <exception cref="InvalidOperationException">Thrown if Python is not found.</exception>
         private static string DetectSystemPythonExePath()
         {
-            string systemPythonExePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            string systemPythonExePath = OperatingSystem.IsWindows()
                 ? FindInPath(WindowsPythonExe)
                 : FindInPath(UnixPythonExe);
 

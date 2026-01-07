@@ -1,4 +1,5 @@
-# Download John the Ripper pre-built binaries for Windows
+#!/usr/bin/env pwsh
+
 [CmdletBinding()]
 param()
 
@@ -9,7 +10,7 @@ Write-Host "Downloading John the Ripper for Windows..." -ForegroundColor Cyan
 $url = "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.zip"
 $tempFile = Join-Path $env:TEMP "john-win64.zip"
 $extractPath = Join-Path $env:TEMP "john-extract"
-$outputDir = Join-Path $PSScriptRoot "../john/windows/run"
+$outputDir = Join-Path $PSScriptRoot "../john"
 $johnRepoUrl = "https://github.com/openwall/john.git"
 $johnCloneDir = Join-Path $env:TEMP "john-bleeding-jumbo"
 $pdf2johnSrc = Join-Path $johnCloneDir "run/pdf2john.py"
@@ -18,17 +19,17 @@ try {
     # Download
     Write-Host "Downloading from: $url" -ForegroundColor Cyan
     Invoke-WebRequest -Uri $url -OutFile $tempFile -ErrorAction Stop
-    
+
     # Extract
     Write-Host "Extracting to $extractPath..." -ForegroundColor Cyan
     if (Test-Path $extractPath) {
         Remove-Item $extractPath -Recurse -Force
     }
     Expand-Archive -Path $tempFile -DestinationPath $extractPath -Force
-    
+
     # Create output directory
     New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
-    
+
     # Copy all files from the run directory
     Write-Host "Copying all files to $outputDir..." -ForegroundColor Cyan
     $runDir = "$extractPath/john-1.9.0-jumbo-1-win64/run"
@@ -45,7 +46,7 @@ try {
     else {
         Write-Warning "pdf2john.py not found in cloned repo at $pdf2johnSrc"
     }
-    
+
     # Strip unnecessary files to reduce package size
     Write-Host "Stripping unnecessary files..." -ForegroundColor Cyan
     $files = Get-ChildItem -Path $outputDir -Recurse -File
@@ -53,13 +54,13 @@ try {
         throw "No files found in $outputDir - download or extraction may have failed"
     }
     $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
-    
+
     # Define what to keep
     $keepFilePatterns = @('john.exe', 'zip2john.exe', 'pdf2john.py', '*.conf', '*.chr', '*.dll')
     $keepDirs = @('lib', 'rules')
-    
+
     $removedCount = 0
-    
+
     # Remove root directory files except essential ones
     $rootFiles = Get-ChildItem -Path $outputDir -File
     foreach ($file in $rootFiles) {
@@ -75,7 +76,7 @@ try {
             $removedCount++
         }
     }
-    
+
     # Remove directories not in keep list
     $allDirs = Get-ChildItem -Path $outputDir -Directory
     foreach ($dir in $allDirs) {
@@ -84,20 +85,20 @@ try {
             Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
-    
+
     $filesAfter = Get-ChildItem -Path $outputDir -Recurse -File
     if (-not $filesAfter -or $filesAfter.Count -eq 0) {
         throw "All files were removed from $outputDir - file removal logic may be incorrect"
     }
     $afterSize = ($filesAfter | Measure-Object -Property Length -Sum).Sum / 1MB
     $saved = $beforeSize - $afterSize
-    
+
     Write-Host "Removed $removedCount files (saved $([math]::Round($saved, 2)) MB)" -ForegroundColor Green
-    
+
     $fileCount = (Get-ChildItem $outputDir -Recurse -File).Count
     Write-Host "`nDownload completed successfully!" -ForegroundColor Green
     Write-Host "Kept $fileCount essential files ($([math]::Round($afterSize, 2)) MB) in: $outputDir" -ForegroundColor Green
-    
+
 }
 catch {
     Write-Error "Failed to download John binaries: $_"
