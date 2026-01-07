@@ -111,22 +111,27 @@ try {
     $githubToken = $env:GITHUB_TOKEN
     $johnDir = Join-Path $PSScriptRoot 'john'
 
+    $johnAssetParams = @{
+        OutputDir   = $johnDir
+        GitHubToken = $githubToken
+    }
+
     if ($IsWindows) {
         if (-not (Test-Path $johnDir)) {
-            Install-JohnAssets -AssetName 'john-windows-x64.zip' -OutputDir $johnDir -GitHubToken $githubToken
+            Install-JohnAssets @johnAssetParams -AssetName 'john-windows-x64.zip'
         }
     }
 
     elseif ($IsLinux) {
         if (-not (Test-Path $johnDir)) {
-            Install-JohnAssets -AssetName 'john-linux-x64.tar.gz' -OutputDir $johnDir -GitHubToken $githubToken
+            Install-JohnAssets @johnAssetParams -AssetName 'john-linux-x64.tar.gz'
         }
         Set-BinariesExecutable -RunDir $johnDir
     }
 
     elseif ($IsMacOS) {
         if (-not (Test-Path $johnDir)) {
-            Install-JohnAssets -AssetName 'john-macos-arm64.tar.gz' -OutputDir $johnDir -GitHubToken $githubToken
+            Install-JohnAssets @johnAssetParams -AssetName 'john-macos-arm64.tar.gz'
         }
         Set-BinariesExecutable -RunDir $johnDir
     }
