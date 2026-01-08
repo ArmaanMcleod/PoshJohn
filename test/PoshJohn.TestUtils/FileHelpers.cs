@@ -58,7 +58,7 @@ public static class FileHelpers
 
             using var writer = new PdfWriter(filePath, writerProperties);
             using var pdfDoc = new PdfDocument(writer);
-            var document = new Document(pdfDoc);
+            using var document = new Document(pdfDoc);
             document.Add(new Paragraph("This is a sample PDF document."));
             document.Close();
         }
@@ -94,7 +94,7 @@ public static class FileHelpers
         {
             using var writer = new PdfWriter(filePath);
             using var pdfDoc = new PdfDocument(writer);
-            var document = new Document(pdfDoc);
+            using var document = new Document(pdfDoc);
             document.Add(new Paragraph("This is a sample PDF document with no password."));
             document.Close();
         }
