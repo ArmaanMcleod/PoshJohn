@@ -15,7 +15,7 @@ env:
 jobs:
 
   build-assets-windows:
-    name: Build Assets For Windows
+    name: Build Assets (Windows)
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -46,7 +46,7 @@ jobs:
           if-no-files-found: error
 
   build-assets-linux:
-    name: Build Assets For Linux
+    name: Build Assets (Linux)
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -79,7 +79,7 @@ jobs:
           if-no-files-found: error
 
   build-assets-macos:
-    name: Build Assets For MacOS
+    name: Build Assets (MacOS)
     runs-on: macos-latest
     steps:
       - name: Check out repository

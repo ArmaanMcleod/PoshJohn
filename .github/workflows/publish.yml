@@ -8,7 +8,7 @@ on:
 jobs:
 
   build-assets-windows:
-    name: Build Assets for Windows
+    name: Build Assets (Windows)
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -45,7 +45,7 @@ jobs:
           retention-days: 1
 
   build-assets-linux:
-    name: Build Assets for Linux
+    name: Build Assets (Linux)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -82,7 +82,7 @@ jobs:
           retention-days: 1
 
   build-assets-macos:
-    name: Build Assets for macOS
+    name: Build Assets (MacOS)
     runs-on: macos-latest
     steps:
       - name: Checkout repository
