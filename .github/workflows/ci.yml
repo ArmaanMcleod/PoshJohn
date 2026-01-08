@@ -14,8 +14,8 @@ env:
 
 jobs:
 
-  build-john-windows:
-    name: Build John & pdf2john (Windows)
+  build-assets-windows:
+    name: Build Assets For Windows
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -45,8 +45,8 @@ jobs:
           path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
-  build-john-linux:
-    name: Build John & pdf2john (Linux)
+  build-assets-linux:
+    name: Build Assets For Linux
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -78,8 +78,8 @@ jobs:
           path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
-  build-john-macos:
-    name: Build John & pdf2john (MacOS)
+  build-assets-macos:
+    name: Build Assets For MacOS
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -114,9 +114,9 @@ jobs:
   build-module:
     name: Build PowerShell Module
     needs:
-      - build-john-windows
-      - build-john-linux
-      - build-john-macos
+      - build-assets-windows
+      - build-assets-linux
+      - build-assets-macos
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
@@ -197,6 +197,7 @@ jobs:
           if (Test-Path $johnDestPath) {
               throw "Extracted module should not already contain john artifacts at $johnDestPath"
           }
+
           New-Item -ItemType Directory -Force -Path $johnDestPath | Out-Null
           Copy-Item -Path john-artifacts/${{ matrix.info.name }}/* -Destination $johnDestPath -Recurse -Force
 

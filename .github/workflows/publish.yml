@@ -7,8 +7,8 @@ on:
 
 jobs:
 
-  build-john-windows:
-    name: Build John for Windows
+  build-assets-windows:
+    name: Build Assets for Windows
     runs-on: windows-latest
     steps:
       - name: Checkout repository
@@ -44,8 +44,8 @@ jobs:
           path: pdf2john-windows-x64.zip
           retention-days: 1
 
-  build-john-linux:
-    name: Build John for Linux
+  build-assets-linux:
+    name: Build Assets for Linux
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -81,8 +81,8 @@ jobs:
           path: pdf2john-linux-x64.tar.gz
           retention-days: 1
 
-  build-john-macos:
-    name: Build John for macOS
+  build-assets-macos:
+    name: Build Assets for macOS
     runs-on: macos-latest
     steps:
       - name: Checkout repository
@@ -121,9 +121,9 @@ jobs:
   upload-release-assets:
     name: Upload John and pdf2john Assets to Release
     needs:
-      - build-john-windows
-      - build-john-linux
-      - build-john-macos
+      - build-assets-windows
+      - build-assets-linux
+      - build-assets-macos
     runs-on: ubuntu-latest
     permissions:
       contents: write
