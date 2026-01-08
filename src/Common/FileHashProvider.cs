@@ -38,10 +38,6 @@ internal sealed class FileHashProvider : IFileHashProvider
 
 
     private const string Pdf2JohnDir = "pdf2john";
-    private const string Pdf2JohnRunDir = "run";
-    private const string Pdf2JohnWindowsDir = "windows";
-    private const string Pdf2JohnLinuxDir = "linux";
-    private const string Pdf2JohnMacOsDir = "macos";
     private const string WindowsLibPdfHashDll = "libpdfhash.dll";
     private const string LinuxLibPdfHashSo = "libpdfhash.so";
     private const string MacOsLibPdfHashDylib = "libpdfhash.dylib";
@@ -81,9 +77,9 @@ internal sealed class FileHashProvider : IFileHashProvider
         NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
         {
             string subLibraryPath =
-                OperatingSystem.IsWindows() ? Path.Combine(Pdf2JohnDir, Pdf2JohnWindowsDir, Pdf2JohnRunDir, WindowsLibPdfHashDll) :
-                OperatingSystem.IsLinux() ? Path.Combine(Pdf2JohnDir, Pdf2JohnLinuxDir, Pdf2JohnRunDir, LinuxLibPdfHashSo) :
-                OperatingSystem.IsMacOS() ? Path.Combine(Pdf2JohnDir, Pdf2JohnMacOsDir, Pdf2JohnRunDir, MacOsLibPdfHashDylib) :
+                OperatingSystem.IsWindows() ? Path.Combine(Pdf2JohnDir, WindowsLibPdfHashDll) :
+                OperatingSystem.IsLinux() ? Path.Combine(Pdf2JohnDir, LinuxLibPdfHashSo) :
+                OperatingSystem.IsMacOS() ? Path.Combine(Pdf2JohnDir, MacOsLibPdfHashDylib) :
                 throw new PlatformNotSupportedException();
 
             string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), subLibraryPath);
