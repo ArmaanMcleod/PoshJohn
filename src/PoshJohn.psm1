@@ -1,21 +1,15 @@
 $dllPath = Join-Path -Path $PSScriptRoot -ChildPath 'PoshJohn.dll'
 Import-Module $dllPath
 
-# Download John the Ripper assets from GitHub releases
+# Download John assets from GitHub releases
 function Install-JohnAssets {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$AssetName,
-
-        [Parameter(Mandatory = $true)]
-        [string]$OutputDir,
+        [PSObject[]]$Assets,
 
         [Parameter(Mandatory = $false)]
         [string]$GitHubToken
     )
-
-    Write-Information "Downloading John the Ripper GitHub release asset: $AssetName" -InformationAction Continue
-    Write-Information "Output directory: $OutputDir" -InformationAction Continue
 
     # Get module version from manifest
     $manifestPath = Join-Path $PSScriptRoot 'PoshJohn.psd1'
@@ -40,51 +34,59 @@ function Install-JohnAssets {
     }
 
     $release = Invoke-RestMethod -Uri $apiUrl -Headers $headers
-    $asset = $release.assets | Where-Object { $_.name -eq $AssetName } | Select-Object -First 1
 
-    if (-not $asset) {
-        throw "Could not find $AssetName in release $tag"
-    }
+    foreach ($assetInfo in $Assets) {
+        $AssetName = $assetInfo.AssetName
+        $OutputDir = $assetInfo.OutputDir
 
-    # Download the asset
-    $downloadUrl = $asset.browser_download_url
-    $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) $AssetName
+        Write-Information "Downloading John the Ripper GitHub release asset: $AssetName" -InformationAction Continue
+        Write-Information "Output directory: $OutputDir" -InformationAction Continue
 
-    Write-Information "Downloading from: $downloadUrl" -InformationAction Continue
+        $asset = $release.assets | Where-Object { $_.name -eq $AssetName } | Select-Object -First 1
+        if (-not $asset) {
+            throw "Could not find $AssetName in release $tag"
+        }
 
-    try {
-        Invoke-WebRequest -Uri $downloadUrl -OutFile $tempFile -ErrorAction Stop
+        # Download the asset
+        $downloadUrl = $asset.browser_download_url
+        $tempFile = Join-Path ([System.IO.Path]::GetTempPath()) $AssetName
 
-        # Extract the archive
-        New-Item -ItemType Directory -Force -Path $OutputDir -ErrorAction Stop | Out-Null
+        Write-Information "Downloading from: $downloadUrl" -InformationAction Continue
 
-        if ($AssetName.EndsWith('.zip')) {
-            # Windows
-            Expand-Archive -Path $tempFile -DestinationPath $OutputDir -Force -ErrorAction Stop
-        } else {
-            # Linux/macOS (tar.gz)
-            & tar -xzvf $tempFile -C $OutputDir
-            if ($LASTEXITCODE -ne 0) {
-                throw "Tar extraction failed with exit code $LASTEXITCODE"
+        try {
+            Invoke-WebRequest -Uri $downloadUrl -OutFile $tempFile -ErrorAction Stop
+
+            # Extract the archive
+            New-Item -ItemType Directory -Force -Path $OutputDir -ErrorAction Stop | Out-Null
+
+            if ($AssetName.EndsWith('.zip')) {
+                # Windows
+                Expand-Archive -Path $tempFile -DestinationPath $OutputDir -Force -ErrorAction Stop
+            } else {
+                # Linux/macOS (tar.gz)
+                & tar -xzvf $tempFile -C $OutputDir
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Tar extraction failed with exit code $LASTEXITCODE"
+                }
             }
-        }
 
-        Write-Information "Successfully downloaded and extracted John the Ripper assets to: $OutputDir" -InformationAction Continue
-    }
-    catch {
-        # Cleanup output directory on failure
-        # This prevents partial or corrupted installations
-        if (Test-Path $OutputDir) {
-            Remove-Item $OutputDir -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Information "Cleaned up output directory due to failure: $OutputDir" -InformationAction Continue
+            Write-Information "Successfully downloaded and extracted John the Ripper assets to: $OutputDir" -InformationAction Continue
         }
-        throw
-    }
-    finally {
-        # Always clean up temp file
-        if (Test-Path $tempFile) {
-            Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
-            Write-Information "Cleaned up temporary file: $tempFile" -InformationAction Continue
+        catch {
+            # Cleanup output directory on failure
+            # This prevents partial/corrupted installs
+            if (Test-Path $OutputDir) {
+                Remove-Item $OutputDir -Recurse -Force -ErrorAction SilentlyContinue
+                Write-Information "Cleaned up output directory due to failure: $OutputDir" -InformationAction Continue
+            }
+            throw
+        }
+        finally {
+            # Always clean up temp file
+            if (Test-Path $tempFile) {
+                Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
+                Write-Information "Cleaned up temporary file: $tempFile" -InformationAction Continue
+            }
         }
     }
 }
@@ -121,43 +123,37 @@ try {
     $johnDir = Join-Path $PSScriptRoot 'john'
     $pdf2johnDir = Join-Path $PSScriptRoot 'pdf2john'
 
-    $johnAssetParams = @{
-        OutputDir   = $johnDir
-        GitHubToken = $githubToken
-    }
-
-    $pdf2johnAssetParams = @{
-        OutputDir   = $pdf2johnDir
-        GitHubToken = $githubToken
-    }
-
+    $assets = @()
     if ($IsWindows) {
         if (-not (Test-Path $johnDir)) {
-            Install-JohnAssets @johnAssetParams -AssetName 'john-windows-x64.zip'
+            $assets += [PSCustomObject]@{ AssetName = 'john-windows-x64.zip'; OutputDir = $johnDir }
         }
         if (-not (Test-Path $pdf2johnDir)) {
-            Install-JohnAssets @pdf2johnAssetParams -AssetName 'pdf2john-windows-x64.zip'
+            $assets += [PSCustomObject]@{ AssetName = 'pdf2john-windows-x64.zip'; OutputDir = $pdf2johnDir }
         }
     }
-
     elseif ($IsLinux) {
         if (-not (Test-Path $johnDir)) {
-            Install-JohnAssets @johnAssetParams -AssetName 'john-linux-x64.tar.gz'
+            $assets += [PSCustomObject]@{ AssetName = 'john-linux-x64.tar.gz'; OutputDir = $johnDir }
         }
         if (-not (Test-Path $pdf2johnDir)) {
-            Install-JohnAssets @pdf2johnAssetParams -AssetName 'pdf2john-linux-x64.tar.gz'
+            $assets += [PSCustomObject]@{ AssetName = 'pdf2john-linux-x64.tar.gz'; OutputDir = $pdf2johnDir }
         }
-        Set-BinariesExecutable -RunDir $johnDir -Binaries @('john', 'zip2john')
-        Set-BinariesExecutable -RunDir $pdf2johnDir -Binaries @('pdf2john')
     }
-
     elseif ($IsMacOS) {
         if (-not (Test-Path $johnDir)) {
-            Install-JohnAssets @johnAssetParams -AssetName 'john-macos-arm64.tar.gz'
+            $assets += [PSCustomObject]@{ AssetName = 'john-macos-arm64.tar.gz'; OutputDir = $johnDir }
         }
         if (-not (Test-Path $pdf2johnDir)) {
-            Install-JohnAssets @pdf2johnAssetParams -AssetName 'pdf2john-macos-arm64.tar.gz'
+            $assets += [PSCustomObject]@{ AssetName = 'pdf2john-macos-arm64.tar.gz'; OutputDir = $pdf2johnDir }
         }
+    }
+
+    if ($assets.Count -gt 0) {
+        Install-JohnAssets -Assets $assets -GitHubToken $githubToken
+    }
+
+    if ($IsLinux -or $IsMacOS) {
         Set-BinariesExecutable -RunDir $johnDir -Binaries @('john', 'zip2john')
         Set-BinariesExecutable -RunDir $pdf2johnDir -Binaries @('pdf2john')
     }
