@@ -722,7 +722,7 @@ Describe 'PoshJohn Tests' {
                 $exeHash | Should -Be $pythonHash
 
                 if ($IsLinux) {
-                    $valgrindOutput = valgrind --leak-check=full --error-exitcode=1 $exePath $samplePdfPath 2>&1 | Out-String
+                    $valgrindOutput = & valgrind --leak-check=full --error-exitcode=1 $exePath $samplePdfPath 2>&1 | Out-String
                     $LASTEXITCODE | Should -Be 0 -Because "Valgrind should not detect memory errors"
                     $valgrindOutput | Should -Match "no leaks are possible|All heap blocks were freed" -Because "Valgrind output: $valgrindOutput"
                 }

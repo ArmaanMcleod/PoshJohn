@@ -183,6 +183,10 @@ jobs:
           Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
           Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
 
+      - name: Install valgrind
+        if: ${{ matrix.info.name == 'Linux' }}
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+
       - name: Run Tests - PowerShell
         shell: pwsh
         env:

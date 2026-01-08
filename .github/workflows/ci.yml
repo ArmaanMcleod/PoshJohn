@@ -210,6 +210,10 @@ jobs:
           New-Item -ItemType Directory -Force -Path $pdf2johnDestPath | Out-Null
           Copy-Item -Path pdf2john-artifacts/${{ matrix.info.name }}/* -Destination $pdf2johnDestPath -Recurse -Force
 
+      - name: Install valgrind
+        if: ${{ matrix.info.name == 'Linux' }}
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+
       - name: Run Tests - PowerShell
         shell: pwsh
         run: |
