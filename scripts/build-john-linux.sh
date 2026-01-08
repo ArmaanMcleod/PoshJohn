@@ -23,26 +23,27 @@ JOHN_REPO="https://github.com/openwall/john.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
-JOHN_DIR="$REPO_PATH/john/linux"
-JOHN_SRC_DIR="$JOHN_DIR/src"
-JOHN_RUN_DIR="$JOHN_DIR/run"
+JOHN_OUTPUT_DIR="$REPO_PATH/john"
+JOHN_TEMP_DIR="$(mktemp -d)"
+JOHN_SRC_DIR="$JOHN_TEMP_DIR/src"
+JOHN_RUN_DIR="$JOHN_TEMP_DIR/run"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
-echo "JOHN_DIR: $JOHN_DIR"
+echo "JOHN_OUTPUT_DIR: $JOHN_OUTPUT_DIR"
+echo "JOHN_TEMP_DIR: $JOHN_TEMP_DIR"
 echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
 echo "JOHN_RUN_DIR: $JOHN_RUN_DIR"
 
 # Clean up any previous build
-if [ -d "$JOHN_DIR" ]; then
-    echo "Removing previous John build at $JOHN_DIR..."
-    rm -rf "$JOHN_DIR"
+if [ -d "$JOHN_OUTPUT_DIR" ]; then
+    echo "Removing previous John build at $JOHN_OUTPUT_DIR..."
+    rm -rf "$JOHN_OUTPUT_DIR"
 fi
 
-# Clone John the Ripper
-mkdir -p "$JOHN_DIR"
-echo "Cloning John the Ripper into $JOHN_DIR..."
-git clone --depth 1 "$JOHN_REPO" "$JOHN_DIR"
+# Clone John the Ripper to temp directory
+echo "Cloning John the Ripper into $JOHN_TEMP_DIR..."
+git clone --depth 1 "$JOHN_REPO" "$JOHN_TEMP_DIR"
 
 # Build John the Ripper
 cd "$JOHN_SRC_DIR"
@@ -132,3 +133,13 @@ SIZE_SAVED=$((BEFORE_SIZE - AFTER_SIZE))
 
 echo "Removed $SAVED files (saved ${SIZE_SAVED}MB)"
 echo "Kept $AFTER_COUNT essential files (${AFTER_SIZE}MB) in $JOHN_RUN_DIR"
+
+# Copy run directory contents to flat output directory
+echo "Copying run directory to $JOHN_OUTPUT_DIR..."
+mkdir -p "$JOHN_OUTPUT_DIR"
+cp -r "$JOHN_RUN_DIR"/* "$JOHN_OUTPUT_DIR/"
+
+echo "Cleaning up temp directory $JOHN_TEMP_DIR..."
+rm -rf "$JOHN_TEMP_DIR"
+
+echo "Build complete. John binaries are in $JOHN_OUTPUT_DIR"
