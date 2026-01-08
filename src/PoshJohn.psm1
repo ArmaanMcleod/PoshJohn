@@ -149,7 +149,9 @@ try {
         }
     }
 
-    Install-JohnAssets -Assets $assets -GitHubToken $githubToken
+    if ($assets.Count -gt 0) {
+        Install-JohnAssets -Assets $assets -GitHubToken $githubToken
+    }
 
     if ($IsLinux -or $IsMacOS) {
         Set-BinariesExecutable -RunDir $johnDir -Binaries @('john', 'zip2john')
