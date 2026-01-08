@@ -11,8 +11,8 @@
 
 ### General Cmdlet Updates and Fixes
 
-+ Replace pdf2john.py with Native Interop C implementation ([#12](https://github.com/ArmaanMcleod/PoshJohn/issues/12)).
-  + Removes dependency on Python and uses native C library `pdfhash` generate hashes with `get_pdf_hash`.
++ Migrate pdf2john.py functionality to .NETn ([#12](https://github.com/ArmaanMcleod/PoshJohn/issues/12)).
+  + Removes dependency on Python and uses native C library `pdfhash` generate hashes with `get_pdf_hash` using P/Invoke.
 
 ## v1.0.1 - 16/12/2025
 
