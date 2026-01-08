@@ -80,14 +80,14 @@ function Install-JohnAssets {
     }
 }
 
-# Only set execute permissions on 'john' and 'zip2john' binaries (Linux/macOS only)
+# Set execute permissions on binaries (Linux/macOS)
 function Set-BinariesExecutable {
     param(
         [Parameter(Mandatory = $true)]
         [string]$RunDir,
 
-        [Parameter(Mandatory = $false)]
-        [string[]]$Binaries = @('john', 'zip2john')
+        [Parameter(Mandatory = $true)]
+        [string[]]$Binaries
     )
 
     if (Test-Path $RunDir -PathType Container) {
@@ -105,14 +105,20 @@ function Set-BinariesExecutable {
 }
 
 # Main module import logic
-# Handle platform-specific John the Ripper asset installation
+# Handle platform-specific John the Ripper & pdf2john asset installation
 try {
     # Check for GitHub token in environment (for CI/CD scenarios)
     $githubToken = $env:GITHUB_TOKEN
     $johnDir = Join-Path $PSScriptRoot 'john'
+    $pdf2johnDir = Join-Path $PSScriptRoot 'pdf2john'
 
     $johnAssetParams = @{
         OutputDir   = $johnDir
+        GitHubToken = $githubToken
+    }
+
+    $pdf2johnAssetParams = @{
+        OutputDir   = $pdf2johnDir
         GitHubToken = $githubToken
     }
 
@@ -120,20 +126,31 @@ try {
         if (-not (Test-Path $johnDir)) {
             Install-JohnAssets @johnAssetParams -AssetName 'john-windows-x64.zip'
         }
+        if (-not (Test-Path $pdf2johnDir)) {
+            Install-JohnAssets @pdf2johnAssetParams -AssetName 'pdf2john-windows-x64.zip'
+        }
     }
 
     elseif ($IsLinux) {
         if (-not (Test-Path $johnDir)) {
             Install-JohnAssets @johnAssetParams -AssetName 'john-linux-x64.tar.gz'
         }
-        Set-BinariesExecutable -RunDir $johnDir
+        if (-not (Test-Path $pdf2johnDir)) {
+            Install-JohnAssets @pdf2johnAssetParams -AssetName 'pdf2john-linux-x64.tar.gz'
+        }
+        Set-BinariesExecutable -RunDir $johnDir -Binaries @('john', 'zip2john')
+        Set-BinariesExecutable -RunDir $pdf2johnDir -Binaries @('pdf2john')
     }
 
     elseif ($IsMacOS) {
         if (-not (Test-Path $johnDir)) {
             Install-JohnAssets @johnAssetParams -AssetName 'john-macos-arm64.tar.gz'
         }
-        Set-BinariesExecutable -RunDir $johnDir
+        if (-not (Test-Path $pdf2johnDir)) {
+            Install-JohnAssets @pdf2johnAssetParams -AssetName 'pdf2john-macos-arm64.tar.gz'
+        }
+        Set-BinariesExecutable -RunDir $johnDir -Binaries @('john', 'zip2john')
+        Set-BinariesExecutable -RunDir $pdf2johnDir -Binaries @('pdf2john')
     }
 }
 catch {
