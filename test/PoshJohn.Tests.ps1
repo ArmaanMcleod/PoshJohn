@@ -691,8 +691,8 @@ Describe 'PoshJohn Tests' {
                 & $venvPythonExe -m pip install --upgrade pip
                 & $venvPythonExe -m pip install pyhanko
 
-                $pythonScriptPath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.py' | Select-Object -First 1 -ExpandProperty FullName
-                $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter $pdf2JohnExe | Select-Object -First 1 -ExpandProperty FullName
+                $pythonScriptPath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.py' -File | Select-Object -First 1 -ExpandProperty FullName
+                $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter $pdf2JohnExe -File | Select-Object -First 1 -ExpandProperty FullName
 
                 if (-not $pythonScriptPath) {
                     throw "pdf2john.py not found in module path: $modulePath"
