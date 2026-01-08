@@ -95,21 +95,7 @@ Write-Host "MuPDF build completed."
 Write-Host "Cleaning pdf2john build..."
 Invoke-Mingw64 "cd $Pdf2JohnDirMsys && make clean" -IgnoreError
 
-Write-Host "Building libpdfhash.dll..."
-Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc make -j$procCount libpdfhash.dll"
-
-Write-Host "Building pdf2john.exe..."
+Write-Host "Building pdf2john in MinGW64 environment..."
 Invoke-Mingw64 "cd $Pdf2JohnDirMsys && CC=/mingw64/bin/gcc make -j$procCount"
 
 Write-Host "pdf2john build completed."
-
-# --- Move files to windows/run directory ------------------------------------
-
-$WindowsRunDir = Join-Path $Pdf2JohnDir "windows" "run"
-if (-not (Test-Path $WindowsRunDir)) {
-    New-Item -ItemType Directory -Path $WindowsRunDir -Force | Out-Null
-}
-
-Write-Host "Moving build artifacts to $WindowsRunDir..."
-Move-Item -Path (Join-Path $Pdf2JohnDir "libpdfhash.dll") -Destination $WindowsRunDir -Force
-Move-Item -Path (Join-Path $Pdf2JohnDir "pdf2john.exe") -Destination $WindowsRunDir -Force

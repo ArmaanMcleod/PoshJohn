@@ -47,15 +47,6 @@ echo "MuPDF build completed."
 cd "$PDF2JOHN_DIR"
 echo "Cleaning pdf2john build..."
 make clean
-echo "Building libpdfhash.dylib..."
-make -j$JOBS libpdfhash.dylib
 echo "Building pdf2john..."
 make -j$JOBS
-chmod +x pdf2john
-
-# Move files to macos/run directory
-OUTPUT_DIR="$PDF2JOHN_DIR/macos/run"
-mkdir -p "$OUTPUT_DIR"
-mv libpdfhash.dylib "$OUTPUT_DIR/"
-mv pdf2john "$OUTPUT_DIR/"
-echo "pdf2john build completed. Files moved to $OUTPUT_DIR"
+echo "pdf2john build completed."
