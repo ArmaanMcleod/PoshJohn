@@ -14,8 +14,8 @@ env:
 
 jobs:
 
-  build-assets-windows:
-    name: Build Assets (Windows)
+  build-john-assets-windows:
+    name: Build John Assets (Windows)
     runs-on: windows-latest
     steps:
       - name: Check out repository
@@ -45,8 +45,8 @@ jobs:
           path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
-  build-assets-linux:
-    name: Build Assets (Linux)
+  build-john-assets-linux:
+    name: Build John Assets (Linux)
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -78,8 +78,8 @@ jobs:
           path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
-  build-assets-macos:
-    name: Build Assets (MacOS)
+  build-john-assets-macos:
+    name: Build John Assets (MacOS)
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -114,9 +114,9 @@ jobs:
   build-module:
     name: Build PowerShell Module
     needs:
-      - build-assets-windows
-      - build-assets-linux
-      - build-assets-macos
+      - build-john-assets-windows
+      - build-john-assets-linux
+      - build-john-assets-macos
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
