@@ -60,7 +60,6 @@ public static class FileHelpers
             using var pdfDoc = new PdfDocument(writer);
             using var document = new Document(pdfDoc);
             document.Add(new Paragraph("This is a sample PDF document."));
-            document.Close();
         }
         catch (Exception ex)
         {
@@ -96,7 +95,6 @@ public static class FileHelpers
             using var pdfDoc = new PdfDocument(writer);
             using var document = new Document(pdfDoc);
             document.Add(new Paragraph("This is a sample PDF document with no password."));
-            document.Close();
         }
         catch (Exception ex)
         {
