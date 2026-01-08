@@ -14,80 +14,109 @@ env:
 
 jobs:
 
-  build-john-pdf2john-assets:
-    name: Build John & pdf2john Assets (${{ matrix.osname }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - osname: Windows
-            os: windows-latest
-            john_build_script: /scripts/build-john-windows.ps1
-            john_out: /john
-            pdf2john_build_script: /scripts/build-pdf2john-windows.ps1
-            pdf2john_out: /src/pdf2john/dist
-          - osname: Linux
-            os: ubuntu-latest
-            john_build_script: /scripts/build-john-linux.sh
-            john_out: /john
-            pdf2john_build_script: /scripts/build-pdf2john-linux.sh
-            pdf2john_out: /src/pdf2john/dist
-          - osname: MacOS
-            os: macos-latest
-            john_build_script: /scripts/build-john-macos.sh
-            john_out: /john
-            pdf2john_build_script: /scripts/build-pdf2john-macos.sh
-            pdf2john_out: /src/pdf2john/dist
+  build-john-windows:
+    name: Build John & pdf2john (Windows)
+    runs-on: windows-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Build John & pdf2john (Windows)
-        if: matrix.osname == 'Windows'
+      - name: Build John
         shell: pwsh
-        run: |
-          ${{github.workspace}}${{ matrix.john_build_script }}
-          ${{github.workspace}}${{ matrix.pdf2john_build_script }}
+        run: ./scripts/build-john-windows.ps1
 
-      - name: Build John & pdf2john (Linux/MacOS)
-        if: matrix.osname != 'Windows'
-        shell: bash
-        run: |
-          johnscriptPath=${{github.workspace}}${{ matrix.john_build_script }}
-          chmod +x $johnscriptPath
-
-          pdf2johnscriptPath=${{github.workspace}}${{ matrix.pdf2john_build_script }}
-          chmod +x $pdf2johnscriptPath
-
-          if [ "${{ matrix.osname }}" = "Linux" ]; then
-            sudo $johnscriptPath
-            sudo $pdf2johnscriptPath
-          else
-            $johnscriptPath
-            $pdf2johnscriptPath
-          fi
+      - name: Build pdf2john
+        shell: pwsh
+        run: ./scripts/build-pdf2john-windows.ps1
 
       - name: Upload John Assets
         uses: actions/upload-artifact@v4
         with:
-          name: john-${{ matrix.osname }}
-          path: ${{ github.workspace }}${{ matrix.john_out }}
+          name: john-Windows
+          path: ${{ github.workspace }}/john
           if-no-files-found: error
 
       - name: Upload pdf2john Assets
         uses: actions/upload-artifact@v4
         with:
-          name: pdf2john-${{ matrix.osname }}
-          path: ${{ github.workspace }}${{ matrix.pdf2john_out }}
+          name: pdf2john-Windows
+          path: ${{ github.workspace }}/src/pdf2john/dist
+          if-no-files-found: error
+
+  build-john-linux:
+    name: Build John & pdf2john (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build John
+        run: |
+          chmod +x ./scripts/build-john-linux.sh
+          sudo ./scripts/build-john-linux.sh
+
+      - name: Build pdf2john
+        run: |
+          chmod +x ./scripts/build-pdf2john-linux.sh
+          sudo ./scripts/build-pdf2john-linux.sh
+
+      - name: Upload John Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-Linux
+          path: ${{ github.workspace }}/john
+          if-no-files-found: error
+
+      - name: Upload pdf2john Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-Linux
+          path: ${{ github.workspace }}/src/pdf2john/dist
+          if-no-files-found: error
+
+  build-john-macos:
+    name: Build John & pdf2john (MacOS)
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build John
+        run: |
+          chmod +x ./scripts/build-john-macos.sh
+          ./scripts/build-john-macos.sh
+
+      - name: Build pdf2john
+        run: |
+          chmod +x ./scripts/build-pdf2john-macos.sh
+          ./scripts/build-pdf2john-macos.sh
+
+      - name: Upload John Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-MacOS
+          path: ${{ github.workspace }}/john
+          if-no-files-found: error
+
+      - name: Upload pdf2john Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-MacOS
+          path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
   build-module:
     name: Build PowerShell Module
     needs:
-      - build-john-pdf2john-assets
+      - build-john-windows
+      - build-john-linux
+      - build-john-macos
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
