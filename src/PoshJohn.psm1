@@ -126,26 +126,44 @@ try {
     $assets = @()
     if ($IsWindows) {
         if (-not (Test-Path $johnDir)) {
-            $assets += [PSCustomObject]@{ AssetName = 'john-windows-x64.zip'; OutputDir = $johnDir }
+            $assets += [PSCustomObject]@{
+                AssetName = 'john-windows-x64.zip'
+                OutputDir = $johnDir
+            }
         }
         if (-not (Test-Path $pdf2johnDir)) {
-            $assets += [PSCustomObject]@{ AssetName = 'pdf2john-windows-x64.zip'; OutputDir = $pdf2johnDir }
+            $assets += [PSCustomObject]@{
+                AssetName = 'pdf2john-windows-x64.zip'
+                OutputDir = $pdf2johnDir
+            }
         }
     }
     elseif ($IsLinux) {
         if (-not (Test-Path $johnDir)) {
-            $assets += [PSCustomObject]@{ AssetName = 'john-linux-x64.tar.gz'; OutputDir = $johnDir }
+            $assets += [PSCustomObject]@{
+                AssetName = 'john-linux-x64.tar.gz'
+                OutputDir = $johnDir
+            }
         }
         if (-not (Test-Path $pdf2johnDir)) {
-            $assets += [PSCustomObject]@{ AssetName = 'pdf2john-linux-x64.tar.gz'; OutputDir = $pdf2johnDir }
+            $assets += [PSCustomObject]@{
+                AssetName = 'pdf2john-linux-x64.tar.gz'
+                OutputDir = $pdf2johnDir
+            }
         }
     }
     elseif ($IsMacOS) {
         if (-not (Test-Path $johnDir)) {
-            $assets += [PSCustomObject]@{ AssetName = 'john-macos-arm64.tar.gz'; OutputDir = $johnDir }
+            $assets += [PSCustomObject]@{
+                AssetName = 'john-macos-arm64.tar.gz'
+                OutputDir = $johnDir
+            }
         }
         if (-not (Test-Path $pdf2johnDir)) {
-            $assets += [PSCustomObject]@{ AssetName = 'pdf2john-macos-arm64.tar.gz'; OutputDir = $pdf2johnDir }
+            $assets += [PSCustomObject]@{
+                AssetName = 'pdf2john-macos-arm64.tar.gz'
+                OutputDir = $pdf2johnDir
+            }
         }
     }
 
