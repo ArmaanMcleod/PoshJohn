@@ -71,6 +71,15 @@ function Install-JohnAssets {
 
         Write-Information "Successfully downloaded and extracted John the Ripper assets to: $OutputDir" -InformationAction Continue
     }
+    catch {
+        # Cleanup output directory on failure
+        # This prevents partial or corrupted installations
+        if (Test-Path $OutputDir) {
+            Remove-Item $OutputDir -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Information "Cleaned up output directory due to failure: $OutputDir" -InformationAction Continue
+        }
+        throw
+    }
     finally {
         # Always clean up temp file
         if (Test-Path $tempFile) {
