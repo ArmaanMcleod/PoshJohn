@@ -4,7 +4,7 @@
 
 ### Build and Packaging Improvements
 
-+ Add GitHub Issue & Pull Request Templates.
++ Add GitHub Issue and PR templates.
 
 ## v1.1.0 - 09/01/2026
 
