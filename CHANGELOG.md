@@ -20,7 +20,7 @@
 
 ### Build and Packaging Improvements
 
-+ Add Test workflow, PSGallery and License badges to README.md ([#5](https://github.com/ArmaanMcleod/PoshJohn/pull/5))
++ Add Test workflow, PSGallery and License badges to README.md ([#5](https://github.com/ArmaanMcleod/PoshJohn/pull/5)).
 + Reduce package size from 235 MB to 219 MB ([#21](https://github.com/ArmaanMcleod/PoshJohn/issues/21)).
 
 ## v1.0.0 - 15/12/2025
