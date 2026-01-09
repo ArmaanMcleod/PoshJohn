@@ -4,7 +4,7 @@
 
 ### Build and Packaging Improvements
 
-+ Install John assets externally during module import to reduce module package size (#29).
++ Install John assets externally during module import to reduce module package size ([#28](https://github.com/ArmaanMcleod/PoshJohn/issues/28)).
   + Download John the Ripper from GitHub release assets.
 + Remove OS Run Directory from John Files (#30).
   + Removes `windows/run`, `linux/run` and `macos/run` OS directories and includes John files directly into `john` folder.
@@ -19,7 +19,7 @@
 ### Build and Packaging Improvements
 
 + Add Test workflow, PSGallery and License badges to README.md (#5)
-+ Reduce package size from 235 MB to 219 MB (#21).
++ Reduce package size from 235 MB to 219 MB ([#21](https://github.com/ArmaanMcleod/PoshJohn/issues/21)).
 
 ## v1.0.0 - 15/12/2025
 
