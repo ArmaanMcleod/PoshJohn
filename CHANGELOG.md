@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v1.1.0 - 09/01/2026
+
 ### Build and Packaging Improvements
 
 + Install John assets externally during module import to reduce module package size ([#28](https://github.com/ArmaanMcleod/PoshJohn/issues/28)).
