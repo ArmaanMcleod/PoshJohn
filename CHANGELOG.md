@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Build and Packaging Improvements
+
++ Add GitHub Issue and PR templates.
+
 ## v1.1.0 - 09/01/2026
 
 ### Build and Packaging Improvements
