@@ -33,22 +33,33 @@ public static class FileHelpers
         }
     }
 
-    public static void CreateSamplePasswordProtectedPDF(string filePath, string password)
+    public static void CreateSamplePasswordProtectedPDF(string filePath, string password, string encryptionAlgorithm)
     {
         try
         {
+            if (string.IsNullOrEmpty(encryptionAlgorithm)) {
+                throw new ArgumentNullException(nameof(encryptionAlgorithm));
+            }
+
+            var encryptionConst = encryptionAlgorithm switch
+            {
+                "AES-128" => EncryptionConstants.ENCRYPTION_AES_128,
+                "AES-256" => EncryptionConstants.ENCRYPTION_AES_256,
+                "RC4-128" => EncryptionConstants.STANDARD_ENCRYPTION_128,
+                "RC4-40" => EncryptionConstants.STANDARD_ENCRYPTION_40,
+                _ => throw new ArgumentException($"Unsupported encryption algorithm: {encryptionAlgorithm}. Only AES-128, AES-256, RC4-128, and RC4-40 are supported.", nameof(encryptionAlgorithm)),
+            };
             var writerProperties = new WriterProperties()
                 .SetStandardEncryption(
                     Encoding.UTF8.GetBytes(password),
                     Encoding.UTF8.GetBytes(password),
                     EncryptionConstants.ALLOW_PRINTING,
-                    EncryptionConstants.STANDARD_ENCRYPTION_40);
+                    encryptionConst);
 
             using var writer = new PdfWriter(filePath, writerProperties);
             using var pdfDoc = new PdfDocument(writer);
-            var document = new Document(pdfDoc);
+            using var document = new Document(pdfDoc);
             document.Add(new Paragraph("This is a sample PDF document."));
-            document.Close();
         }
         catch (Exception ex)
         {
@@ -82,9 +93,8 @@ public static class FileHelpers
         {
             using var writer = new PdfWriter(filePath);
             using var pdfDoc = new PdfDocument(writer);
-            var document = new Document(pdfDoc);
+            using var document = new Document(pdfDoc);
             document.Add(new Paragraph("This is a sample PDF document with no password."));
-            document.Close();
         }
         catch (Exception ex)
         {

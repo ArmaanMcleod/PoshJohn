@@ -3,3 +3,12 @@ out/
 **/obj/
 .vs/
 john/
+mupdf/
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.txt
+*.log

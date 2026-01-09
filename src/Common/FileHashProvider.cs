@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Management.Automation;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using PoshJohn.Enums;
 
 namespace PoshJohn.Common;
@@ -34,6 +36,29 @@ internal sealed class FileHashProvider : IFileHashProvider
     private readonly IProcessRunner _processRunner;
     private readonly PSCmdlet _cmdlet;
 
+
+    private const string Pdf2JohnDir = "pdf2john";
+    private const string WindowsLibPdfHashDll = "libpdfhash.dll";
+    private const string LinuxLibPdfHashSo = "libpdfhash.so";
+    private const string MacOsLibPdfHashDylib = "libpdfhash.dylib";
+
+    [DllImport("libpdfhash", EntryPoint = "get_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr get_pdf_hash([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+    [DllImport("libpdfhash", EntryPoint = "free_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void free_pdf_hash(IntPtr ptr);
+
+    [DllImport("libpdfhash", EntryPoint = "set_log_callback_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void set_log_callback_pdf_hash(PdfHashLogCallback callback);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void PdfHashLogCallback([MarshalAs(UnmanagedType.LPUTF8Str)] string message);
+
+    private static string _lastNativeError;
+    private static readonly PdfHashLogCallback _logCallback = message => _lastNativeError = message;
+    private static bool _logCallbackRegistered;
+    private static readonly object _logCallbackLock = new();
+
     /// <summary>
     /// Initializes a new instance of the FileHashProvider class.
     /// </summary>
@@ -45,6 +70,24 @@ internal sealed class FileHashProvider : IFileHashProvider
         _fileSystemProvider = fileSystemProvider;
         _processRunner = processRunner;
         _cmdlet = cmdlet;
+    }
+
+    static FileHashProvider()
+    {
+        NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
+        {
+            string subLibraryPath =
+                OperatingSystem.IsWindows() ? Path.Combine(Pdf2JohnDir, WindowsLibPdfHashDll) :
+                OperatingSystem.IsLinux() ? Path.Combine(Pdf2JohnDir, LinuxLibPdfHashSo) :
+                OperatingSystem.IsMacOS() ? Path.Combine(Pdf2JohnDir, MacOsLibPdfHashDylib) :
+                throw new PlatformNotSupportedException();
+
+            string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), subLibraryPath);
+
+            IntPtr handle = NativeLibrary.Load(libraryPath);
+
+            return handle;
+        });
     }
 
     /// <inheritdoc/>
@@ -90,6 +133,19 @@ internal sealed class FileHashProvider : IFileHashProvider
         }
     }
 
+    private static void EnsureLogCallbackRegistered()
+    {
+        if (_logCallbackRegistered) return;
+        lock (_logCallbackLock)
+        {
+            if (!_logCallbackRegistered)
+            {
+                set_log_callback_pdf_hash(_logCallback);
+                _logCallbackRegistered = true;
+            }
+        }
+    }
+
     /// <summary>
     /// Extracts a John the Ripper-compatible hash from a PDF file using the pdf2john script.
     /// </summary>
@@ -98,20 +154,25 @@ internal sealed class FileHashProvider : IFileHashProvider
     /// <exception cref="InvalidOperationException">Thrown if the hash extraction fails.</exception>
     private string ExtractPdfJohnHash(string pdfPath)
     {
+        EnsureLogCallbackRegistered();
+        _lastNativeError = null;
         _cmdlet?.WriteVerbose("Extracting PDF John hash");
 
-        var scriptResult = _processRunner.RunCommand(
-            CommandType.VenvPython,
-            $"\"{_fileSystemProvider.Pdf2JohnPythonScriptPath}\" \"{pdfPath}\"",
-            logOutput: false,
-            failOnStderr: true);
-
-        if (!scriptResult.Success)
+        IntPtr ptr = get_pdf_hash(pdfPath);
+        if (ptr == IntPtr.Zero)
         {
-            throw new InvalidOperationException($"Failed to extract PDF hash: {scriptResult.StandardError}");
+            var msg = _lastNativeError ?? "get_pdf_hash returned null";
+            throw new InvalidOperationException(msg);
         }
 
-        return scriptResult.StandardOutput.Trim();
+        try
+        {
+            return Marshal.PtrToStringUTF8(ptr)!;
+        }
+        finally
+        {
+            free_pdf_hash(ptr);
+        }
     }
 
     /// <summary>

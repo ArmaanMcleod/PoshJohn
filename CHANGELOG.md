@@ -9,6 +9,11 @@
 + Remove OS Run Directory from John Files (#30).
   + Removes `windows/run`, `linux/run` and `macos/run` OS directories and includes John files directly into `john` folder.
 
+### General Cmdlet Updates and Fixes
+
++ Migrate pdf2john.py functionality to .NET ([#12](https://github.com/ArmaanMcleod/PoshJohn/issues/12)).
+  + Removes dependency on Python and uses native C library `libpdfhash` to generate hashes with `get_pdf_hash` function using P/Invoke.
+
 ## v1.0.1 - 16/12/2025
 
 ### Build and Packaging Improvements

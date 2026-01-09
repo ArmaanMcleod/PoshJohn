@@ -6,79 +6,130 @@ on:
       - published
 
 jobs:
-  build-john-windows:
-    name: Build John for Windows
+
+  build-john-assets-windows:
+    name: Build John Assets (Windows)
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Build John for Windows
         shell: pwsh
-        run: |
-          ./scripts/build-john-windows.ps1
+        run: ./scripts/build-john-windows.ps1
 
-      - name: Create Windows archive
+      - name: Build pdf2john for Windows
         shell: pwsh
-        run: |
-          Compress-Archive -Path john/* -DestinationPath john-windows-x64.zip
+        run: ./scripts/build-pdf2john-windows.ps1
 
-      - name: Upload Windows artifact
+      - name: Create John Windows archive
+        shell: pwsh
+        run: Compress-Archive -Path john/* -DestinationPath john-windows-x64.zip
+
+      - name: Create pdf2john Windows archive
+        shell: pwsh
+        run: Compress-Archive -Path src/pdf2john/dist/* -DestinationPath pdf2john-windows-x64.zip
+
+      - name: Upload John Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: john-windows-x64
           path: john-windows-x64.zip
           retention-days: 1
 
-  build-john-linux:
-    name: Build John for Linux
+      - name: Upload pdf2john Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-windows-x64
+          path: pdf2john-windows-x64.zip
+          retention-days: 1
+
+  build-john-assets-linux:
+    name: Build John Assets (Linux)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Build John for Linux
         run: |
           chmod +x ./scripts/build-john-linux.sh
           sudo ./scripts/build-john-linux.sh
 
-      - name: Create Linux archive
+      - name: Build pdf2john for Linux
         run: |
-          tar -czvf john-linux-x64.tar.gz -C john .
+          chmod +x ./scripts/build-pdf2john-linux.sh
+          sudo ./scripts/build-pdf2john-linux.sh
 
-      - name: Upload Linux artifact
+      - name: Create John Linux archive
+        run: tar -czvf john-linux-x64.tar.gz -C john .
+
+      - name: Create pdf2john Linux archive
+        run: tar -czvf pdf2john-linux-x64.tar.gz -C src/pdf2john/dist .
+
+      - name: Upload John Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: john-linux-x64
           path: john-linux-x64.tar.gz
           retention-days: 1
 
-  build-john-macos:
-    name: Build John for macOS
+      - name: Upload pdf2john Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-linux-x64
+          path: pdf2john-linux-x64.tar.gz
+          retention-days: 1
+
+  build-john-assets-macos:
+    name: Build John Assets (MacOS)
     runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Build John for macOS
         run: |
           chmod +x ./scripts/build-john-macos.sh
           ./scripts/build-john-macos.sh
 
-      - name: Create macOS archive
+      - name: Build pdf2john for macOS
         run: |
-          tar -czvf john-macos-arm64.tar.gz -C john .
+          chmod +x ./scripts/build-pdf2john-macos.sh
+          ./scripts/build-pdf2john-macos.sh
 
-      - name: Upload macOS artifact
+      - name: Create John macOS archive
+        run: tar -czvf john-macos-arm64.tar.gz -C john .
+
+      - name: Create pdf2john macOS archive
+        run: tar -czvf pdf2john-macos-arm64.tar.gz -C src/pdf2john/dist .
+
+      - name: Upload John macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: john-macos-arm64
           path: john-macos-arm64.tar.gz
           retention-days: 1
 
+      - name: Upload pdf2john macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-macos-arm64
+          path: pdf2john-macos-arm64.tar.gz
+          retention-days: 1
+
   upload-release-assets:
-    name: Upload John Assets to Release
-    needs: [build-john-windows, build-john-linux, build-john-macos]
+    name: Upload John and pdf2john Assets to Release
+    needs:
+      - build-john-assets-windows
+      - build-john-assets-linux
+      - build-john-assets-macos
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -88,13 +139,16 @@ jobs:
         with:
           path: artifacts
 
-      - name: Upload John assets to release
+      - name: Upload John and pdf2john assets to release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             artifacts/john-windows-x64/john-windows-x64.zip
             artifacts/john-linux-x64/john-linux-x64.tar.gz
             artifacts/john-macos-arm64/john-macos-arm64.tar.gz
+            artifacts/pdf2john-windows-x64/pdf2john-windows-x64.zip
+            artifacts/pdf2john-linux-x64/pdf2john-linux-x64.tar.gz
+            artifacts/pdf2john-macos-arm64/pdf2john-macos-arm64.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -134,6 +188,10 @@ jobs:
           # Extract the nupkg
           Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
           Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
+
+      - name: Install valgrind
+        if: ${{ matrix.info.name == 'Linux' }}
+        run: sudo apt-get update && sudo apt-get install -y valgrind
 
       - name: Run Tests - PowerShell
         shell: pwsh

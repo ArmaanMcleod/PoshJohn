@@ -14,59 +14,109 @@ env:
 
 jobs:
 
-  build-john:
-    name: Build John Assets (${{ matrix.osname }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - osname: Windows
-            os: windows-latest
-            build_script: /scripts/build-john-windows.ps1
-            john_out: /john
-          - osname: Linux
-            os: ubuntu-latest
-            build_script: /scripts/build-john-linux.sh
-            john_out: /john
-          - osname: MacOS
-            os: macos-latest
-            build_script: /scripts/build-john-macos.sh
-            john_out: /john
+  build-john-assets-windows:
+    name: Build John Assets (Windows)
+    runs-on: windows-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Build John the Ripper (Windows)
-        if: matrix.osname == 'Windows'
+      - name: Build John
         shell: pwsh
-        run: ${{github.workspace}}${{ matrix.build_script }}
+        run: ./scripts/build-john-windows.ps1
 
-      - name: Build John the Ripper (Linux/MacOS)
-        if: matrix.osname != 'Windows'
-        shell: bash
-        run: |
-          scriptPath=${{github.workspace}}${{ matrix.build_script }}
-          chmod +x $scriptPath
-          if [ "${{ matrix.osname }}" = "Linux" ]; then
-            sudo $scriptPath
-          else
-            $scriptPath
-          fi
+      - name: Build pdf2john
+        shell: pwsh
+        run: ./scripts/build-pdf2john-windows.ps1
 
       - name: Upload John Assets
         uses: actions/upload-artifact@v4
         with:
-          name: john-${{ matrix.osname }}
-          path: ${{ github.workspace }}${{ matrix.john_out }}
+          name: john-Windows
+          path: ${{ github.workspace }}/john
+          if-no-files-found: error
+
+      - name: Upload pdf2john Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-Windows
+          path: ${{ github.workspace }}/src/pdf2john/dist
+          if-no-files-found: error
+
+  build-john-assets-linux:
+    name: Build John Assets (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build John
+        run: |
+          chmod +x ./scripts/build-john-linux.sh
+          sudo ./scripts/build-john-linux.sh
+
+      - name: Build pdf2john
+        run: |
+          chmod +x ./scripts/build-pdf2john-linux.sh
+          sudo ./scripts/build-pdf2john-linux.sh
+
+      - name: Upload John Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-Linux
+          path: ${{ github.workspace }}/john
+          if-no-files-found: error
+
+      - name: Upload pdf2john Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-Linux
+          path: ${{ github.workspace }}/src/pdf2john/dist
+          if-no-files-found: error
+
+  build-john-assets-macos:
+    name: Build John Assets (MacOS)
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Build John
+        run: |
+          chmod +x ./scripts/build-john-macos.sh
+          ./scripts/build-john-macos.sh
+
+      - name: Build pdf2john
+        run: |
+          chmod +x ./scripts/build-pdf2john-macos.sh
+          ./scripts/build-pdf2john-macos.sh
+
+      - name: Upload John Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: john-MacOS
+          path: ${{ github.workspace }}/john
+          if-no-files-found: error
+
+      - name: Upload pdf2john Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf2john-MacOS
+          path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
   build-module:
     name: Build PowerShell Module
     needs:
-      - build-john
+      - build-john-assets-windows
+      - build-john-assets-linux
+      - build-john-assets-macos
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
@@ -126,6 +176,12 @@ jobs:
           name: john-${{ matrix.info.name }}
           path: john-artifacts/${{ matrix.info.name }}
 
+      - name: Download pdf2john Assets
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf2john-${{ matrix.info.name }}
+          path: pdf2john-artifacts/${{ matrix.info.name }}
+
       - name: Install Built PowerShell Module
         shell: pwsh
         run: |
@@ -137,12 +193,26 @@ jobs:
           $modulePath = Get-ChildItem -Path out/PoshJohn -Directory | Select-Object -First 1 -ExpandProperty FullName
 
           # Copy John artifacts to the extracted module
-          $destPath = Join-Path $modulePath "john"
-          if (Test-Path $destPath) {
-              throw "Extracted module should not already contain john artifacts at $destPath"
+          $johnDestPath = Join-Path $modulePath "john"
+          if (Test-Path $johnDestPath) {
+              throw "Extracted module should not already contain john artifacts at $johnDestPath"
           }
-          New-Item -ItemType Directory -Force -Path $destPath | Out-Null
-          Copy-Item -Path john-artifacts/${{ matrix.info.name }}/* -Destination $destPath -Recurse -Force
+
+          New-Item -ItemType Directory -Force -Path $johnDestPath | Out-Null
+          Copy-Item -Path john-artifacts/${{ matrix.info.name }}/* -Destination $johnDestPath -Recurse -Force
+
+          # Copy pdf2john artifacts to the extracted module
+          $pdf2johnDestPath = Join-Path $modulePath "pdf2john"
+          if (Test-Path $pdf2johnDestPath) {
+              throw "Extracted module should not already contain pdf2john artifacts at $pdf2johnDestPath"
+          }
+
+          New-Item -ItemType Directory -Force -Path $pdf2johnDestPath | Out-Null
+          Copy-Item -Path pdf2john-artifacts/${{ matrix.info.name }}/* -Destination $pdf2johnDestPath -Recurse -Force
+
+      - name: Install valgrind
+        if: ${{ matrix.info.name == 'Linux' }}
+        run: sudo apt-get update && sudo apt-get install -y valgrind
 
       - name: Run Tests - PowerShell
         shell: pwsh
