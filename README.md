@@ -22,7 +22,6 @@ Current File Types Supported:
 These cmdlets have the following requirements:
 
 - PowerShell v7.2 or newer.
-- Python 3
 
 I may decide to also include PowerShell v5.1 support down the line if needed.
 
