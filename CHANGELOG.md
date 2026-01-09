@@ -6,7 +6,7 @@
 
 + Install John assets externally during module import to reduce module package size ([#28](https://github.com/ArmaanMcleod/PoshJohn/issues/28)).
   + Download John the Ripper from GitHub release assets.
-+ Remove OS Run Directory from John Files (#30).
++ Remove OS Run Directory from John Files ([#30](https://github.com/ArmaanMcleod/PoshJohn/pull/30)).
   + Removes `windows/run`, `linux/run` and `macos/run` OS directories and includes John files directly into `john` folder.
 
 ### General Cmdlet Updates and Fixes
@@ -18,18 +18,18 @@
 
 ### Build and Packaging Improvements
 
-+ Add Test workflow, PSGallery and License badges to README.md (#5)
++ Add Test workflow, PSGallery and License badges to README.md ([#5](https://github.com/ArmaanMcleod/PoshJohn/pull/5))
 + Reduce package size from 235 MB to 219 MB ([#21](https://github.com/ArmaanMcleod/PoshJohn/issues/21)).
 
 ## v1.0.0 - 15/12/2025
 
 ### General Cmdlet Updates and Fixes
 
-+ Initial version of the `PoshJohn` module (#1).
++ Initial version of the `PoshJohn` module ([#1](https://github.com/ArmaanMcleod/PoshJohn/pull/1)).
   + Added `Export-JohnPasswordHash` and `Invoke-JohnPasswordCrack` cmdlets for extracting and cracking password hashes using John the Ripper.
 
 ### Build and Packaging Improvements
 
-+ Fixed GHA Workflow CI to build and package module correctly (#2).
-+ Included up to date documentation in the module package (#3).
-+ Stripped unnecessary files from John the Ripper builds to reduce package size (#4).
++ Fixed GHA Workflow CI to build and package module correctly ([#2](https://github.com/ArmaanMcleod/PoshJohn/pull/2)).
++ Included up to date documentation in the module package ([#3](https://github.com/ArmaanMcleod/PoshJohn/pull/3)).
++ Stripped unnecessary files from John the Ripper builds to reduce package size ([#4](https://github.com/ArmaanMcleod/PoshJohn/pull/4)).
