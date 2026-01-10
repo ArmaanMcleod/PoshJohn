@@ -2,7 +2,8 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Run
+    [switch]$Run,
+    [switch]$NoCache
 )
 
 function Start-Docker {
@@ -70,7 +71,12 @@ $DockerImageTag = "poshjohn-linux"
 # Ensure Docker is running
 Start-Docker
 
-docker build -f $DockerFilePath -t $DockerImageTag .
+if ($NoCache) {
+    docker build --no-cache -f $DockerFilePath -t $DockerImageTag .
+}
+else {
+    docker build -f $DockerFilePath -t $DockerImageTag .
+}
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Docker build failed with exit code $LASTEXITCODE"
