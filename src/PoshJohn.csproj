@@ -18,8 +18,8 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
-    <None Include="../src/pdf2john/dist/**" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
+    <None Include="$(ProjectDir)../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
+    <None Include="$(ProjectDir)pdf2john/dist/**" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
   </ItemGroup>
 
   <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
