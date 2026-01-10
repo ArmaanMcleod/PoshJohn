@@ -1,13 +1,45 @@
 <Project>
-  <Target Name="PreBuildNativeAssets" BeforeTargets="Build" Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+  <!-- Run native build scripts before publish -->
+  <Target Name="PreBuildNativeAssets"
+          BeforeTargets="Publish"
+          Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
     <!-- Linux -->
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" Condition=" $([System.OperatingSystem]::IsLinux()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh" Condition=" $([System.OperatingSystem]::IsLinux()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh"
+          Condition=" $([System.OperatingSystem]::IsLinux()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh"
+          Condition=" $([System.OperatingSystem]::IsLinux()) " />
+
     <!-- macOS -->
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" Condition=" $([System.OperatingSystem]::IsMacOS()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh"
+          Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh"
+          Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+
     <!-- Windows -->
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-john-windows.ps1" Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-pdf2john-windows.ps1" Condition=" $([System.OperatingSystem]::IsWindows()) " />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-john-windows.ps1"
+          Condition=" $([System.OperatingSystem]::IsWindows()) " />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-pdf2john-windows.ps1"
+          Condition=" $([System.OperatingSystem]::IsWindows()) " />
+  </Target>
+
+  <!-- Copy native assets into publish output -->
+  <Target Name="CopyNativeAssets"
+          AfterTargets="PreBuildNativeAssets"
+          Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+    <!-- pdf2john outputs go into PublishDir/pdf2john -->
+    <ItemGroup>
+      <Pdf2JohnAssets Include="pdf2john/dist/**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Pdf2JohnAssets)"
+          DestinationFiles="@(Pdf2JohnAssets->'$(PublishDir)pdf2john\%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <!-- john outputs go into PublishDir/john, preserving subdirectories -->
+    <ItemGroup>
+      <JohnAssets Include="../john/**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(JohnAssets)"
+          DestinationFiles="@(JohnAssets->'$(PublishDir)john\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
   </Target>
 </Project>

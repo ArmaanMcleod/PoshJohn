@@ -20,18 +20,6 @@
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
-    <None Include="pdf2john/dist/pdf2john" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/pdf2john" Condition=" $([System.OperatingSystem]::IsLinux()) Or $([System.OperatingSystem]::IsMacOS()) " />
-    <None Include="pdf2john/dist/libpdfhash.so" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/libpdfhash.so" Condition=" $([System.OperatingSystem]::IsLinux()) " />
-    <None Include="pdf2john/dist/libpdfhash.dylib" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/libpdfhash.dylib" Condition=" $([System.OperatingSystem]::IsMacOS()) " />
-    <None Include="pdf2john/dist/pdf2john.exe" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/pdf2john.exe" Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <None Include="pdf2john/dist/libpdfhash.dll" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/libpdfhash.dll" Condition=" $([System.OperatingSystem]::IsWindows()) " />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
-    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
     <RemoveDir Directories="$(BaseOutputPath)" />
     <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
