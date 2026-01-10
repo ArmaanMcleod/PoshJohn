@@ -23,10 +23,10 @@
   </ItemGroup>
 
   <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
   </Target>
   <Target Name="PreBuildPdf2JohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-pdf2john-windows.ps1&quot;" />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-pdf2john-windows.ps1&quot;" />
   </Target>
 
   <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsLinux()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
