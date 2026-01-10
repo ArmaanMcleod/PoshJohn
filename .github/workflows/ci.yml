@@ -130,6 +130,8 @@ jobs:
 
       - name: Build module
         shell: pwsh
+        env:
+          SKIP_NATIVE_BUILD: true
         run: ./PowerShellBuildTools/build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Build
 
       - name: Capture PowerShell Module
