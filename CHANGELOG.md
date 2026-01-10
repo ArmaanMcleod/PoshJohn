@@ -6,6 +6,10 @@
 
 + Add GitHub Issue and PR templates.
 
+### General Cmdlet Updates and Fixes
+
++ Fixed Relative Paths are not being resolved with `Export-JohnPasswordHash` & `Invoke-JohnPasswordCrack` cmdlets ([#34](https://github.com/ArmaanMcleod/PoshJohn/issues/34)).
+
 ## v1.1.0 - 09/01/2026
 
 ### Build and Packaging Improvements
