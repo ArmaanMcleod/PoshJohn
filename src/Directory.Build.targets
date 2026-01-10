@@ -1,0 +1,13 @@
+<Project>
+  <Target Name="PreBuildNativeAssets" BeforeTargets="Build" Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+    <!-- Linux -->
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" Condition=" $([System.OperatingSystem]::IsLinux()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh" Condition=" $([System.OperatingSystem]::IsLinux()) " />
+    <!-- macOS -->
+    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <!-- Windows -->
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-john-windows.ps1" Condition=" $([System.OperatingSystem]::IsWindows()) " />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-pdf2john-windows.ps1" Condition=" $([System.OperatingSystem]::IsWindows()) " />
+  </Target>
+</Project>

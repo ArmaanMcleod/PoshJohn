@@ -18,30 +18,19 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="$(ProjectDir)../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
-    <None Include="$(ProjectDir)pdf2john/dist/**" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
   </ItemGroup>
 
-  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
-  </Target>
-  <Target Name="PreBuildPdf2JohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-pdf2john-windows.ps1&quot;" />
-  </Target>
+  <ItemGroup Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+    <None Include="pdf2john/dist/pdf2john" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/pdf2john" Condition=" $([System.OperatingSystem]::IsLinux()) Or $([System.OperatingSystem]::IsMacOS()) " />
+    <None Include="pdf2john/dist/libpdfhash.so" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/libpdfhash.so" Condition=" $([System.OperatingSystem]::IsLinux()) " />
+    <None Include="pdf2john/dist/libpdfhash.dylib" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/libpdfhash.dylib" Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <None Include="pdf2john/dist/pdf2john.exe" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/pdf2john.exe" Condition=" $([System.OperatingSystem]::IsWindows()) " />
+    <None Include="pdf2john/dist/libpdfhash.dll" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/libpdfhash.dll" Condition=" $([System.OperatingSystem]::IsWindows()) " />
+  </ItemGroup>
 
-  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsLinux()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
-  </Target>
-  <Target Name="PreBuildPdf2JohnLinux" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsLinux()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh" />
-  </Target>
-
-  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsMacOS()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
-  </Target>
-  <Target Name="PreBuildPdf2JohnMacOS" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsMacOS()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
-  </Target>
+  <ItemGroup Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
     <RemoveDir Directories="$(BaseOutputPath)" />
