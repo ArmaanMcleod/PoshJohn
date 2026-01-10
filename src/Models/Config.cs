@@ -38,4 +38,9 @@ internal sealed class PasswordCrackConfig : FileSystemBaseConfig
     /// The path to a custom John the Ripper pot file, if specified.
     /// </summary>
     public string CustomPotPath { get; init; }
+
+    /// <summary>
+    /// The directory path where unlocked files should be saved.
+    /// </summary>
+    public string UnlockedFileDirectoryPath { get; init; }
 }

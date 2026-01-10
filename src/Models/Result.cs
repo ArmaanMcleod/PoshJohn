@@ -107,42 +107,6 @@ public sealed class PasswordUnlockResult
     /// The path to the unlocked file that was saved.
     /// </summary>
     public string UnlockedFilePath { get; init; }
-
-    private readonly string _unlockedFileDirectoryPath;
-    private const string UnlockedFileSuffix = "_unlocked";
-
-    /// <summary>
-    /// Initializes a new instance of the PasswordUnlockResult class.
-    /// </summary>
-    /// <param name="filePath">The path to the original file.</param>
-    /// <param name="password">The cracked password.</param>
-    /// <param name="fileFormat">The file format type.</param>
-    public PasswordUnlockResult(string filePath, string password, FileFormatType fileFormat)
-    {
-        FilePath = filePath;
-        Password = password;
-        FileFormat = fileFormat;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the PasswordUnlockResult class with a custom unlocked file directory.
-    /// </summary>
-    /// <param name="filePath">The path to the original file.</param>
-    /// <param name="password">The cracked password.</param>
-    /// <param name="fileFormat">The file format type.</param>
-    /// <param name="unlockedFileDirectoryPath">The directory to save the unlocked file in.</param>
-    public PasswordUnlockResult(string filePath, string password, FileFormatType fileFormat, string unlockedFileDirectoryPath) : this(filePath, password, fileFormat)
-    {
-        _unlockedFileDirectoryPath = unlockedFileDirectoryPath;
-
-        if (string.IsNullOrEmpty(_unlockedFileDirectoryPath))
-        {
-            _unlockedFileDirectoryPath = Path.GetDirectoryName(filePath);
-        }
-        var extension = Path.GetExtension(filePath);
-        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
-        UnlockedFilePath = Path.Combine(_unlockedFileDirectoryPath, $"{fileNameWithoutExtension}{UnlockedFileSuffix}{extension}");
-    }
 }
 
 /// <summary>

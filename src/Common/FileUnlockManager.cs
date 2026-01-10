@@ -18,6 +18,13 @@ internal interface IFileUnlockManager
     /// </summary>
     /// <param name="unlockResult">The result containing file, password, and format information.</param>
     void SaveAndUnlockPasswordProtectedFile(PasswordUnlockResult unlockResult);
+
+    /// <summary>
+    /// Generates the file path for the unlocked version of the file.
+    /// </summary>
+    /// <param name="filePath">The original file path.</param>
+    /// <returns>The file path for the unlocked file.</returns>
+    string GetUnlockedFilePath(string filePath);
 }
 
 /// <summary>
@@ -26,14 +33,21 @@ internal interface IFileUnlockManager
 internal sealed class FileUnlockManager : IFileUnlockManager
 {
     private readonly PSCmdlet _cmdlet;
+    private readonly IFileSystemProvider _fileSystemProvider;
+    private readonly string _unlockedFileDirectoryPath;
+
+    private const string UnlockedFileSuffix = "_unlocked";
 
     /// <summary>
     /// Initializes a new instance of the FileUnlockManager class.
     /// </summary>
     /// <param name="cmdlet">The PowerShell cmdlet instance for verbose output.</param>
-    public FileUnlockManager(PSCmdlet cmdlet)
+    /// <param name="fileSystemProvider">The file system provider for path resolution.</param>
+    public FileUnlockManager(PSCmdlet cmdlet, IFileSystemProvider fileSystemProvider)
     {
         _cmdlet = cmdlet;
+        _fileSystemProvider = fileSystemProvider;
+        _unlockedFileDirectoryPath = _fileSystemProvider.UnlockedFileDirectoryPath;
     }
 
     /// <inheritdoc/>
@@ -50,6 +64,28 @@ internal sealed class FileUnlockManager : IFileUnlockManager
             default:
                 throw new InvalidDataException($"Unsupported file format for unlocking: {unlockResult.FileFormat}");
         }
+    }
+
+    /// <summary>
+    /// Generates the file path for the unlocked version of the file.
+    /// </summary>
+    /// <param name="unlockResult">The result containing file and password information.</param>
+    /// <returns>The file path for the unlocked file.</returns>
+    public string GetUnlockedFilePath(string filePath)
+    {
+        var originalFileName = Path.GetFileNameWithoutExtension(filePath);
+        var originalExtension = Path.GetExtension(filePath);
+        var unlockedFileName = $"{originalFileName}{UnlockedFileSuffix}{originalExtension}";
+
+        // If a specific directory for unlocked files is provided, put file there
+        if (!string.IsNullOrEmpty(_unlockedFileDirectoryPath))
+        {
+            return Path.Combine(_unlockedFileDirectoryPath, unlockedFileName);
+        }
+
+        // Otherwise, save in the same directory as the original file
+        var originalDirectory = Path.GetDirectoryName(filePath);
+        return Path.Combine(originalDirectory, unlockedFileName);
     }
 
     /// <summary>

@@ -672,66 +672,189 @@ Describe 'PoshJohn Tests' {
                 Remove-Item -Path $wordListPath -ErrorAction SilentlyContinue
             }
         }
+    }
 
-        Context 'Pdf2john Hash Tests' {
-            BeforeAll {
-                $venvPath = Join-Path -Path $TestDrive -ChildPath 'venv'
-                if ($IsWindows) {
-                    $pythonExe = "python.exe"
-                    $venvPythonExe = Join-Path -Path $venvPath -ChildPath "Scripts\$pythonExe"
-                    $pdf2JohnExe = "pdf2john.exe"
-                }
-                else {
-                    $pythonExe = "python3"
-                    $venvPythonExe = Join-Path -Path $venvPath -ChildPath "bin/$pythonExe"
-                    $pdf2JohnExe = "pdf2john"
-                }
-
-                & $pythonExe -m venv $venvPath
-                & $venvPythonExe -m pip install --upgrade pip
-                & $venvPythonExe -m pip install pyhanko
-
-                $pythonScriptPath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.py' -File | Select-Object -First 1 -ExpandProperty FullName
-                $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter $pdf2JohnExe -File | Select-Object -First 1 -ExpandProperty FullName
-
-                if (-not $pythonScriptPath) {
-                    throw "pdf2john.py not found in module path: $modulePath"
-                }
-
-                if (-not $exePath) {
-                    throw "$pdf2JohnExe not found in module path: $modulePath. Did you build the project?"
-                }
+    Context 'Pdf2john Hash Tests' {
+        BeforeAll {
+            $venvPath = Join-Path -Path $TestDrive -ChildPath 'venv'
+            if ($IsWindows) {
+                $pythonExe = "python.exe"
+                $venvPythonExe = Join-Path -Path $venvPath -ChildPath "Scripts\$pythonExe"
+                $pdf2JohnExe = "pdf2john.exe"
+            }
+            else {
+                $pythonExe = "python3"
+                $venvPythonExe = Join-Path -Path $venvPath -ChildPath "bin/$pythonExe"
+                $pdf2JohnExe = "pdf2john"
             }
 
-            It "Should generate same pdf2john hash for Python and C pdfhash library using '<Algorithm>' encryption" -TestCases @(
-                @{ Algorithm = "RC4-40" },
-                @{ Algorithm = "RC4-128" },
-                @{ Algorithm = "AES-128" },
-                @{ Algorithm = "AES-256" }
-            ) -Tag 'pdf2john-hash' {
-                param($Algorithm)
+            & $pythonExe -m venv $venvPath
+            & $venvPythonExe -m pip install --upgrade pip
+            & $venvPythonExe -m pip install pyhanko
 
-                $samplePdfPath = Join-Path -Path $TestDrive -ChildPath "SampleProtected_$Algorithm.pdf"
-                [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($samplePdfPath, $samplePDFPassword, $Algorithm)
+            $pythonScriptPath = Get-ChildItem -Path $modulePath -Recurse -Filter 'pdf2john.py' -File | Select-Object -First 1 -ExpandProperty FullName
+            $exePath = Get-ChildItem -Path $modulePath -Recurse -Filter $pdf2JohnExe -File | Select-Object -First 1 -ExpandProperty FullName
 
-                [PoshJohn.TestUtils.FileHelpers]::GetPasswordProtectedPDFEncryptionType($samplePdfPath, $samplePDFPassword) | Should -Be $Algorithm
-
-                $pythonHash = & $venvPythonExe $pythonScriptPath $samplePdfPath
-                $exeHash = & $exePath $samplePdfPath
-
-                $exeHash | Should -Be $pythonHash
-
-                if ($IsLinux) {
-                    $valgrindOutput = & valgrind --leak-check=full --error-exitcode=1 $exePath $samplePdfPath 2>&1 | Out-String
-                    $LASTEXITCODE | Should -Be 0 -Because "Valgrind should not detect memory errors"
-                    $valgrindOutput | Should -Match "no leaks are possible|All heap blocks were freed" -Because "Valgrind output: $valgrindOutput"
-                }
+            if (-not $pythonScriptPath) {
+                throw "pdf2john.py not found in module path: $modulePath"
             }
 
-            AfterAll {
-                Remove-Item -Path "$TestDrive/SampleProtected_*.pdf" -Recurse -Force -ErrorAction SilentlyContinue
-                Remove-Item -Path $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+            if (-not $exePath) {
+                throw "$pdf2JohnExe not found in module path: $modulePath. Did you build the project?"
             }
+        }
+
+        It "Should generate same pdf2john hash for Python and C pdfhash library using '<Algorithm>' encryption" -TestCases @(
+            @{ Algorithm = "RC4-40" },
+            @{ Algorithm = "RC4-128" },
+            @{ Algorithm = "AES-128" },
+            @{ Algorithm = "AES-256" }
+        ) -Tag 'pdf2john-hash' {
+            param($Algorithm)
+
+            $samplePdfPath = Join-Path -Path $TestDrive -ChildPath "SampleProtected_$Algorithm.pdf"
+            [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($samplePdfPath, $samplePDFPassword, $Algorithm)
+
+            [PoshJohn.TestUtils.FileHelpers]::GetPasswordProtectedPDFEncryptionType($samplePdfPath, $samplePDFPassword) | Should -Be $Algorithm
+
+            $pythonHash = & $venvPythonExe $pythonScriptPath $samplePdfPath
+            $exeHash = & $exePath $samplePdfPath
+
+            $exeHash | Should -Be $pythonHash
+
+            if ($IsLinux) {
+                $valgrindOutput = & valgrind --leak-check=full --error-exitcode=1 $exePath $samplePdfPath 2>&1 | Out-String
+                $LASTEXITCODE | Should -Be 0 -Because "Valgrind should not detect memory errors"
+                $valgrindOutput | Should -Match "no leaks are possible|All heap blocks were freed" -Because "Valgrind output: $valgrindOutput"
+            }
+        }
+
+        AfterAll {
+            Remove-Item -Path "$TestDrive/SampleProtected_*.pdf" -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    Context 'Relative Path Tests' {
+        BeforeAll {
+            $sampleProtectedPdfFileName = 'SampleProtected.pdf'
+            $sampleProtectedHashFileName = 'SampleProtectedHash.txt'
+            $unlockedOutputDirName = 'UnlockedFiles'
+
+            $sampleProtectedPdfPath = Join-Path -Path $TestDrive -ChildPath $sampleProtectedPdfFileName
+        }
+
+        BeforeEach {
+            [PoshJohn.TestUtils.FileHelpers]::CreateSamplePasswordProtectedPDF($sampleProtectedPdfPath, $samplePDFPassword, 'RC4-40')
+        }
+
+        It 'Should export and crack hash using relative paths' -Tag 'relative-path' {
+
+            Push-Location $TestDrive
+            try {
+                $output = Export-JohnPasswordHash -InputPath "./$sampleProtectedPdfFileName" -OutputPath "./$sampleProtectedHashFileName"
+                $output | Should -BeOfType [PoshJohn.Models.HashResult]
+                $output.HashFilePath | Should -Be "./$sampleProtectedHashFileName"
+                Test-Path $sampleProtectedHashFileName | Should -BeTrue
+
+                $crackResult = Invoke-JohnPasswordCrack -InputPath "./$sampleProtectedHashFileName"
+                $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
+                $crackResult.RawOutput | Should -Match $samplePDFPassword
+
+                $crackResult.Summary.FormatGroups | Should -HaveCount 1
+                $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
+                $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
+                $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
+                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
+                $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
+
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password | Should -Be $samplePDFPassword
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FilePath | Should -Be $sampleProtectedPdfPath
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FileFormat | Should -Be 'PDF'
+
+                $crackedPassword = $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password
+                $crackedPassword | Should -Be $samplePDFPassword
+                [PoshJohn.TestUtils.FileHelpers]::CanOpenPdf($sampleProtectedPdfPath, $crackedPassword) | Should -BeTrue
+            }
+            finally {
+                Pop-Location
+            }
+        }
+
+        It 'Should export and crack hash using relative paths when using pipeline input' -Tag 'relative-path' {
+
+            Push-Location $TestDrive
+            try {
+                $crackResult = Export-JohnPasswordHash -InputPath "./$sampleProtectedPdfFileName" -OutputPath "./$sampleProtectedHashFileName" | Invoke-JohnPasswordCrack
+                $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
+                $crackResult.RawOutput | Should -Match $samplePDFPassword
+
+                $crackResult.Summary.FormatGroups | Should -HaveCount 1
+                $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
+                $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
+                $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
+                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
+                $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
+
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password | Should -Be $samplePDFPassword
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FilePath | Should -Be $sampleProtectedPdfPath
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FileFormat | Should -Be 'PDF'
+
+                $crackedPassword = $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password
+                $crackedPassword | Should -Be $samplePDFPassword
+                [PoshJohn.TestUtils.FileHelpers]::CanOpenPdf($sampleProtectedPdfPath, $crackedPassword) | Should -BeTrue
+            }
+            finally {
+                Pop-Location
+            }
+        }
+
+        It 'Should export and crack hash using relative paths when outputting to custom directory' -Tag 'relative-path', 'relative-unlocked-dir' {
+
+            Push-Location $TestDrive
+            try {
+                $output = Export-JohnPasswordHash -InputPath "./$sampleProtectedPdfFileName" -OutputPath "./$sampleProtectedHashFileName"
+                $output | Should -BeOfType [PoshJohn.Models.HashResult]
+                $output.HashFilePath | Should -Be "./$sampleProtectedHashFileName"
+                Test-Path $sampleProtectedHashFileName | Should -BeTrue
+
+                $crackResult = Invoke-JohnPasswordCrack -InputPath "./$sampleProtectedHashFileName" -UnlockedFileDirectoryPath "./$unlockedOutputDirName"
+                $crackResult | Should -BeOfType [PoshJohn.Models.PasswordCrackResult]
+                $crackResult.RawOutput | Should -Match $samplePDFPassword
+
+                $crackResult.Summary.FormatGroups | Should -HaveCount 1
+                $crackResult.Summary.FormatGroups[0].PasswordHashCount | Should -Be 1
+                $crackResult.Summary.FormatGroups[0].SaltsCount | Should -Be 1
+                $crackResult.Summary.FormatGroups[0].FileFormat | Should -Be 'PDF'
+                $crackResult.Summary.FormatGroups[0].EncryptionAlgorithms | Should -BeIn @('MD5 SHA2 RC4/AES 32/64', 'MD5-RC4 / SHA2-AES 32/64')
+                $crackResult.Summary.FormatGroups[0].FilePasswords.Count | Should -Be 1
+
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath] | Should -BeOfType [PoshJohn.Models.PasswordUnlockResult]
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password | Should -Be $samplePDFPassword
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FilePath | Should -Be $sampleProtectedPdfPath
+                $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].FileFormat | Should -Be 'PDF'
+
+                $crackedPassword = $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].Password
+                $crackedPassword | Should -Be $samplePDFPassword
+                [PoshJohn.TestUtils.FileHelpers]::CanOpenPdf($sampleProtectedPdfPath, $crackedPassword) | Should -BeTrue
+
+                $unlockedOutputDir = Join-Path -Path $TestDrive -ChildPath $unlockedOutputDirName
+                $unlockedFilePath = $crackResult.Summary.FormatGroups[0].FilePasswords[$sampleProtectedPdfPath].UnlockedFilePath
+                $unlockedFilePath | Should -Be (Join-Path -Path $unlockedOutputDir -ChildPath (Split-Path -Path $sampleProtectedPdfPath -Leaf).Replace('.pdf', '_unlocked.pdf'))
+                Test-Path -Path $unlockedFilePath | Should -BeTrue
+                [PoshJohn.TestUtils.FileHelpers]::CanOpenPdf($unlockedFilePath) | Should -BeTrue
+            }
+            finally {
+                Pop-Location
+            }
+        }
+
+        AfterEach {
+            Remove-Item -Path "$TestDrive/SampleProtected.pdf" -ErrorAction SilentlyContinue
+            Remove-Item -Path "$TestDrive/SampleProtectedHash.txt" -ErrorAction SilentlyContinue
+            Remove-Item -Path "$TestDrive/$unlockedOutputDirName" -Recurse -ErrorAction SilentlyContinue
         }
     }
 }

@@ -60,6 +60,11 @@ namespace PoshJohn.Common
         string FileToCrackPath { get; }
 
         /// <summary>
+        /// Gets the directory path where unlocked files should be saved.
+        /// </summary>
+        string UnlockedFileDirectoryPath { get; }
+
+        /// <summary>
         /// Gets the file format type of the file to be cracked.
         /// </summary>
         FileFormatType FileToCrackFileFormat { get; }
@@ -114,6 +119,7 @@ namespace PoshJohn.Common
         private readonly PSCmdlet _cmdlet;
         private readonly string _fileToCrackPath;
         private string _hashFilePath;
+        private readonly string _unlockedFileDirectoryPath;
         private readonly string _appDataDirectory;
         private readonly string _packageAssemblyDirectory;
         private readonly string _pdf2JohnPythonScriptPath;
@@ -139,6 +145,7 @@ namespace PoshJohn.Common
         public string VenvDirectoryPath => _venvDirectoryPath;
         public string JohnExePath => _johnExecutablePath;
         public string FileToCrackPath => _fileToCrackPath;
+        public string UnlockedFileDirectoryPath => _unlockedFileDirectoryPath;
         public FileFormatType FileToCrackFileFormat => _fileToCrackFileFormat;
         public string HashFilePath
         {
@@ -146,7 +153,11 @@ namespace PoshJohn.Common
             set
             {
                 _hashFilePath = value;
-                ParseHashEntries(_hashFilePath);
+                if (!string.IsNullOrEmpty(_hashFilePath))
+                {
+                    _hashFilePath = ResolvePath(_hashFilePath, checkExists: true);
+                    ParseHashEntries(_hashFilePath);
+                }
             }
         }
         public Dictionary<string, string> LoadedPotHashPasswords => _loadedPotHashPasswords;
@@ -192,9 +203,9 @@ namespace PoshJohn.Common
         /// <param name="config">The export hash configuration.</param>
         public FileSystemProvider(ExportHashConfig config) : this(config.Cmdlet)
         {
-            _fileToCrackPath = config.FileToCrackPath;
+            _fileToCrackPath = ResolvePath(config.FileToCrackPath, checkExists: true);
             _fileToCrackFileFormat = DetectFileToCrackFormat();
-            _hashFilePath = config.HashFilePath;
+            _hashFilePath = ResolvePath(config.HashFilePath, checkExists: false);
         }
 
         /// <summary>
@@ -203,7 +214,16 @@ namespace PoshJohn.Common
         /// <param name="config">The password crack configuration.</param>
         public FileSystemProvider(PasswordCrackConfig config) : this(config.Cmdlet)
         {
-            _hashFilePath = config.HashFilePath;
+            HashFilePath = config.HashFilePath;
+
+            if (!string.IsNullOrEmpty(config.UnlockedFileDirectoryPath))
+            {
+                _unlockedFileDirectoryPath = ResolvePath(config.UnlockedFileDirectoryPath, checkExists: false);
+                if (!Directory.Exists(_unlockedFileDirectoryPath))
+                {
+                    Directory.CreateDirectory(_unlockedFileDirectoryPath);
+                }
+            }
 
             if (!string.IsNullOrEmpty(config.CustomPotPath))
             {
@@ -211,7 +231,6 @@ namespace PoshJohn.Common
             }
 
             ParseKeyValuePotFile(_potPath);
-            ParseHashEntries(_hashFilePath);
         }
 
         /// <inheritdoc/>
@@ -239,6 +258,20 @@ namespace PoshJohn.Common
         #endregion Public Members
 
         #region Private Methods
+
+        private string ResolvePath(string path, bool checkExists)
+        {
+            string resolvedPath = _cmdlet.SessionState.Path.GetUnresolvedProviderPathFromPSPath(path);
+
+            _cmdlet?.WriteVerbose($"Resolved path '{path}' to '{resolvedPath}'.");
+
+            if (checkExists && !File.Exists(resolvedPath))
+            {
+                throw new FileNotFoundException("File not found.", resolvedPath);
+            }
+
+            return resolvedPath;
+        }
 
         /// <summary>
         /// Combines the app data directory with additional subpaths.
@@ -375,8 +408,7 @@ namespace PoshJohn.Common
         {
             if (!File.Exists(filePath))
             {
-                _cmdlet?.WriteDebug("Hash file does not exist. Skipping hash file parsing.");
-                return;
+                throw new FileNotFoundException("Hash file not found.", filePath);
             }
 
             _cmdlet?.WriteVerbose($"Parsing hash entries from file: {filePath}");
