@@ -1,9 +1,25 @@
 #!/usr/bin/env pwsh
 
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Build')]
 param(
+    [Parameter(ParameterSetName = 'Run')]
     [switch]$Run,
-    [switch]$NoCache
+
+    [Parameter(ParameterSetName = 'Test')]
+    [switch]$Test,
+
+    [Parameter(ParameterSetName = 'Run')]
+    [ValidateSet('/bin/bash', 'pwsh')]
+    [string]$Shell = '/bin/bash',
+
+    [Parameter(ParameterSetName = 'Build')]
+    [Parameter(ParameterSetName = 'Run')]
+    [Parameter(ParameterSetName = 'Test')]
+    [switch]$NoCache,
+
+    [Parameter(ParameterSetName = 'Run')]
+    [Parameter(ParameterSetName = 'Test')]
+    [switch]$RemoveOnExit
 )
 
 function Start-Docker {
@@ -11,7 +27,7 @@ function Start-Docker {
     param()
 
     # Check if Docker is already running and responsive
-    docker info 2>$null | Out-Null
+    Invoke-Docker "info" -SuppressOutput -IgnoreError
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Docker is already running" -ForegroundColor Green
         return
@@ -25,19 +41,13 @@ function Start-Docker {
         Write-Host "Docker Desktop not found. Installing via winget..." -ForegroundColor Yellow
 
         # Install Docker Desktop using winget
-        winget install Docker.DockerDesktop --silent --accept-source-agreements --accept-package-agreements
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error "Failed to install Docker Desktop"
-            exit 1
-        }
+        Invoke-Winget "install Docker.DockerDesktop --silent --accept-source-agreements --accept-package-agreements"
 
         Write-Host "Docker Desktop installed successfully" -ForegroundColor Green
 
         # Verify installation
         if (-not (Test-Path $dockerDesktopPath)) {
-            Write-Error "Docker Desktop installation completed but executable not found at: $dockerDesktopPath"
-            exit 1
+            throw "Docker Desktop installation completed but executable not found at: $dockerDesktopPath"
         }
     }
 
@@ -53,36 +63,45 @@ function Start-Docker {
         $waitedTime += 3
 
         # Check if Docker daemon is responding
-        docker info 2>$null | Out-Null
+        Invoke-Docker "info" -SuppressOutput -IgnoreError
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Docker is ready!" -ForegroundColor Green
             return
         }
     }
 
-    Write-Error "Docker failed to start within $maxWaitTime seconds"
-    exit 1
+    throw "Docker failed to start within $maxWaitTime seconds"
 }
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $DockerFilePath = Join-Path $RepoRoot "docker/Dockerfile.linux"
 $DockerImageTag = "poshjohn-linux"
 
+$helperModulePath = Join-Path -Path $RepoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
+Import-Module $helperModulePath -Force
+
 # Ensure Docker is running
 Start-Docker
 
-if ($NoCache) {
-    docker build --no-cache -f $DockerFilePath -t $DockerImageTag .
-}
-else {
-    docker build -f $DockerFilePath -t $DockerImageTag .
-}
+Write-Host "Building Docker image '$DockerImageTag' from '$DockerFilePath'..." -ForegroundColor Cyan
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Docker build failed with exit code $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
+try {
+    Push-Location -Path $RepoRoot
 
-if ($Run) {
-    docker run --rm -it $DockerImageTag pwsh
+    $noCacheFlag = $NoCache ? ' --no-cache ' : ' '
+    Invoke-Docker "build$noCacheFlag-f $DockerFilePath -t $DockerImageTag ."
+
+    $rmFlag = $RemoveOnExit ? ' --rm ' : ' '
+    if ($Run) {
+        Write-Host "Running interactive PowerShell session in Docker container..." -ForegroundColor Cyan
+        Invoke-Docker "run$rmFlag-it $DockerImageTag $Shell"
+    }
+    elseif ($Test) {
+        Write-Host "Running tests inside Docker container..." -ForegroundColor Cyan
+        $buildScriptPathInContainer = "/PoshJohn/PowerShellBuildTools/build.ps1"
+        Invoke-Docker "run$rmFlag-it $DockerImageTag pwsh -File $buildScriptPathInContainer -Task TestPackage"
+    }
+}
+finally {
+    Pop-Location
 }
