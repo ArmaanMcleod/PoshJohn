@@ -2,9 +2,7 @@
 
 ## Unreleased
 
-### Build and Packaging Improvements
-
-+ Add GitHub Issue and PR templates.
+## v1.1.1 - 11/01/2026
 
 ### General Cmdlet Updates and Fixes
 
