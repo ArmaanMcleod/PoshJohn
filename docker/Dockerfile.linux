@@ -32,4 +32,5 @@ RUN chmod +x ./build-pdf2john-linux.sh && dos2unix ./build-pdf2john-linux.sh
 
 WORKDIR /PoshJohn
 
+ENV SKIP_NATIVE_BUILD=false
 RUN pwsh -Command ./PowerShellBuildTools/build.ps1 -Task Build

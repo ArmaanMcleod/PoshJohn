@@ -19,7 +19,12 @@ param(
 
     [Parameter(ParameterSetName = 'Run')]
     [Parameter(ParameterSetName = 'Test')]
-    [switch]$RemoveOnExit
+    [switch]$RemoveOnExit,
+
+    [Parameter(ParameterSetName = 'Build')]
+    [Parameter(ParameterSetName = 'Run')]
+    [Parameter(ParameterSetName = 'Test')]
+    [switch]$Prune
 )
 
 function Start-Docker {
@@ -87,6 +92,11 @@ Write-Host "Building Docker image '$DockerImageTag' from '$DockerFilePath'..." -
 
 try {
     Push-Location -Path $RepoRoot
+
+    if ($Prune) {
+        Write-Warning "Pruning unused Docker images, containers, networks, build cache and volumes..."
+        Invoke-Docker "system prune -a --volumes"
+    }
 
     $noCacheFlag = $NoCache ? ' --no-cache ' : ' '
     Invoke-Docker "build$noCacheFlag-f $DockerFilePath -t $DockerImageTag ."

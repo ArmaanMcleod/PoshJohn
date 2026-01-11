@@ -30,6 +30,10 @@ static const char HEX_DIGITS[] = "0123456789abcdef";
 /* Default value for EncryptMetadata flag (1 = metadata is encrypted) */
 #define DEFAULT_ENCRYPT_METADATA 1
 
+/* Boolean definitions */
+#define TRUE 1
+#define FALSE 0
+
 // Logging callback support
 static log_callback_pdf_hash_t g_log_callback = NULL;
 
@@ -42,8 +46,10 @@ PDFHASH_API void set_log_callback_pdf_hash(log_callback_pdf_hash_t callback)
 /* Internal logging function */
 static void log_message(const char *msg)
 {
-	if (g_log_callback)
+	if (g_log_callback != NULL)
+	{
 		g_log_callback(msg);
+	}
 }
 
 /* Append a separator '*' to the buffer, if space allows. */
@@ -68,8 +74,10 @@ static void append_int(char *buf, size_t buflen, int val)
 /* Append a string to the buffer, handling NULL as empty string. */
 static void append_str(char *buf, size_t buflen, const char *s)
 {
-	if (!s)
+	if (s == NULL)
+	{
 		s = "";
+	}
 	strncat(buf, s, buflen - strlen(buf) - 1);
 }
 
@@ -77,8 +85,10 @@ static void append_str(char *buf, size_t buflen, const char *s)
 static char *hex_lower(const unsigned char *data, size_t len)
 {
 	char *out = (char *)malloc(len * 2 + 1);
-	if (!out)
+	if (out == NULL)
+	{
 		return NULL;
+	}
 
 	for (size_t i = 0; i < len; ++i)
 	{
@@ -94,12 +104,16 @@ static char *hex_lower(const unsigned char *data, size_t len)
 /* Convert a PDF string object to a lowercase hexadecimal string. */
 static char *hex_from_pdf_string(fz_context *ctx, pdf_obj *str_obj)
 {
-	if (!str_obj)
+	if (str_obj == NULL)
+	{
 		return NULL;
+	}
 
 	pdf_obj *o = pdf_resolve_indirect(ctx, str_obj);
-	if (!o || !pdf_is_string(ctx, o))
+	if (o == NULL || !pdf_is_string(ctx, o))
+	{
 		return NULL;
+	}
 
 	size_t len = pdf_to_str_len(ctx, o);
 
@@ -113,12 +127,24 @@ static char *hex_from_pdf_string(fz_context *ctx, pdf_obj *str_obj)
  */
 static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
 {
-	if (!id_obj || !pdf_is_array(ctx, id_obj) || pdf_array_len(ctx, id_obj) < 1)
+	if (id_obj == NULL || !pdf_is_array(ctx, id_obj) || pdf_array_len(ctx, id_obj) < 1)
+	{
 		return NULL;
+	}
 
 	pdf_obj *id0 = pdf_array_get(ctx, id_obj, 0); /* First element */
 
 	return hex_from_pdf_string(ctx, id0);
+}
+
+/* Helper to safely drop a MuPDF document and set pointer to NULL */
+static void safe_drop_document(fz_context *ctx, pdf_document **doc)
+{
+	if (doc != NULL && *doc != NULL)
+	{
+		fz_drop_document(ctx, (fz_document *)*doc);
+		*doc = NULL;
+	}
 }
 
 /*
@@ -143,7 +169,7 @@ static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
  */
 PDFHASH_API char *get_pdf_hash(const char *path)
 {
-	if (!path)
+	if (path == NULL)
 	{
 		log_message("[pdfhash] ERROR: path is NULL");
 		fprintf(stderr, "[pdfhash] ERROR: path is NULL\n");
@@ -151,7 +177,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 	}
 
 	fz_context *ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
-	if (!ctx)
+	if (ctx == NULL)
 	{
 		log_message("[pdfhash] ERROR: failed to create context");
 		fprintf(stderr, "[pdfhash] ERROR: failed to create context\n");
@@ -170,7 +196,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 	{
 		fz_register_document_handlers(ctx);
 		doc = pdf_open_document(ctx, path);
-		if (!doc)
+		if (doc == NULL)
 		{
 			log_message("[pdfhash] ERROR: Cannot open PDF");
 			fprintf(stderr, "[pdfhash] ERROR: Cannot open PDF: %s\n", path);
@@ -178,7 +204,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 		}
 
 		pdf_obj *trailer = pdf_trailer(ctx, doc);
-		if (!trailer)
+		if (trailer == NULL)
 		{
 			log_message("[pdfhash] ERROR: trailer is NULL");
 			fprintf(stderr, "[pdfhash] ERROR: trailer is NULL\n");
@@ -187,18 +213,15 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 		pdf_obj *encrypt_ref = pdf_dict_gets(ctx, trailer, "Encrypt");
 		pdf_obj *enc = pdf_resolve_indirect(ctx, encrypt_ref);
-		if (!enc || !pdf_is_dict(ctx, enc))
+		if (enc == NULL || pdf_is_dict(ctx, enc) == FALSE)
 		{
 			log_message("[pdfhash] ERROR: No Encrypt dictionary");
 			fprintf(stderr, "[pdfhash] ERROR: No Encrypt dictionary\n");
 
-			/* Explicitly drop the document before throwing to ensure file handle is released */
-			/* This is needed for Windows */
-			if (doc)
-			{
-				fz_drop_document(ctx, (fz_document *)doc);
-				doc = NULL;
-			}
+			/* Explicitly drop the document before throwing to ensure file handle is released for Windows */
+#ifdef _WIN32
+			safe_drop_document(ctx, &doc);
+#endif
 
 			fz_throw(ctx, FZ_ERROR_GENERIC, "No Encrypt dictionary");
 		}
@@ -209,8 +232,10 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 		int key_len = DEFAULT_KEY_LENGTH_BITS;
 		pdf_obj *length_obj = pdf_dict_gets(ctx, enc, "Length");
-		if (length_obj && pdf_is_int(ctx, length_obj))
+		if (length_obj != NULL && pdf_is_int(ctx, length_obj) == TRUE)
+		{
 			key_len = pdf_to_int(ctx, length_obj);
+		}
 
 		/*
 		 * Resolve O and U (indirect-safe), then intentionally swap them to match pdf2john.py semantics.
@@ -220,7 +245,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 		pdf_obj *Uobj = pdf_dict_gets(ctx, enc, "U");
 		Uhex = hex_from_pdf_string(ctx, Oobj); /* actually User */
 		Ohex = hex_from_pdf_string(ctx, Uobj); /* actually Owner */
-		if (!Uhex || !Ohex)
+		if (Uhex == NULL || Ohex == NULL)
 		{
 			log_message("[pdfhash] ERROR: Ohex or Uhex is NULL");
 			fprintf(stderr, "[pdfhash] ERROR: Ohex or Uhex is NULL\n");
@@ -229,7 +254,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 		pdf_obj *IDarr = pdf_dict_gets(ctx, trailer, "ID");
 		IDhex = hex_from_id_array(ctx, IDarr);
-		if (!IDhex)
+		if (IDhex == NULL)
 		{
 			log_message("[pdfhash] ERROR: IDhex is NULL");
 			fprintf(stderr, "[pdfhash] ERROR: IDhex is NULL\n");
@@ -248,8 +273,10 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 		/* Read EncryptMetadata flag (defaults to 1 if not present) */
 		int flags = DEFAULT_ENCRYPT_METADATA;
 		pdf_obj *em_obj = pdf_dict_gets(ctx, enc, "EncryptMetadata");
-		if (em_obj && pdf_is_bool(ctx, em_obj))
+		if (em_obj != NULL && pdf_is_bool(ctx, em_obj) == TRUE)
+		{
 			flags = pdf_to_bool(ctx, em_obj);
+		}
 
 		int Olen = Ohex ? (int)(strlen(Ohex) / 2) : 0;
 		int Ulen = Uhex ? (int)(strlen(Uhex) / 2) : 0;
@@ -265,7 +292,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 					   (UEhex ? strlen(UEhex) : 0);
 
 		result = (char *)calloc(1, total);
-		if (!result)
+		if (result == NULL)
 		{
 			log_message("[pdfhash] ERROR: Allocation failure");
 			fprintf(stderr, "[pdfhash] ERROR: Allocation failure\n");
@@ -306,7 +333,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 		if (R >= PDF_REVISION_AES256)
 		{
 			/* OE (oeseed) */
-			if (OEhex)
+			if (OEhex != NULL)
 			{
 				append_sep(result, total);
 				append_int(result, total, OElen);
@@ -315,7 +342,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 			}
 
 			/* UE (ueseed) */
-			if (UEhex)
+			if (UEhex != NULL)
 			{
 				append_sep(result, total);
 				append_int(result, total, UElen);
@@ -328,43 +355,40 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 	fz_always(ctx)
 	{
 		/* Free only if allocated, then set to NULL for safety */
-		if (Uhex)
+		if (Uhex != NULL)
 		{
 			free(Uhex);
 			Uhex = NULL;
 		}
-		if (Ohex)
+		if (Ohex != NULL)
 		{
 			free(Ohex);
 			Ohex = NULL;
 		}
-		if (IDhex)
+		if (IDhex != NULL)
 		{
 			free(IDhex);
 			IDhex = NULL;
 		}
-		if (OEhex)
+		if (OEhex != NULL)
 		{
 			free(OEhex);
 			OEhex = NULL;
 		}
-		if (UEhex)
+		if (UEhex != NULL)
 		{
 			free(UEhex);
 			UEhex = NULL;
 		}
 
 		/* Drop document last, after all MuPDF object usage is done */
-		if (doc)
-		{
-			fz_drop_document(ctx, (fz_document *)doc);
-			doc = NULL;
-		}
+		safe_drop_document(ctx, &doc);
+
 		/* Do NOT drop context here; do it after fz_catch. */
 	}
 	fz_catch(ctx)
 	{
-		if (result)
+		if (result != NULL)
 		{
 			free(result);
 			result = NULL;
@@ -372,7 +396,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 	}
 
 	/* Now safe to drop context after fz_catch */
-	if (ctx)
+	if (ctx != NULL)
 	{
 		fz_drop_context(ctx);
 	}
