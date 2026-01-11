@@ -210,7 +210,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 			/* Explicitly drop the document before throwing to ensure file handle is released for Windows */
 #ifdef _WIN32
-			if (doc)
+			if (doc != NULL)
 			{
 				fz_drop_document(ctx, (fz_document *)doc);
 				doc = NULL;
