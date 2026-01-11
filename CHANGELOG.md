@@ -8,6 +8,14 @@
   + Added `-Test`, `Shell`, `RemoveOnExit` flags to `docker-build-linux.ps1` to support more troubleshooting & test scenarios.
   + Added `.dockerignore` file to exclude unnecessary files from Docker build context.
 
++ Added `-Prune` flag to `docker-build-linux.ps1` to remove unused Docker images, containers, networks, build cache and volumes ([#38](https://github.com/ArmaanMcleod/PoshJohn/pull/38)).
+
+### General Cmdlet Updates and Fixes
+
++ Fixed `corrupted double‑linked list` for Docker Linux and pdfhash cleanup ([#38](https://github.com/ArmaanMcleod/PoshJohn/issues/38)).
+  + Use `#ifdef _WIN32` to conditionally drop PDF document early on Windows to avoid `corrupted double‑linked list` error on Docker Linux.
+  + Cleaned up C code for `pdfhash.c` to maentain consistency and readability.
+
 ## v1.1.1 - 11/01/2026
 
 ### General Cmdlet Updates and Fixes
