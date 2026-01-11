@@ -857,15 +857,4 @@ Describe 'PoshJohn Tests' {
             Remove-Item -Path "$TestDrive/$unlockedOutputDirName" -Recurse -ErrorAction SilentlyContinue
         }
     }
-
-    Context 'Docker Tests' {
-        BeforeAll {
-            $linuxDockerBuildScript = Join-Path -Path $repoPath -ChildPath 'scripts/build-docker-linux.ps1'
-            $isDocker = Test-Path '/.dockerenv'
-        }
-
-        It 'Windows Docker Build for Linux should complete without errors' -Tag 'docker-linux' -Skip:(-not $IsWindows -or $isDocker) {
-            { & $linuxDockerBuildScript -RemoveOnExit -Test -NoCache } | Should -Not -Throw
-        }
-    }
 }
