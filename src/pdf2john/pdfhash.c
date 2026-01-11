@@ -137,6 +137,16 @@ static char *hex_from_id_array(fz_context *ctx, pdf_obj *id_obj)
 	return hex_from_pdf_string(ctx, id0);
 }
 
+/* Helper to safely drop a MuPDF document and set pointer to NULL */
+static void safe_drop_document(fz_context *ctx, pdf_document **doc)
+{
+	if (doc != NULL && *doc != NULL)
+	{
+		fz_drop_document(ctx, (fz_document *)*doc);
+		*doc = NULL;
+	}
+}
+
 /*
  * Build a PDF password hash string in the same format as pdf2john.py.
  *
@@ -210,11 +220,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 			/* Explicitly drop the document before throwing to ensure file handle is released for Windows */
 #ifdef _WIN32
-			if (doc != NULL)
-			{
-				fz_drop_document(ctx, (fz_document *)doc);
-				doc = NULL;
-			}
+			safe_drop_document(ctx, &doc);
 #endif
 
 			fz_throw(ctx, FZ_ERROR_GENERIC, "No Encrypt dictionary");
@@ -376,11 +382,8 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 		}
 
 		/* Drop document last, after all MuPDF object usage is done */
-		if (doc != NULL)
-		{
-			fz_drop_document(ctx, (fz_document *)doc);
-			doc = NULL;
-		}
+		safe_drop_document(ctx, &doc);
+
 		/* Do NOT drop context here; do it after fz_catch. */
 	}
 	fz_catch(ctx)
