@@ -18,30 +18,7 @@
   <ItemGroup>
     <None Include="PoshJohn.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PoshJohn.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../john/**" CopyToOutputDirectory="PreserveNewest" Link="john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
-    <None Include="../src/pdf2john/dist/**" CopyToOutputDirectory="PreserveNewest" Link="pdf2john/%(RecursiveDir)%(Filename)%(Extension)" Condition=" '$(GITHUB_ACTIONS)' != 'true' " />
   </ItemGroup>
-
-  <Target Name="PreBuildJohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-john-windows.ps1&quot;" />
-  </Target>
-  <Target Name="PreBuildPdf2JohnWindows" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsWindows()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="pwsh.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)../scripts/build-pdf2john-windows.ps1&quot;" />
-  </Target>
-
-  <Target Name="PreBuildJohnLinux" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsLinux()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh" />
-  </Target>
-  <Target Name="PreBuildPdf2JohnLinux" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsLinux()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh" />
-  </Target>
-
-  <Target Name="PreBuildJohnMacOS" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsMacOS()) and !Exists('$(ProjectDir)../john') and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh" />
-  </Target>
-  <Target Name="PreBuildPdf2JohnMacOS" BeforeTargets="Build" Condition=" $([System.OperatingSystem]::IsMacOS()) and '$(GITHUB_ACTIONS)' != 'true' ">
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh" />
-  </Target>
 
   <Target Name="CleanObjAndBinDirectories" AfterTargets="Clean">
     <RemoveDir Directories="$(BaseOutputPath)" />

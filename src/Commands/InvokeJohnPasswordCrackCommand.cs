@@ -121,21 +121,17 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
     {
         try
         {
-            if (!string.IsNullOrEmpty(UnlockedFileDirectoryPath) && !Directory.Exists(UnlockedFileDirectoryPath))
-            {
-                Directory.CreateDirectory(UnlockedFileDirectoryPath);
-            }
-
             _fileSystemProvider = new FileSystemProvider(new PasswordCrackConfig
             {
                 Cmdlet = this,
                 HashFilePath = InputPath,
                 CustomPotPath = CustomPotPath,
+                UnlockedFileDirectoryPath = UnlockedFileDirectoryPath
             });
 
             _processRunner = new ProcessRunner(this, _fileSystemProvider);
 
-            _fileUnlockManager = new FileUnlockManager(this);
+            _fileUnlockManager = new FileUnlockManager(this, _fileSystemProvider);
 
             if (RefreshPot.IsPresent)
             {
@@ -166,16 +162,11 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
             return;
         }
 
-        if (InputObject != null)
-        {
-            _fileSystemProvider.HashFilePath = InputObject.HashFilePath;
-        }
-
         try
         {
-            if (!File.Exists(_fileSystemProvider.HashFilePath))
+            if (InputObject != null)
             {
-                throw new FileNotFoundException("Input file not found.", _fileSystemProvider.HashFilePath);
+                _fileSystemProvider.HashFilePath = InputObject.HashFilePath;
             }
 
             WriteVerbose("Starting John the Ripper password cracking");
@@ -343,7 +334,13 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                     throw new KeyNotFoundException($"Label '{label}' not found in loaded label to file mappings.");
                 }
 
-                currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, password, currentGroup.FileFormat, UnlockedFileDirectoryPath);
+                currentGroup.FilePasswords[filePath] = new PasswordUnlockResult
+                {
+                    FilePath = filePath,
+                    Password = password,
+                    FileFormat = currentGroup.FileFormat,
+                    UnlockedFilePath = _fileUnlockManager.GetUnlockedFilePath(filePath)
+                };
             }
 
             else if (line.StartsWith(NoPasswordHashesLeftToCrackMessage, StringComparison.OrdinalIgnoreCase) && currentGroup != null)
@@ -365,7 +362,13 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
                     }
 
                     string filePath = kvp.Value;
-                    currentGroup.FilePasswords[filePath] = new PasswordUnlockResult(filePath, potHashPassword, currentGroup.FileFormat, UnlockedFileDirectoryPath);
+                    currentGroup.FilePasswords[filePath] = new PasswordUnlockResult
+                    {
+                        FilePath = filePath,
+                        Password = potHashPassword,
+                        FileFormat = currentGroup.FileFormat,
+                        UnlockedFilePath = _fileUnlockManager.GetUnlockedFilePath(filePath)
+                    };
                 }
             }
         }

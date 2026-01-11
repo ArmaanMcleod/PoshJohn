@@ -55,11 +55,6 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
     {
         try
         {
-            if (!File.Exists(InputPath))
-            {
-                throw new FileNotFoundException("Input file not found.", InputPath);
-            }
-
             WriteVerbose($"Processing file: {InputPath}");
 
             _fileSystemProvider = new FileSystemProvider(new ExportHashConfig
