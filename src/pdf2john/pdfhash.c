@@ -208,13 +208,14 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 			log_message("[pdfhash] ERROR: No Encrypt dictionary");
 			fprintf(stderr, "[pdfhash] ERROR: No Encrypt dictionary\n");
 
-			/* Explicitly drop the document before throwing to ensure file handle is released */
-			/* This is needed for Windows */
+			/* Explicitly drop the document before throwing to ensure file handle is released for Windows */
+#ifdef _WIN32
 			if (doc)
 			{
 				fz_drop_document(ctx, (fz_document *)doc);
 				doc = NULL;
 			}
+#endif
 
 			fz_throw(ctx, FZ_ERROR_GENERIC, "No Encrypt dictionary");
 		}
