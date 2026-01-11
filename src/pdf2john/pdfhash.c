@@ -30,6 +30,10 @@ static const char HEX_DIGITS[] = "0123456789abcdef";
 /* Default value for EncryptMetadata flag (1 = metadata is encrypted) */
 #define DEFAULT_ENCRYPT_METADATA 1
 
+/* Boolean definitions */
+#define TRUE 1
+#define FALSE 0
+
 // Logging callback support
 static log_callback_pdf_hash_t g_log_callback = NULL;
 
@@ -199,7 +203,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 		pdf_obj *encrypt_ref = pdf_dict_gets(ctx, trailer, "Encrypt");
 		pdf_obj *enc = pdf_resolve_indirect(ctx, encrypt_ref);
-		if (enc == NULL || !pdf_is_dict(ctx, enc))
+		if (enc == NULL || pdf_is_dict(ctx, enc) == FALSE)
 		{
 			log_message("[pdfhash] ERROR: No Encrypt dictionary");
 			fprintf(stderr, "[pdfhash] ERROR: No Encrypt dictionary\n");
@@ -212,7 +216,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 
 		int key_len = DEFAULT_KEY_LENGTH_BITS;
 		pdf_obj *length_obj = pdf_dict_gets(ctx, enc, "Length");
-		if (length_obj != NULL && pdf_is_int(ctx, length_obj))
+		if (length_obj != NULL && pdf_is_int(ctx, length_obj) == TRUE)
 		{
 			key_len = pdf_to_int(ctx, length_obj);
 		}
@@ -253,7 +257,7 @@ PDFHASH_API char *get_pdf_hash(const char *path)
 		/* Read EncryptMetadata flag (defaults to 1 if not present) */
 		int flags = DEFAULT_ENCRYPT_METADATA;
 		pdf_obj *em_obj = pdf_dict_gets(ctx, enc, "EncryptMetadata");
-		if (em_obj != NULL && pdf_is_bool(ctx, em_obj))
+		if (em_obj != NULL && pdf_is_bool(ctx, em_obj) == TRUE)
 		{
 			flags = pdf_to_bool(ctx, em_obj);
 		}
