@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Build and Packaging Improvements
+
++ Docker Build for Linux Improvements ([#37](https://github.com/ArmaanMcleod/PoshJohn/pull/37)).
+  + Added `-Test`, `Shell`, `RemoveOnExit` flags to `docker-build-linux.ps1` to support more troubleshooting & test scenarios.
+  + Added `.dockerignore` file to exclude unnecessary files from Docker build context.
+
 ## v1.1.1 - 11/01/2026
 
 ### General Cmdlet Updates and Fixes

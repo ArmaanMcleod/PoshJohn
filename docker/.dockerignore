@@ -1,0 +1,18 @@
+# Windows native artifacts
+*.dll
+*.pdb
+*.lib
+*.exe
+
+# macOS artifacts
+*.dylib
+
+# Linux artifacts built on host
+*.so
+
+# Build output folders
+bin/
+obj/
+out/
+build/
+dist/
