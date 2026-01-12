@@ -84,7 +84,12 @@ function Start-DockerWindows {
 }
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
+
 $DockerFilePath = Join-Path $RepoRoot "docker/Dockerfile.linux"
+if (-not (Test-Path $DockerFilePath)) {
+    throw "Dockerfile not found at: $DockerFilePath"
+}
+
 $DockerImageTag = "poshjohn-linux"
 
 $helperModulePath = Join-Path -Path $RepoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
