@@ -68,6 +68,7 @@ function Start-DockerWindows {
     Write-Host "Waiting for Docker to start..." -ForegroundColor Yellow
 
     while ($waitedTime -lt $maxWaitTime) {
+        Write-Host "Checking Docker status... ($waitedTime/$maxWaitTime seconds elapsed)" -ForegroundColor Yellow
         Start-Sleep -Seconds 3
         $waitedTime += 3
 
