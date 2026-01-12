@@ -124,14 +124,15 @@ try {
     Invoke-Docker "build$noCacheFlag-f $DockerFilePath -t $DockerImageTag ."
 
     $rmFlag = $RemoveOnExit ? ' --rm ' : ' '
+    $interactiveMode = $CI ? '' : '-it'
     if ($Run) {
         Write-Host "Running interactive PowerShell session in Docker container..." -ForegroundColor Cyan
-        Invoke-Docker "run$rmFlag-it $DockerImageTag $Shell"
+        Invoke-Docker "run${rmFlag}${interactiveMode} ${DockerImageTag} ${Shell}"
     }
     elseif ($Test) {
         Write-Host "Running tests inside Docker container..." -ForegroundColor Cyan
         $buildScriptPathInContainer = "/PoshJohn/PowerShellBuildTools/build.ps1"
-        Invoke-Docker "run$rmFlag-it $DockerImageTag pwsh -File $buildScriptPathInContainer -Task TestPackage"
+        Invoke-Docker "run${rmFlag}${interactiveMode} ${DockerImageTag} pwsh -File ${buildScriptPathInContainer} -Task TestPackage"
     }
 }
 finally {
