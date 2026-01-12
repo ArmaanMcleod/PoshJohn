@@ -121,7 +121,7 @@ try {
     }
 
     $noCacheFlag = $NoCache ? ' --no-cache ' : ' '
-    Invoke-Docker "build$noCacheFlag-f $DockerFilePath -t $DockerImageTag ."
+    Invoke-Docker "build${noCacheFlag}-f ${DockerFilePath} -t ${DockerImageTag} ."
 
     $rmFlag = $RemoveOnExit ? ' --rm ' : ' '
     $interactiveMode = $CI ? '' : '-it'
