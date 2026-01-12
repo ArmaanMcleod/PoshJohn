@@ -24,10 +24,14 @@ param(
     [Parameter(ParameterSetName = 'Build')]
     [Parameter(ParameterSetName = 'Run')]
     [Parameter(ParameterSetName = 'Test')]
-    [switch]$Prune
+    [switch]$Prune,
+
+    [Parameter(ParameterSetName = 'Build')]
+    [Parameter(ParameterSetName = 'Test')]
+    [switch]$CI
 )
 
-function Start-Docker {
+function Start-DockerWindows {
     [CmdletBinding()]
     param()
 
@@ -85,8 +89,20 @@ $DockerImageTag = "poshjohn-linux"
 $helperModulePath = Join-Path -Path $RepoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
 Import-Module $helperModulePath -Force
 
-# Ensure Docker is running
-Start-Docker
+# Add checks for supported OS platforms
+# TODO: Add more local support for other OS platforms
+if ($CI) {
+    if (-not $IsLinux) {
+        throw "CI Docker builds are only supported on Linux agents currently."
+    }
+}
+else {
+    if (-not $IsWindows) {
+        throw "Local Docker builds are only supported on Windows currently. Please run this script on a Windows machine."
+    }
+
+    Start-DockerWindows
+}
 
 Write-Host "Building Docker image '$DockerImageTag' from '$DockerFilePath'..." -ForegroundColor Cyan
 
