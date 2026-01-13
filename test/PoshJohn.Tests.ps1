@@ -864,7 +864,7 @@ Describe 'PoshJohn Tests' {
             $isDocker = Test-Path -Path '/.dockerenv'
         }
 
-        It 'Build Linux Docker Image' -Skip:(-not $IsLinux -or $isDocker) -Tag 'docker-linux' {
+        It 'Build & Test Linux Docker Image' -Skip:(-not $IsLinux -or $isDocker) -Tag 'docker-linux' {
             { & $dockerBuildScriptPath -Test -NoCache -RemoveOnExit -CI } | Should -Not -Throw
         }
     }
