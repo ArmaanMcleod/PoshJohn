@@ -120,19 +120,35 @@ try {
         Invoke-Docker "system prune -a --volumes"
     }
 
-    $noCacheFlag = $NoCache ? ' --no-cache ' : ' '
-    Invoke-Docker "build${noCacheFlag}-f ${DockerFilePath} -t ${DockerImageTag} ."
+    $buildCommand = "build"
 
-    $rmFlag = $RemoveOnExit ? ' --rm ' : ' '
-    $interactiveMode = $CI ? '' : '-it'
+    if ($NoCache) {
+        $buildCommand += " --no-cache"
+    }
+
+    $buildCommand += " -f ${DockerFilePath} -t ${DockerImageTag} ."
+
+    Invoke-Docker $buildCommand
+
+    $runCommand = "run"
+
+    if ($RemoveOnExit) {
+        $runCommand += " --rm"
+    }
+    if (-not $CI) {
+        $runCommand += " -it"
+    }
+
+    $runCommand += " ${DockerImageTag}"
+
     if ($Run) {
         Write-Host "Running interactive PowerShell session in Docker container..." -ForegroundColor Cyan
-        Invoke-Docker "run${rmFlag}${interactiveMode} ${DockerImageTag} ${Shell}"
+        Invoke-Docker "${runCommand} ${Shell}"
     }
     elseif ($Test) {
         Write-Host "Running tests inside Docker container..." -ForegroundColor Cyan
         $buildScriptPathInContainer = "/PoshJohn/PowerShellBuildTools/build.ps1"
-        Invoke-Docker "run${rmFlag}${interactiveMode} ${DockerImageTag} pwsh -File ${buildScriptPathInContainer} -Task TestPackage"
+        Invoke-Docker "${runCommand} pwsh -File ${buildScriptPathInContainer} -Task TestPackage"
     }
 }
 finally {
