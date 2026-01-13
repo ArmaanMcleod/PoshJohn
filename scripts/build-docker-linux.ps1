@@ -24,10 +24,14 @@ param(
     [Parameter(ParameterSetName = 'Build')]
     [Parameter(ParameterSetName = 'Run')]
     [Parameter(ParameterSetName = 'Test')]
-    [switch]$Prune
+    [switch]$Prune,
+
+    [Parameter(ParameterSetName = 'Build')]
+    [Parameter(ParameterSetName = 'Test')]
+    [switch]$CI
 )
 
-function Start-Docker {
+function Start-DockerWindows {
     [CmdletBinding()]
     param()
 
@@ -64,6 +68,7 @@ function Start-Docker {
     Write-Host "Waiting for Docker to start..." -ForegroundColor Yellow
 
     while ($waitedTime -lt $maxWaitTime) {
+        Write-Host "Checking Docker status... ($waitedTime/$maxWaitTime seconds elapsed)" -ForegroundColor Yellow
         Start-Sleep -Seconds 3
         $waitedTime += 3
 
@@ -79,14 +84,31 @@ function Start-Docker {
 }
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
+
 $DockerFilePath = Join-Path $RepoRoot "docker/Dockerfile.linux"
+if (-not (Test-Path $DockerFilePath)) {
+    throw "Dockerfile not found at: $DockerFilePath"
+}
+
 $DockerImageTag = "poshjohn-linux"
 
 $helperModulePath = Join-Path -Path $RepoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
 Import-Module $helperModulePath -Force
 
-# Ensure Docker is running
-Start-Docker
+# Add checks for supported OS platforms
+# TODO: Add more local support for other OS platforms
+if ($CI) {
+    if (-not $IsLinux) {
+        throw "CI Docker builds are only supported on Linux agents currently."
+    }
+}
+else {
+    if (-not $IsWindows) {
+        throw "Local Docker builds are only supported on Windows currently. Please run this script on a Windows machine."
+    }
+
+    Start-DockerWindows
+}
 
 Write-Host "Building Docker image '$DockerImageTag' from '$DockerFilePath'..." -ForegroundColor Cyan
 
@@ -98,18 +120,35 @@ try {
         Invoke-Docker "system prune -a --volumes"
     }
 
-    $noCacheFlag = $NoCache ? ' --no-cache ' : ' '
-    Invoke-Docker "build$noCacheFlag-f $DockerFilePath -t $DockerImageTag ."
+    $buildCommand = "build"
 
-    $rmFlag = $RemoveOnExit ? ' --rm ' : ' '
+    if ($NoCache) {
+        $buildCommand += " --no-cache"
+    }
+
+    $buildCommand += " -f ${DockerFilePath} -t ${DockerImageTag} ."
+
+    Invoke-Docker $buildCommand
+
+    $runCommand = "run"
+
+    if ($RemoveOnExit) {
+        $runCommand += " --rm"
+    }
+    if (-not $CI) {
+        $runCommand += " -it"
+    }
+
+    $runCommand += " ${DockerImageTag}"
+
     if ($Run) {
         Write-Host "Running interactive PowerShell session in Docker container..." -ForegroundColor Cyan
-        Invoke-Docker "run$rmFlag-it $DockerImageTag $Shell"
+        Invoke-Docker "${runCommand} ${Shell}"
     }
     elseif ($Test) {
         Write-Host "Running tests inside Docker container..." -ForegroundColor Cyan
         $buildScriptPathInContainer = "/PoshJohn/PowerShellBuildTools/build.ps1"
-        Invoke-Docker "run$rmFlag-it $DockerImageTag pwsh -File $buildScriptPathInContainer -Task TestPackage"
+        Invoke-Docker "${runCommand} pwsh -File ${buildScriptPathInContainer} -Task TestPackage"
     }
 }
 finally {
