@@ -857,4 +857,15 @@ Describe 'PoshJohn Tests' {
             Remove-Item -Path "$TestDrive/$unlockedOutputDirName" -Recurse -ErrorAction SilentlyContinue
         }
     }
+
+    Context 'Docker Tests' {
+        BeforeAll {
+            $dockerBuildScriptPath = Join-Path -Path $repoPath -ChildPath 'scripts/build-docker-linux.ps1'
+            $isDocker = Test-Path -Path '/.dockerenv'
+        }
+
+        It 'Build & Test Linux Docker Image' -Skip:(-not $IsLinux -or $isDocker) -Tag 'docker-linux' {
+            { & $dockerBuildScriptPath -Test -NoCache -RemoveOnExit -CI } | Should -Not -Throw
+        }
+    }
 }

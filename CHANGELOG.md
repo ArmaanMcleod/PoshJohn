@@ -9,6 +9,7 @@
   + Added `.dockerignore` file to exclude unnecessary files from Docker build context.
 
 + Added `-Prune` flag to `docker-build-linux.ps1` to remove unused Docker images, containers, networks, build cache and volumes ([#38](https://github.com/ArmaanMcleod/PoshJohn/pull/38)).
++ Added Linux Docker Build to Github Actions CI Workflow ([#40](https://github.com/ArmaanMcleod/PoshJohn/pull/40)).
 
 ### General Cmdlet Updates and Fixes
 
