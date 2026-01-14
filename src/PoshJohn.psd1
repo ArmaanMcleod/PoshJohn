@@ -1,6 +1,6 @@
 @{
     RootModule           = 'PoshJohn.psm1'
-    ModuleVersion        = '1.1.1'
+    ModuleVersion        = '1.1.2'
     CompatiblePSEditions = @('Core')
     GUID                 = '6181cfe1-1395-4726-8b68-c5782b74a0f0'
     Author               = 'ArmaanMcleod'
