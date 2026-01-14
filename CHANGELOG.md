@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v1.1.2 - 14/01/2026
+
 ### Build and Packaging Improvements
 
 + Docker Build for Linux Improvements ([#37](https://github.com/ArmaanMcleod/PoshJohn/pull/37)).
