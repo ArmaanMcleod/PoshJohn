@@ -22,6 +22,8 @@ Describe 'PoshJohn Tests' {
 
         $samplePDFPassword = "test123"
         $sampleZIPPassword = "test123"
+
+        $CI = $env:GITHUB_ACTIONS -eq 'true'
     }
 
     Context 'Export-JohnPasswordHash' {
@@ -881,7 +883,13 @@ Describe 'PoshJohn Tests' {
         }
 
         It 'Build & Test Linux Docker Image' -Skip:(-not $IsLinux -or (Test-Path -Path '/.dockerenv')) -Tag 'docker-linux' {
-            { & $dockerBuildScriptPath -Test -NoCache -RemoveOnExit -CI } | Should -Not -Throw
+            $buildParams = @{
+                Test         = $true
+                NoCache      = $true
+                RemoveOnExit = $true
+                CI           = $CI
+            }
+            { & $dockerBuildScriptPath @buildParams } | Should -Not -Throw
         }
     }
 }
