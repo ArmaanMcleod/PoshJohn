@@ -12,3 +12,4 @@ mupdf/
 *.a
 *.txt
 *.log
+strawberry-perl/
