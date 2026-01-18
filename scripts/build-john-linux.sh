@@ -2,23 +2,6 @@
 
 set -euo pipefail
 
-# Check and install required system dependencies
-echo "Checking and installing required system dependencies..."
-REQUIRED_PKGS=(build-essential git libssl-dev zlib1g-dev python3 python3-venv python3-pip wget apt-transport-https software-properties-common)
-MISSING_PKGS=()
-for pkg in "${REQUIRED_PKGS[@]}"; do
-  if ! dpkg -s "$pkg" &> /dev/null; then
-    MISSING_PKGS+=("$pkg")
-  fi
-done
-if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
-  echo "Installing missing packages: ${MISSING_PKGS[*]}"
-  apt-get update
-  apt-get install -y "${MISSING_PKGS[@]}"
-else
-  echo "All required packages are already installed."
-fi
-
 JOHN_REPO="https://github.com/openwall/john.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
@@ -27,6 +10,7 @@ JOHN_OUTPUT_DIR="$REPO_PATH/john"
 JOHN_TEMP_DIR="$(mktemp -d)"
 JOHN_SRC_DIR="$JOHN_TEMP_DIR/src"
 JOHN_RUN_DIR="$JOHN_TEMP_DIR/run"
+INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps-linux.sh"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
@@ -34,6 +18,11 @@ echo "JOHN_OUTPUT_DIR: $JOHN_OUTPUT_DIR"
 echo "JOHN_TEMP_DIR: $JOHN_TEMP_DIR"
 echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
 echo "JOHN_RUN_DIR: $JOHN_RUN_DIR"
+echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
+
+# Install dependencies
+chmod +x $INSTALL_DEPS_SCRIPT
+$INSTALL_DEPS_SCRIPT
 
 # Clean up any previous build
 if [ -d "$JOHN_OUTPUT_DIR" ]; then

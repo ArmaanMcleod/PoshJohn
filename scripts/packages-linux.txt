@@ -1,0 +1,10 @@
+build-essential
+pkg-config
+libssl-dev
+valgrind
+unzip
+libfreetype6-dev
+libjpeg-dev
+libopenjp2-7-dev
+zlib1g-dev
+git

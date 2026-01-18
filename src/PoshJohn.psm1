@@ -1,6 +1,20 @@
 $dllPath = Join-Path -Path $PSScriptRoot -ChildPath 'PoshJohn.dll'
 Import-Module $dllPath
 
+# Define module-level flags to control features
+$flags = @(
+    @{
+        Name   = 'PoshJohnPythonEnabled'
+        Scope  = 'Global'
+        Value  = $false
+        Option = 'ReadOnly'
+    }
+)
+
+foreach ($flag in $flags) {
+    Set-Variable @flag -Force
+}
+
 # Download John assets from GitHub releases
 function Install-JohnAssets {
     param(
@@ -62,7 +76,8 @@ function Install-JohnAssets {
             if ($AssetName.EndsWith('.zip')) {
                 # Windows
                 Expand-Archive -Path $tempFile -DestinationPath $OutputDir -Force -ErrorAction Stop
-            } else {
+            }
+            else {
                 # Linux/macOS (tar.gz)
                 & tar -xzvf $tempFile -C $OutputDir
                 if ($LASTEXITCODE -ne 0) {

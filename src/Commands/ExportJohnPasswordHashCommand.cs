@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Management.Automation;
 using PoshJohn.Common;
 using PoshJohn.Models;
@@ -43,6 +42,9 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
     private IProcessRunner _processRunner;
     private FileSystemProvider _fileSystemProvider;
     private IFileHashProvider _fileHashProvider;
+    private IPythonEnvironmentManager _pythonEnvironmentManager;
+
+    private const string IsPythonEnabledVariableName = "PoshJohnPythonEnabled";
 
     #endregion Private Members
 
@@ -57,14 +59,25 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
         {
             WriteVerbose($"Processing file: {InputPath}");
 
+            bool isPythonEnabled = (bool)SessionState.PSVariable.GetValue(IsPythonEnabledVariableName);
+
+            WriteDebug($"Python integration enabled: {isPythonEnabled}");
+
             _fileSystemProvider = new FileSystemProvider(new ExportHashConfig
             {
                 Cmdlet = this,
                 FileToCrackPath = InputPath,
-                HashFilePath = OutputPath
+                HashFilePath = OutputPath,
+                IsPythonEnabled = isPythonEnabled
             });
             _processRunner = new ProcessRunner(this, _fileSystemProvider);
             _fileHashProvider = new FileHashProvider(this, _fileSystemProvider, _processRunner);
+
+            if (isPythonEnabled)
+            {
+                _pythonEnvironmentManager = new PythonEnvironmentManager(this, _processRunner, _fileSystemProvider);
+                _pythonEnvironmentManager.CreateVirtualEnvironment();
+            }
 
             _initialized = true;
         }
