@@ -2,40 +2,6 @@
 
 set -euo pipefail
 
-# 1. Install Xcode command-line tools if not present
-if ! xcode-select -p &>/dev/null; then
-	echo "Xcode command-line tools not found. Installing..."
-	xcode-select --install
-	echo "Please re-run this script after Xcode CLI tools are installed."
-	exit 1
-else
-	echo "Xcode command-line tools are installed."
-fi
-
-# 2. Check for Homebrew, install if missing
-if ! command -v brew &>/dev/null; then
-	echo "Homebrew not found. Please install Homebrew from https://brew.sh and re-run this script."
-	exit 1
-fi
-
-# 3. Install Homebrew dependencies
-echo "Checking and installing required Homebrew dependencies..."
-REQUIRED_BREW_PKGS=(gcc openssl libpcap git wget)
-for pkg in "${REQUIRED_BREW_PKGS[@]}"; do
-	if ! brew list "$pkg" &>/dev/null; then
-		echo "Installing $pkg..."
-		brew install "$pkg"
-	else
-		echo "$pkg is already installed."
-	fi
-done
-
-# 4. Recommend PATH update for Homebrew
-BREW_PREFIX="$(brew --prefix)"
-if [[ ":$PATH:" != *":$BREW_PREFIX/bin:"* ]]; then
-	echo "[!] Consider adding $BREW_PREFIX/bin to your PATH for best results."
-fi
-
 JOHN_REPO="https://github.com/openwall/john.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
@@ -44,6 +10,7 @@ JOHN_OUTPUT_DIR="$REPO_PATH/john"
 JOHN_TEMP_DIR="$(mktemp -d)"
 JOHN_SRC_DIR="$JOHN_TEMP_DIR/src"
 JOHN_RUN_DIR="$JOHN_TEMP_DIR/run"
+INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps-macos.sh"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
@@ -51,6 +18,11 @@ echo "JOHN_OUTPUT_DIR: $JOHN_OUTPUT_DIR"
 echo "JOHN_TEMP_DIR: $JOHN_TEMP_DIR"
 echo "JOHN_SRC_DIR: $JOHN_SRC_DIR"
 echo "JOHN_RUN_DIR: $JOHN_RUN_DIR"
+echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
+
+# Install dependencies
+chmod +x $INSTALL_DEPS_SCRIPT
+$INSTALL_DEPS_SCRIPT
 
 # 5. Clean up any previous build
 if [ -d "$JOHN_OUTPUT_DIR" ]; then
