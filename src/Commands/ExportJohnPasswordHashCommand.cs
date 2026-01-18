@@ -44,6 +44,8 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
     private IFileHashProvider _fileHashProvider;
     private IPythonEnvironmentManager _pythonEnvironmentManager;
 
+    private const string IsPythonEnabledVariableName = "PoshJohnPythonEnabled";
+
     #endregion Private Members
 
     #region  Protected Methods
@@ -57,7 +59,7 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
         {
             WriteVerbose($"Processing file: {InputPath}");
 
-            bool isPythonEnabled = (bool)SessionState.PSVariable.GetValue("PoshJohnPythonEnabled");
+            bool isPythonEnabled = (bool)SessionState.PSVariable.GetValue(IsPythonEnabledVariableName);
 
             WriteDebug($"Python integration enabled: {isPythonEnabled}");
 
