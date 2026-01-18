@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### General Cmdlet Updates and Fixe
+
++ Fixed Python Setup still being needed after removing Python dependency ([#42](https://github.com/ArmaanMcleod/PoshJohn/issues/42)).
+  + Added `PoshJohnPythonEnabled` variable to control Python integration.
+  + Updated `Export-JohnPasswordHash` cmdlet to check `PoshJohnPythonEnabled` variable before attempting to use Python.
+  + Fixed Docker Build to not install Python dependencies to test this reliably on agents.
+  + Fixed Build scripts to install Linux and MacOs dependences from `package-linux.txt` and `package-macos.txt`.
+
 ## v1.1.2 - 14/01/2026
 
 ### Build and Packaging Improvements

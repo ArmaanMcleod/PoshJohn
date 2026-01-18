@@ -2,35 +2,23 @@
 
 set -euo pipefail
 
-
-# Check and install required system dependencies
-echo "Checking and installing required system dependencies..."
-REQUIRED_PKGS=(build-essential gcc make pkg-config git libfreetype6-dev libjpeg-dev libopenjp2-7-dev zlib1g-dev)
-MISSING_PKGS=()
-for pkg in "${REQUIRED_PKGS[@]}"; do
-    if ! dpkg -s "$pkg" &> /dev/null; then
-        MISSING_PKGS+=("$pkg")
-    fi
-done
-if [ ${#MISSING_PKGS[@]} -ne 0 ]; then
-    echo "Installing missing packages: ${MISSING_PKGS[*]}"
-    apt-get update
-    apt-get install -y "${MISSING_PKGS[@]}"
-else
-    echo "All required packages are already installed."
-fi
-
 MUPDF_REPO="https://github.com/ArtifexSoftware/mupdf.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
 MUPDF_REPO_DIR="$REPO_PATH/mupdf"
 PDF2JOHN_DIR="$REPO_PATH/src/pdf2john"
+INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps-linux.sh"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
 echo "MUPDF_REPO_DIR: $MUPDF_REPO_DIR"
 echo "PDF2JOHN_DIR: $PDF2JOHN_DIR"
+echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
+
+# Install dependencies
+chmod +x $INSTALL_DEPS_SCRIPT
+$INSTALL_DEPS_SCRIPT
 
 # Clone MuPDF only if directory does not exist
 if [ ! -d "$MUPDF_REPO_DIR" ]; then

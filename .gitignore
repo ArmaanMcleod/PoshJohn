@@ -10,5 +10,4 @@ mupdf/
 *.so
 *.dylib
 *.a
-*.txt
 *.log
