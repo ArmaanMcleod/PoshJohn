@@ -15,6 +15,10 @@ $johnRepoUrl = "https://github.com/openwall/john.git"
 $johnCloneDir = Join-Path $env:TEMP "john-bleeding-jumbo"
 $pdf2johnSrc = Join-Path $johnCloneDir "run/pdf2john.py"
 
+$repoRoot = Split-Path -Parent $PSScriptRoot
+$helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
+Import-Module $helperModulePath -Force
+
 try {
     # Download
     Write-Host "Downloading from: $url" -ForegroundColor Cyan
@@ -47,58 +51,12 @@ try {
         Write-Warning "pdf2john.py not found in cloned repo at $pdf2johnSrc"
     }
 
-    # Strip unnecessary files to reduce package size
-    Write-Host "Stripping unnecessary files..." -ForegroundColor Cyan
-    $files = Get-ChildItem -Path $outputDir -Recurse -File
-    if (-not $files -or $files.Count -eq 0) {
-        throw "No files found in $outputDir - download or extraction may have failed"
-    }
-    $beforeSize = ($files | Measure-Object -Property Length -Sum).Sum / 1MB
-
     # Define what to keep
     $keepFilePatterns = @('john.exe', 'zip2john.exe', 'pdf2john.py', '*.conf', '*.chr', '*.dll')
     $keepDirs = @('lib', 'rules')
+    Remove-NonEssentialFiles -TargetDir $outputDir -KeepFilePatterns $keepFilePatterns -KeepDirs $keepDirs
 
-    $removedCount = 0
-
-    # Remove root directory files except essential ones
-    $rootFiles = Get-ChildItem -Path $outputDir -File
-    foreach ($file in $rootFiles) {
-        $keep = $false
-        foreach ($pattern in $keepFilePatterns) {
-            if ($file.Name -like $pattern) {
-                $keep = $true
-                break
-            }
-        }
-        if (-not $keep) {
-            Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
-            $removedCount++
-        }
-    }
-
-    # Remove directories not in keep list
-    $allDirs = Get-ChildItem -Path $outputDir -Directory
-    foreach ($dir in $allDirs) {
-        if ($dir.Name -notin $keepDirs) {
-            $removedCount += (Get-ChildItem $dir.FullName -Recurse -File).Count
-            Remove-Item $dir.FullName -Recurse -Force -ErrorAction SilentlyContinue
-        }
-    }
-
-    $filesAfter = Get-ChildItem -Path $outputDir -Recurse -File
-    if (-not $filesAfter -or $filesAfter.Count -eq 0) {
-        throw "All files were removed from $outputDir - file removal logic may be incorrect"
-    }
-    $afterSize = ($filesAfter | Measure-Object -Property Length -Sum).Sum / 1MB
-    $saved = $beforeSize - $afterSize
-
-    Write-Host "Removed $removedCount files (saved $([math]::Round($saved, 2)) MB)" -ForegroundColor Green
-
-    $fileCount = (Get-ChildItem $outputDir -Recurse -File).Count
-    Write-Host "`nDownload completed successfully!" -ForegroundColor Green
-    Write-Host "Kept $fileCount essential files ($([math]::Round($afterSize, 2)) MB) in: $outputDir" -ForegroundColor Green
-
+    Write-Host "John the Ripper downloaded and extracted successfully to $outputDir" -ForegroundColor Green
 }
 catch {
     Write-Error "Failed to download John binaries: $_"
