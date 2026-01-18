@@ -736,6 +736,11 @@ Describe 'PoshJohn Tests' {
         AfterAll {
             Remove-Item -Path "$TestDrive/SampleProtected_*.pdf" -Recurse -Force -ErrorAction SilentlyContinue
             Remove-Item -Path $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+
+            if ($IsLinux) {
+                apt-get remove -y python3 python3-venv python3-pip
+                apt-get autoremove --purge -y
+            }
         }
     }
 
