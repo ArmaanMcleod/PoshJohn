@@ -676,6 +676,8 @@ Describe 'PoshJohn Tests' {
 
     Context 'Pdf2john Hash Tests' {
         BeforeAll {
+            $isDocker = Test-Path -Path '/.dockerenv'
+
             $venvPath = Join-Path -Path $TestDrive -ChildPath 'venv'
             if ($IsWindows) {
                 $pythonExe = "python.exe"
@@ -687,8 +689,11 @@ Describe 'PoshJohn Tests' {
                 $venvPythonExe = Join-Path -Path $venvPath -ChildPath "bin/$pythonExe"
                 $pdf2JohnExe = "pdf2john"
 
-                if ($IsLinux) {
+                if ($IsLinux -and $isDocker) {
                     apt-get update && apt-get install -y python3 python3-venv python3-pip
+                    if ($LASTEXITCODE -ne 0) {
+                        throw "Failed to install Python dependencies in Docker container."
+                    }
                 }
             }
 
@@ -737,9 +742,12 @@ Describe 'PoshJohn Tests' {
             Remove-Item -Path "$TestDrive/SampleProtected_*.pdf" -Recurse -Force -ErrorAction SilentlyContinue
             Remove-Item -Path $venvPath -Recurse -Force -ErrorAction SilentlyContinue
 
-            if ($IsLinux) {
+            if ($IsLinux -and $isDocker) {
                 apt-get remove -y python3 python3-venv python3-pip
                 apt-get autoremove --purge -y
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Failed to remove Python dependencies in Docker container."
+                }
             }
         }
     }
