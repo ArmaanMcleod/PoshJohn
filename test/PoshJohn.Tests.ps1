@@ -686,6 +686,10 @@ Describe 'PoshJohn Tests' {
                 $pythonExe = "python3"
                 $venvPythonExe = Join-Path -Path $venvPath -ChildPath "bin/$pythonExe"
                 $pdf2JohnExe = "pdf2john"
+
+                if ($IsLinux) {
+                    apt-get update && apt-get install -y python3 python3-venv python3-pip
+                }
             }
 
             & $pythonExe -m venv $venvPath
@@ -861,10 +865,9 @@ Describe 'PoshJohn Tests' {
     Context 'Docker Tests' {
         BeforeAll {
             $dockerBuildScriptPath = Join-Path -Path $repoPath -ChildPath 'scripts/build-docker-linux.ps1'
-            $isDocker = Test-Path -Path '/.dockerenv'
         }
 
-        It 'Build & Test Linux Docker Image' -Skip:(-not $IsLinux -or $isDocker) -Tag 'docker-linux' {
+        It 'Build & Test Linux Docker Image' -Skip:(-not $IsLinux -or (Test-Path -Path '/.dockerenv')) -Tag 'docker-linux' {
             { & $dockerBuildScriptPath -Test -NoCache -RemoveOnExit -CI } | Should -Not -Throw
         }
     }

@@ -27,6 +27,11 @@ internal sealed class ExportHashConfig : FileSystemBaseConfig
     /// The path to the file to extract hashes from.
     /// </summary>
     public string FileToCrackPath { get; init; }
+
+    /// <summary>
+    /// Indicates whether Python integration is enabled.
+    /// </summary>
+    public bool IsPythonEnabled { get; init; }
 }
 
 /// <summary>

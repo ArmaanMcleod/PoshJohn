@@ -181,11 +181,7 @@ namespace PoshJohn.Common
             _packageAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             _johnExecutablePath = FindBundledExePath(JohnExeBaseName);
             _zip2JohnExecutablePath = FindBundledExePath(Zip2JohnExeBaseName);
-            _venvDirectoryPath = GetAppDataSubPath(VenvName);
-            _venvPythonExePath = GetVenvPythonExePath(_venvDirectoryPath);
-            _systemPythonExePath = DetectSystemPythonExePath();
             _potPath = GetAppDataSubPath(JohnPotFileName);
-            _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, Pdf2JohnPythonScriptName);
         }
 
         /// <summary>
@@ -206,6 +202,14 @@ namespace PoshJohn.Common
             _fileToCrackPath = ResolvePath(config.FileToCrackPath, checkExists: true);
             _fileToCrackFileFormat = DetectFileToCrackFormat();
             _hashFilePath = ResolvePath(config.HashFilePath, checkExists: false);
+
+            if (config.IsPythonEnabled)
+            {
+                _venvDirectoryPath = GetAppDataSubPath(VenvName);
+                _venvPythonExePath = GetVenvPythonExePath(_venvDirectoryPath);
+                _systemPythonExePath = DetectSystemPythonExePath();
+                _pdf2JohnPythonScriptPath = GetPackageAssemblyResourcePath(JohnDirName, Pdf2JohnPythonScriptName);
+            }
         }
 
         /// <summary>
