@@ -24,6 +24,11 @@ internal enum CommandType
     /// zip2john executable for extracting ZIP hashes.
     /// </summary>
     Zip2John,
+
+    /// <summary>
+    /// Perl interpreter to execute Perl scripts.
+    /// </summary>
+    Perl
 }
 
 /// <summary>
@@ -39,5 +44,10 @@ public enum FileFormatType
     /// <summary>
     /// PDF file format.
     /// </summary>
-    PDF
+    PDF,
+
+    /// <summary>
+    /// 7z (7-Zip archive) file format.
+    /// </summary>
+    SevenZip
 }
