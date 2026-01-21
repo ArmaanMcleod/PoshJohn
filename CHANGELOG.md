@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v1.1.3 - 21/01/2026
+
 ### General Cmdlet Updates and Fixe
 
 + Fixed Python Setup still being needed after removing Python dependency ([#42](https://github.com/ArmaanMcleod/PoshJohn/issues/42)).
