@@ -121,6 +121,7 @@ namespace PoshJohn.Common
         private const string PdfHashPrefix = "$pdf$";
         private const string WindowsZipHashPrefix = "$pkzip2$";
         private const string UnixZipHashPrefix = "$pkzip$";
+        private const string SevenZipHashPrefix = "$7z$";
         private static readonly string ZipHashPrefix = OperatingSystem.IsWindows() ? WindowsZipHashPrefix : UnixZipHashPrefix;
 
         private readonly string _potPath;
@@ -451,9 +452,13 @@ namespace PoshJohn.Common
                 {
                     ParseZipHash(label, hash, line);
                 }
+                else if (hash.StartsWith(SevenZipHashPrefix))
+                {
+                    ParseSevenZipHash(label, hash);
+                }
                 else
                 {
-                    throw new InvalidDataException($"Unsupported hash format in line: '{line}'. Supported formats are {PdfHashPrefix} and {ZipHashPrefix}.");
+                    throw new InvalidDataException($"Unsupported hash format in line: '{line}'. Supported formats are {PdfHashPrefix}, {ZipHashPrefix}, and {SevenZipHashPrefix}.");
                 }
             }
         }
@@ -499,6 +504,20 @@ namespace PoshJohn.Common
             _loadedInputHashEntries[FileFormatType.PKZIP][zipHash] = zipFilePath;
 
             _labelToFilePaths[label] = zipFilePath;
+        }
+
+        private void ParseSevenZipHash(string label, string hash)
+        {
+            if (!_loadedInputHashEntries.ContainsKey(FileFormatType.SevenZip))
+            {
+                _loadedInputHashEntries[FileFormatType.SevenZip] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            string sevenZipFilePath = Encoding.UTF8.GetString(Convert.FromBase64String(label));
+
+            _loadedInputHashEntries[FileFormatType.SevenZip][hash] = sevenZipFilePath;
+
+            _labelToFilePaths[label] = sevenZipFilePath;
         }
 
         /// <summary>

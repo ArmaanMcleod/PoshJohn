@@ -107,26 +107,16 @@ internal sealed class FileHashProvider : IFileHashProvider
     public void WriteFileHash(string hash, bool append)
     {
         _cmdlet?.WriteVerbose($"Writing hash to output file: {_fileSystemProvider.HashFilePath}");
-
-        string line;
-
         var fileFormat = _fileSystemProvider.FileToCrackFileFormat;
-        switch (fileFormat)
-        {
-            case FileFormatType.PDF:
-                string base64PathLabel = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(Path.GetFullPath(_fileSystemProvider.FileToCrackPath)));
-                line = $"{base64PathLabel}:{hash}" + Environment.NewLine;
-                break;
-            case FileFormatType.PKZIP:
-                line = hash + Environment.NewLine;
-                break;
-            case FileFormatType.SevenZip:
-                line = hash + Environment.NewLine;
-                break;
-            default:
-                throw new InvalidDataException($"Unsupported file format for writing hash: {fileFormat}");
-        }
 
+        string base64PathLabel = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(_fileSystemProvider.FileToCrackPath));
+        string line = fileFormat switch
+        {
+            FileFormatType.PDF => $"{base64PathLabel}:{hash}" + Environment.NewLine,
+            FileFormatType.PKZIP => hash + Environment.NewLine,
+            FileFormatType.SevenZip => $"{base64PathLabel}:{hash}" + Environment.NewLine,
+            _ => throw new InvalidDataException($"Unsupported file format for writing hash: {fileFormat}"),
+        };
         if (append)
         {
             File.AppendAllText(_fileSystemProvider.HashFilePath, line);
