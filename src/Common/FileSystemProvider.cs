@@ -445,50 +445,60 @@ namespace PoshJohn.Common
 
                 if (hash.StartsWith(PdfHashPrefix))
                 {
-                    if (!_loadedInputHashEntries.ContainsKey(FileFormatType.PDF))
-                    {
-                        _loadedInputHashEntries[FileFormatType.PDF] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    }
-
-                    string pdfFilePath = Encoding.UTF8.GetString(Convert.FromBase64String(label));
-
-                    _loadedInputHashEntries[FileFormatType.PDF][hash] = pdfFilePath;
-
-                    _labelToFilePaths[label] = pdfFilePath;
+                    ParsePdfHash(label, hash);
                 }
                 else if (hash.StartsWith(ZipHashPrefix))
                 {
-                    if (!_loadedInputHashEntries.ContainsKey(FileFormatType.PKZIP))
-                    {
-                        _loadedInputHashEntries[FileFormatType.PKZIP] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    }
-
-                    var zipHashWithFileMetadata = hash.Split("::", 2);
-                    if (zipHashWithFileMetadata.Length != 2)
-                    {
-                        throw new InvalidDataException($"Invalid ZIP hash format in line: '{line}'. Missing double colon (::) when splitting {hash} into 2 parts.");
-                    }
-
-                    string zipHash = zipHashWithFileMetadata[0];
-                    string zipFileMetadata = zipHashWithFileMetadata[1];
-
-                    var zipFileMetadataParts = zipFileMetadata.Split(':', 3);
-                    if (zipFileMetadataParts.Length != 3)
-                    {
-                        throw new InvalidDataException($"Invalid ZIP hash format in line: '{line}'. Missing colon (:) when splitting {zipFileMetadata} into 3 parts.");
-                    }
-
-                    string zipFilePath = zipFileMetadataParts[2];
-
-                    _loadedInputHashEntries[FileFormatType.PKZIP][zipHash] = zipFilePath;
-
-                    _labelToFilePaths[label] = zipFilePath;
+                    ParseZipHash(label, hash, line);
                 }
                 else
                 {
                     throw new InvalidDataException($"Unsupported hash format in line: '{line}'. Supported formats are {PdfHashPrefix} and {ZipHashPrefix}.");
                 }
             }
+        }
+
+        private void ParsePdfHash(string label, string hash)
+        {
+            if (!_loadedInputHashEntries.ContainsKey(FileFormatType.PDF))
+            {
+                _loadedInputHashEntries[FileFormatType.PDF] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            string pdfFilePath = Encoding.UTF8.GetString(Convert.FromBase64String(label));
+
+            _loadedInputHashEntries[FileFormatType.PDF][hash] = pdfFilePath;
+
+            _labelToFilePaths[label] = pdfFilePath;
+        }
+
+        private void ParseZipHash(string label, string hash, string line)
+        {
+            if (!_loadedInputHashEntries.ContainsKey(FileFormatType.PKZIP))
+            {
+                _loadedInputHashEntries[FileFormatType.PKZIP] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            var zipHashWithFileMetadata = hash.Split("::", 2);
+            if (zipHashWithFileMetadata.Length != 2)
+            {
+                throw new InvalidDataException($"Invalid ZIP hash format in line: '{line}'. Missing double colon (::) when splitting {hash} into 2 parts.");
+            }
+
+            string zipHash = zipHashWithFileMetadata[0];
+            string zipFileMetadata = zipHashWithFileMetadata[1];
+
+            var zipFileMetadataParts = zipFileMetadata.Split(':', 3);
+            if (zipFileMetadataParts.Length != 3)
+            {
+                throw new InvalidDataException($"Invalid ZIP hash format in line: '{line}'. Missing colon (:) when splitting {zipFileMetadata} into 3 parts.");
+            }
+
+            string zipFilePath = zipFileMetadataParts[2];
+
+            _loadedInputHashEntries[FileFormatType.PKZIP][zipHash] = zipFilePath;
+
+            _labelToFilePaths[label] = zipFilePath;
         }
 
         /// <summary>
