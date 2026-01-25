@@ -114,7 +114,7 @@ internal sealed class FileHashProvider : IFileHashProvider
         {
             FileFormatType.PDF => $"{base64PathLabel}:{hash}" + Environment.NewLine,
             FileFormatType.PKZIP => hash + Environment.NewLine,
-            FileFormatType.SevenZip => $"{base64PathLabel}:{hash}" + Environment.NewLine,
+            FileFormatType.SevenZip => $"{base64PathLabel}:{hash.Split(':', 2)[1]}" + Environment.NewLine,
             _ => throw new InvalidDataException($"Unsupported file format for writing hash: {fileFormat}"),
         };
         if (append)
