@@ -20,6 +20,8 @@
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
     <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-pdf2john-windows.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-perl-windows.ps1"
+          Condition=" $([System.OperatingSystem]::IsWindows()) " />
   </Target>
 
   <!-- Copy native assets into publish output -->
@@ -40,6 +42,14 @@
     </ItemGroup>
     <Copy SourceFiles="@(JohnAssets)"
           DestinationFiles="@(JohnAssets->'$(PublishDir)john\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <!-- 7z2john outputs go into PublishDir/pdf2john -->
+    <ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
+      <StrawberryPerlAssets Include="../strawberry-perl/**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(StrawberryPerlAssets)"
+          DestinationFiles="@(StrawberryPerlAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
   </Target>
 </Project>

@@ -98,6 +98,7 @@ internal sealed class FileHashProvider : IFileHashProvider
         {
             FileFormatType.PDF => ExtractPdfJohnHash(_fileSystemProvider.FileToCrackPath),
             FileFormatType.PKZIP => ExtractZipJohnHash(_fileSystemProvider.FileToCrackPath),
+            FileFormatType.SevenZip => ExtractSevenZipJohnHash(_fileSystemProvider.FileToCrackPath),
             _ => throw new InvalidDataException($"Unsupported file format for hash extraction: {fileFormat}"),
         };
     }
@@ -117,6 +118,9 @@ internal sealed class FileHashProvider : IFileHashProvider
                 line = $"{base64PathLabel}:{hash}" + Environment.NewLine;
                 break;
             case FileFormatType.PKZIP:
+                line = hash + Environment.NewLine;
+                break;
+            case FileFormatType.SevenZip:
                 line = hash + Environment.NewLine;
                 break;
             default:
@@ -197,5 +201,23 @@ internal sealed class FileHashProvider : IFileHashProvider
         }
 
         return zip2JohnResult.StandardOutput.Trim();
+    }
+
+    private string ExtractSevenZipJohnHash(string sevenZipPath)
+    {
+        _cmdlet?.WriteVerbose("Extracting 7z John hash");
+
+        var sevenZipResult = _processRunner.RunCommand(
+            CommandType.SevenZip2John,
+            $"\"{sevenZipPath}\"",
+            logOutput: true,
+            failOnStderr: false);
+
+        if (!sevenZipResult.Success)
+        {
+            throw new InvalidOperationException($"Failed to extract 7z hash: {sevenZipResult.StandardError}");
+        }
+
+        return sevenZipResult.StandardOutput.Trim();
     }
 }

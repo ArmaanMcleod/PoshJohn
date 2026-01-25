@@ -36,10 +36,21 @@ try {
     Write-Host "Copying all files to $outputDir..." -ForegroundColor Cyan
     Copy-Item "$extractPath/*" $outputDir -Recurse -Force
 
-    # Define what to keep and remove non-essential files
-    Remove-NonEssentialFiles -TargetDir $outputDir -KeepDirs @('perl') -KeepFilePatterns @('portableshell.bat')
-
     Write-Host "Strawberry Perl downloaded and extracted successfully to $outputDir" -ForegroundColor Green
+
+    # Build 7z2john.exe using PAR::Packer
+    Write-Host "Building 7z2john.exe using PAR::Packer..." -ForegroundColor Cyan
+    $parPackerPath = Join-Path $outputDir "perl\bin\pp.bat"
+    $exeDirPath = Join-Path $outputDir "7z2john"
+    New-Item -ItemType Directory -Force -Path $exeDirPath | Out-Null
+    $exePath = Join-Path $exeDirPath "7z2john.exe"
+    $perlScriptPath = Join-Path $repoRoot "john\7z2john.pl"
+    cmd.exe /c "call $parPackerPath -o $exePath $perlScriptPath"
+
+    # Define what to keep and remove non-essential files
+    Remove-NonEssentialFiles -TargetDir $outputDir -KeepDirs @('7z2john')
+
+    Write-Host "7z2john.exe built successfully at $exePath" -ForegroundColor Green
 }
 catch {
     Write-Error "Failed to download or extract Strawberry Perl: $_"

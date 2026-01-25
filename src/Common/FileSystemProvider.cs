@@ -55,6 +55,11 @@ namespace PoshJohn.Common
         string JohnExePath { get; }
 
         /// <summary>
+        /// Gets the path to the 7z2john executable.
+        /// </summary>
+        string SevenZipExePath { get; }
+
+        /// <summary>
         /// Gets the path to the file to be cracked.
         /// </summary>
         string FileToCrackPath { get; }
@@ -102,6 +107,8 @@ namespace PoshJohn.Common
         private const string JohnPotFileName = "john.pot";
         private const string Pdf2JohnPythonScriptName = "pdf2john.py";
         private const string Zip2JohnExeBaseName = "zip2john";
+        private const string SevenZipDirName = "7z2john";
+        private const string SevenZipExeBaseName = "7z2john";
         private const string WindowsPythonExe = "python.exe";
         private const string UnixPythonExe = "python3";
         private const string WindowsVenvScriptsFolder = "Scripts";
@@ -109,6 +116,7 @@ namespace PoshJohn.Common
         private const string VenvName = "venv";
         private const string PdfFileExtension = ".pdf";
         private const string ZipFileExtension = ".zip";
+        private const string SevenZipFileExtension = ".7z";
         private const string ExeFileExtension = ".exe";
         private const string PdfHashPrefix = "$pdf$";
         private const string WindowsZipHashPrefix = "$pkzip2$";
@@ -128,6 +136,7 @@ namespace PoshJohn.Common
         private readonly string _systemPythonExePath;
         private readonly string _johnExecutablePath;
         private readonly string _zip2JohnExecutablePath;
+        private readonly string _sevenZipExecutablePath;
         private readonly Dictionary<FileFormatType, Dictionary<string, string>> _loadedInputHashEntries = new();
         private readonly Dictionary<string, string> _loadedPotHashPasswords = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _labelToFilePaths = new(StringComparer.OrdinalIgnoreCase);
@@ -140,6 +149,7 @@ namespace PoshJohn.Common
         public string PotPath => _potPath;
         public string Pdf2JohnPythonScriptPath => _pdf2JohnPythonScriptPath;
         public string Zip2JohnExePath => _zip2JohnExecutablePath;
+        public string SevenZipExePath => _sevenZipExecutablePath;
         public string VenvPythonExePath => _venvPythonExePath;
         public string SystemPythonExePath => _systemPythonExePath;
         public string VenvDirectoryPath => _venvDirectoryPath;
@@ -179,8 +189,10 @@ namespace PoshJohn.Common
             }
 
             _packageAssemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            _johnExecutablePath = FindBundledExePath(JohnExeBaseName);
-            _zip2JohnExecutablePath = FindBundledExePath(Zip2JohnExeBaseName);
+            _johnExecutablePath = FindBundledExePath(JohnExeBaseName, JohnDirName);
+            _zip2JohnExecutablePath = FindBundledExePath(Zip2JohnExeBaseName, JohnDirName);
+            _sevenZipExecutablePath = FindBundledExePath(SevenZipExeBaseName, SevenZipDirName);
+
             _potPath = GetAppDataSubPath(JohnPotFileName);
         }
 
@@ -308,14 +320,15 @@ namespace PoshJohn.Common
         /// Finds the path to a bundled executable for the current OS.
         /// </summary>
         /// <param name="baseName">The base name of the executable.</param>
+        /// <param name="dirName">The directory name where the executable is located.</param>
         /// <returns>The full path to the executable.</returns>
-        private string FindBundledExePath(string baseName)
+        private string FindBundledExePath(string baseName, string dirName)
         {
             string exeName = OperatingSystem.IsWindows()
                 ? $"{baseName}{ExeFileExtension}"
                 : baseName;
 
-            return GetPackageAssemblyResourcePath(JohnDirName, exeName);
+            return GetPackageAssemblyResourcePath(dirName, exeName);
         }
 
         /// <summary>
@@ -490,6 +503,7 @@ namespace PoshJohn.Common
             {
                 PdfFileExtension => FileFormatType.PDF,
                 ZipFileExtension => FileFormatType.PKZIP,
+                SevenZipFileExtension => FileFormatType.SevenZip,
                 _ => throw new InvalidDataException($"Unsupported file format: {extension}"),
             };
         }

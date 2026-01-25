@@ -60,6 +60,7 @@ internal sealed class ProcessRunner : IProcessRunner
             CommandType.SystemPython => _fileSystemProvider.SystemPythonExePath,
             CommandType.VenvPython => _fileSystemProvider.VenvPythonExePath,
             CommandType.Zip2John => _fileSystemProvider.Zip2JohnExePath,
+            CommandType.SevenZip2John => _fileSystemProvider.SevenZipExePath,
             _ => throw new ArgumentException("Unknown run command type")
         };
         return RunCommand(exePath, arguments, logOutput, failOnStderr);

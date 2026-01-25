@@ -26,9 +26,9 @@ internal enum CommandType
     Zip2John,
 
     /// <summary>
-    /// Perl interpreter to execute Perl scripts.
+    /// 7z2john executable for extracting 7z hashes.
     /// </summary>
-    Perl
+    SevenZip2John
 }
 
 /// <summary>
