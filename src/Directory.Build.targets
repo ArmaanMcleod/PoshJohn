@@ -2,7 +2,7 @@
   <!-- Run native build scripts before publish -->
   <Target Name="PreBuildNativeAssets"
           BeforeTargets="Publish"
-          Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+          Condition=" '$(SKIP_NATIVE_BUILD_ASSETS)' != 'true' ">
     <!-- Linux -->
     <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh"
           Condition=" $([System.OperatingSystem]::IsLinux()) " />
@@ -27,7 +27,7 @@
   <!-- Copy native assets into publish output -->
   <Target Name="CopyNativeAssets"
           AfterTargets="PreBuildNativeAssets"
-          Condition=" '$(SKIP_NATIVE_BUILD)' != 'true' ">
+          Condition=" '$(SKIP_NATIVE_COPY_ASSETS)' != 'true' ">
     <!-- pdf2john outputs go into PublishDir/pdf2john -->
     <ItemGroup>
       <Pdf2JohnAssets Include="pdf2john/dist/**" />

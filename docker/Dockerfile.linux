@@ -25,5 +25,6 @@ RUN for f in *.sh; do \
 
 WORKDIR /PoshJohn
 
-ENV SKIP_NATIVE_BUILD=false
+ENV SKIP_NATIVE_BUILD_ASSETS=false
+ENV SKIP_NATIVE_COPY_ASSETS=false
 RUN pwsh -Command ./PowerShellBuildTools/build.ps1 -Task Build

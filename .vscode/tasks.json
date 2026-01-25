@@ -11,7 +11,21 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "options": {
+                "env": {
+                    "SKIP_NATIVE_BUILD_ASSETS": "${input:SkipNativeBuild}",
+                    "SKIP_NATIVE_COPY_ASSETS": "false"
+                }
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "SkipNativeBuild",
+            "type": "promptString",
+            "description": "Set to 'true' to skip building native components.",
+            "default": "false"
         }
     ]
 }
