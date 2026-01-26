@@ -13,6 +13,7 @@
     <PackageReference Include="System.Management.Automation" Version="7.2.0" PrivateAssets="all" />
     <PackageReference Include="itext" Version="9.1.0" />
     <PackageReference Include="itext.bouncy-castle-adapter" Version="9.1.0" />
+    <PackageReference Include="SharpCompress" Version="0.42.1" />
   </ItemGroup>
 
   <ItemGroup>
