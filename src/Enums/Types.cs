@@ -37,6 +37,11 @@ internal enum CommandType
 public enum FileFormatType
 {
     /// <summary>
+    /// Unknown or unsupported file format.
+    /// </summary>
+    Unknown,
+
+    /// <summary>
     /// PKZIP (ZIP archive) file format.
     /// </summary>
     PKZIP,
