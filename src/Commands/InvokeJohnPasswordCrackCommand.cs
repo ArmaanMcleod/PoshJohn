@@ -256,6 +256,30 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
         return (false, null, null);
     }
 
+    private static bool ParseFileFormat(string input, out FileFormatType fileFormat)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            throw new ArgumentException("Input string cannot be null or empty.", nameof(input));
+        }
+
+        switch (input.Trim().ToLowerInvariant())
+        {
+            case "zip":
+                fileFormat = FileFormatType.PKZIP;
+                return true;
+            case "pdf":
+                fileFormat = FileFormatType.PDF;
+                return true;
+            case "7z":
+                fileFormat = FileFormatType.SevenZip;
+                return true;
+            default:
+                fileFormat = FileFormatType.Unknown;
+                return false;
+        }
+    }
+
     /// <summary>
     /// Parses the output from John the Ripper to create a summary of the password cracking results.
     /// </summary>
@@ -294,10 +318,11 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
                 int hashCount = int.TryParse(loadedMatch.Groups[1].Value, out var hc) ? hc : 0;
                 int saltsCount = loadedMatch.Groups[2].Success && int.TryParse(loadedMatch.Groups[2].Value, out var sc) ? sc : 1;
+                string fileFormatString = loadedMatch.Groups[3].Value;
 
-                if (!Enum.TryParse<FileFormatType>(loadedMatch.Groups[3].Value, ignoreCase: true, out var fileFormat))
+                if (!ParseFileFormat(fileFormatString, out FileFormatType fileFormat))
                 {
-                    throw new InvalidDataException($"Unsupported file format found in John output: {loadedMatch.Groups[3].Value}");
+                    throw new InvalidDataException($"Unsupported file format found in John output: {fileFormatString}");
                 }
 
                 string encryptionAlgorithms = loadedMatch.Groups[4].Value;
