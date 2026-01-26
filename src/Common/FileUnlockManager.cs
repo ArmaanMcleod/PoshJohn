@@ -5,6 +5,9 @@ using iText.Kernel.Exceptions;
 using iText.Kernel.Pdf;
 using PoshJohn.Enums;
 using PoshJohn.Models;
+using SharpCompress.Common;
+using SharpCompress.Readers;
+using SharpCompress.Writers;
 
 namespace PoshJohn.Common;
 
@@ -60,6 +63,9 @@ internal sealed class FileUnlockManager : IFileUnlockManager
                 break;
             case FileFormatType.PKZIP:
                 SaveUnlockedPasswordProtectedZIP(unlockResult);
+                break;
+            case FileFormatType.SevenZip:
+                SaveUnlockedPasswordProtected7Zip(unlockResult);
                 break;
             default:
                 throw new InvalidDataException($"Unsupported file format for unlocking: {unlockResult.FileFormat}");
@@ -154,6 +160,56 @@ internal sealed class FileUnlockManager : IFileUnlockManager
                 }
             }
             zipOut.CloseEntry();
+        }
+    }
+
+    /// <summary>
+    /// Unlocks a password-protected 7z archive and saves a new archive with no password.
+    /// <para>
+    /// This method performs a two-step process:
+    /// 1. Extracts all files from the password-protected 7z archive to a temporary directory (using the provided password).
+    /// 2. Re-archives the extracted files into a new 7z archive with no password, preserving the directory structure.
+    /// </para>
+    /// <para>
+    /// This is necessary because SharpCompress does not support direct re-archiving from a password-protected archive to a new archive in one step.
+    /// The temporary directory is cleaned up automatically after the process completes.
+    /// </para>
+    /// </summary>
+    /// <param name="unlockResult">The result containing file, password, and output path information.</param>
+    private void SaveUnlockedPasswordProtected7Zip(PasswordUnlockResult unlockResult)
+    {
+        _cmdlet?.WriteVerbose($"Unlocking 7-Zip: {unlockResult.FilePath}");
+        _cmdlet?.WriteVerbose($"Saving unlocked 7-Zip to: {unlockResult.UnlockedFilePath}");
+
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            using (var fileStream = File.OpenRead(unlockResult.FilePath))
+            using (var reader = ReaderFactory.Open(fileStream, new ReaderOptions { Password = unlockResult.Password }))
+            {
+                var options = new ExtractionOptions { ExtractFullPath = true, Overwrite = true };
+                while (reader.MoveToNextEntry())
+                {
+                    if (!reader.Entry.IsDirectory)
+                    {
+                        reader.WriteEntryToDirectory(tempDir, options);
+                    }
+                }
+            }
+
+            using var destStream = File.Create(unlockResult.UnlockedFilePath);
+            using var writer = WriterFactory.Open(destStream, ArchiveType.SevenZip, CompressionType.LZMA);
+            foreach (var filePath in Directory.EnumerateFiles(tempDir, "*", SearchOption.AllDirectories))
+            {
+                var entryName = Path.GetRelativePath(tempDir, filePath);
+                using var fileStream = File.OpenRead(filePath);
+                writer.Write(entryName, fileStream);
+            }
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
         }
     }
 }
