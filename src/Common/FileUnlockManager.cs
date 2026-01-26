@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Management.Automation;
 using ICSharpCode.SharpZipLib.Zip;
@@ -5,9 +6,6 @@ using iText.Kernel.Exceptions;
 using iText.Kernel.Pdf;
 using PoshJohn.Enums;
 using PoshJohn.Models;
-using SharpCompress.Common;
-using SharpCompress.Readers;
-using SharpCompress.Writers;
 
 namespace PoshJohn.Common;
 
@@ -181,35 +179,6 @@ internal sealed class FileUnlockManager : IFileUnlockManager
         _cmdlet?.WriteVerbose($"Unlocking 7-Zip: {unlockResult.FilePath}");
         _cmdlet?.WriteVerbose($"Saving unlocked 7-Zip to: {unlockResult.UnlockedFilePath}");
 
-        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(tempDir);
-        try
-        {
-            using (var fileStream = File.OpenRead(unlockResult.FilePath))
-            using (var reader = ReaderFactory.Open(fileStream, new ReaderOptions { Password = unlockResult.Password }))
-            {
-                var options = new ExtractionOptions { ExtractFullPath = true, Overwrite = true };
-                while (reader.MoveToNextEntry())
-                {
-                    if (!reader.Entry.IsDirectory)
-                    {
-                        reader.WriteEntryToDirectory(tempDir, options);
-                    }
-                }
-            }
-
-            using var destStream = File.Create(unlockResult.UnlockedFilePath);
-            using var writer = WriterFactory.Open(destStream, ArchiveType.SevenZip, CompressionType.LZMA);
-            foreach (var filePath in Directory.EnumerateFiles(tempDir, "*", SearchOption.AllDirectories))
-            {
-                var entryName = Path.GetRelativePath(tempDir, filePath);
-                using var fileStream = File.OpenRead(filePath);
-                writer.Write(entryName, fileStream);
-            }
-        }
-        finally
-        {
-            Directory.Delete(tempDir, true);
-        }
+        throw new NotImplementedException("7-Zip unlocking is not yet implemented.");
     }
 }
