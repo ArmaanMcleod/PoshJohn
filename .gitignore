@@ -12,3 +12,4 @@ mupdf/
 *.a
 *.log
 strawberry-perl/
+lzma-sdk/
