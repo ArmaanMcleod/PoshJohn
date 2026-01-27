@@ -12,4 +12,5 @@ mupdf/
 *.a
 *.log
 strawberry-perl/
-lzma-sdk/
+build/
+bit7z/
