@@ -8,7 +8,7 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
 MUPDF_REPO_DIR="$REPO_PATH/mupdf"
 PDF2JOHN_DIR="$REPO_PATH/src/pdf2john"
-INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps-macos.sh"
+INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps.sh"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
