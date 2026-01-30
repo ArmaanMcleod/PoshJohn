@@ -12,7 +12,7 @@ RUN apt-get update \
 WORKDIR /
 
 COPY ./src/ /PoshJohn/src/
-COPY ./scripts/*linux* /PoshJohn/scripts/
+COPY ./scripts/linux/ /PoshJohn/scripts/linux/
 COPY ./PowerShellBuildTools/ /PoshJohn/PowerShellBuildTools/
 COPY ./test/ /PoshJohn/test/
 COPY ./global.json /PoshJohn/global.json
