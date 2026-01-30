@@ -5,7 +5,7 @@ set -euo pipefail
 MUPDF_REPO="https://github.com/ArtifexSoftware/mupdf.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
 MUPDF_REPO_DIR="$REPO_PATH/mupdf"
 PDF2JOHN_DIR="$REPO_PATH/src/pdf2john"
 INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps.sh"

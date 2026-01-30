@@ -5,7 +5,7 @@ set -euo pipefail
 JOHN_REPO="https://github.com/openwall/john.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
 JOHN_OUTPUT_DIR="$REPO_PATH/john"
 JOHN_TEMP_DIR="$(mktemp -d)"
 JOHN_SRC_DIR="$JOHN_TEMP_DIR/src"
