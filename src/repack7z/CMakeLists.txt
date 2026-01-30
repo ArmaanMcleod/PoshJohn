@@ -16,7 +16,7 @@ add_executable(repack7z_app ${REPACK7Z_MAIN} ${REPACK7Z_SOURCES})
 target_include_directories(repack7z_app PRIVATE
     ${CMAKE_SOURCE_DIR}/../../bit7z/include
 )
-target_link_libraries(repack7z_app PRIVATE bit7z stdc++fs)
+target_link_libraries(repack7z_app PRIVATE bit7z)
 set_target_properties(repack7z_app PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
     OUTPUT_NAME repack7z
@@ -27,7 +27,7 @@ add_library(repack7z_shared SHARED ${REPACK7Z_SOURCES})
 target_include_directories(repack7z_shared PRIVATE
     ${CMAKE_SOURCE_DIR}/../../bit7z/include
 )
-target_link_libraries(repack7z_shared PRIVATE bit7z stdc++fs)
+target_link_libraries(repack7z_shared PRIVATE bit7z)
 set_target_properties(repack7z_shared PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
