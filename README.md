@@ -30,6 +30,9 @@ I may decide to also include PowerShell v5.1 support down the line if needed.
 Crack PDF password using a wordlist:
 
 ```powershell
+# Import module in PowerShell session
+Import-Module PoshJohn
+
 # Generate hash from PDF file
 Export-JohnPasswordHash -InputPath "C:\path\to\file.pdf" -OutputPath "C:\path\to\hash.txt"
 
@@ -40,6 +43,9 @@ Invoke-JohnPasswordCrack -InputPath "C:\path\to\hash.txt" -WordListPath "C:\path
 Crack PDF password using brute force:
 
 ```powershell
+# Import module in PowerShell session
+Import-Module PoshJohn
+
 # Generate hash from PDF file
 Export-JohnPasswordHash -InputPath "C:\path\to\file.pdf" -OutputPath "C:\path\to\hash.txt"
 
