@@ -65,7 +65,7 @@ Contributing is quite easy, fork this repo and submit a pull request with the ch
 
 To test a build run `./PowerShellBuildTools/build.ps1 -Task Test` in PowerShell. This script will ensure all dependencies are installed before running the test suite.
 
-Build and run the docker image for linux by running `./scripts/build-docker-linux.ps1 -Run`.
+Build and run the docker image for linux by running `./docker/build-docker-linux.ps1 -Run`.
 
 <!-- References -->
 [GithubActionsWorkflow]: https://github.com/ArmaanMcleod/PoshJohn/workflows/Test%20PoshJohn%20Module/badge.svg
