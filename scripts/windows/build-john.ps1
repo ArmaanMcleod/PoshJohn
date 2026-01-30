@@ -15,7 +15,7 @@ $johnRepoUrl = "https://github.com/openwall/john.git"
 $johnCloneDir = Join-Path $env:TEMP "john-bleeding-jumbo"
 $pdf2johnSrc = Join-Path $johnCloneDir "run/pdf2john.py"
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
 $helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
 Import-Module $helperModulePath -Force
 

@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 # --- Basic paths -------------------------------------------------------------
 
 $MUPDF_REPO = "https://github.com/ArtifexSoftware/mupdf.git"
-$RepoPath = Split-Path -Parent $PSScriptRoot
+$RepoPath = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
 $MuPDFRepoDir = Join-Path $RepoPath "mupdf"
 $Pdf2JohnDir = Join-Path $RepoPath "src" "pdf2john"
 

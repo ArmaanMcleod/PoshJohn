@@ -83,7 +83,7 @@ function Start-DockerWindows {
     throw "Docker failed to start within $maxWaitTime seconds"
 }
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
 
 $DockerFilePath = Join-Path $RepoRoot "docker/Dockerfile.linux"
 if (-not (Test-Path $DockerFilePath)) {
