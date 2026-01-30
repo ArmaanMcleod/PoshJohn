@@ -1,3 +1,6 @@
 [submodule "PowerShellBuildTools"]
 	path = PowerShellBuildTools
 	url = https://github.com/ArmaanMcleod/PowerShellBuildTools.git
+[submodule "bit7z"]
+	path = bit7z
+	url = https://github.com/rikyoz/bit7z.git
