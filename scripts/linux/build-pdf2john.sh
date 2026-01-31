@@ -17,8 +17,8 @@ echo "PDF2JOHN_DIR: $PDF2JOHN_DIR"
 echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
 
 # Install dependencies
-chmod +x $INSTALL_DEPS_SCRIPT
-$INSTALL_DEPS_SCRIPT
+chmod +x "$INSTALL_DEPS_SCRIPT"
+"$INSTALL_DEPS_SCRIPT"
 
 # Clone MuPDF only if directory does not exist
 if [ ! -d "$MUPDF_REPO_DIR" ]; then
@@ -44,7 +44,7 @@ else
 fi
 
 NCPU=$(nproc)
-make -j$NCPU build=release XCFLAGS="$XCFLAGS" libs
+make -j"$NCPU" build=release XCFLAGS="$XCFLAGS" libs
 echo "MuPDF build completed."
 
 # Build pdf2john
@@ -52,5 +52,6 @@ cd "$PDF2JOHN_DIR"
 echo "Cleaning pdf2john build..."
 make clean
 echo "Building pdf2john..."
-make -j$NCPU
+make -j"$NCPU"
 echo "pdf2john build completed."
+
