@@ -33,6 +33,25 @@ std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
     return std::filesystem::temp_directory_path() / oss.str();
 }
 
+std::string expand_user_path(const std::string &path)
+{
+    if (!path.empty() && path[0] == '~')
+    {
+#if defined(_WIN32)
+        const char *home = std::getenv("USERPROFILE");
+#else
+        const char *home = std::getenv("HOME");
+#endif
+        if (home)
+        {
+            std::string expandedPath = std::string(home) + path.substr(1);
+            std::cout << "[LOG] Expanded path " << path << " to " << expandedPath << std::endl;
+            return expandedPath;
+        }
+    }
+    return path;
+}
+
 DLL_EXPORT int repack_7z_without_password(
     const std::string &inputPath,
     const std::string &password,
@@ -57,23 +76,25 @@ DLL_EXPORT int repack_7z_without_password(
             }
         };
 
-        std::filesystem::path tempDir = make_unique_temp_dir(outputPath);
+        std::string inputPathExpanded = expand_user_path(inputPath);
+        std::string outputPathExpanded = expand_user_path(outputPath);
+
+        std::filesystem::path tempDir = make_unique_temp_dir(outputPathExpanded);
         std::cout << "[LOG] Created temp directory path: " << tempDir << std::endl;
         TempDirCleaner cleaner{tempDir};
 
-        if (!std::filesystem::exists(inputPath))
+        if (!std::filesystem::exists(inputPathExpanded))
         {
-            std::cerr << "[ERROR] Input archive does not exist: " << inputPath << std::endl;
+            std::cerr << "[ERROR] Input archive does not exist: " << inputPathExpanded << std::endl;
             throw std::filesystem::filesystem_error(
                 "Input archive does not exist",
-                inputPath,
+                inputPathExpanded,
                 std::make_error_code(std::errc::no_such_file_or_directory));
         }
 
         std::cout << "[LOG] Loading 7-Zip library: " << libName << std::endl;
         Bit7zLibrary lib(libName);
-        BitArchiveReader reader(lib, inputPath, BitFormat::SevenZip, password);
-
+        BitArchiveReader reader(lib, inputPathExpanded, BitFormat::SevenZip, password);
         std::cout << "[LOG] Creating temp directory on disk..." << std::endl;
         std::filesystem::create_directory(tempDir);
 
@@ -82,6 +103,7 @@ DLL_EXPORT int repack_7z_without_password(
         std::cout << "[LOG] Extraction completed." << std::endl;
 
         BitArchiveWriter writer(lib, outputPath, BitFormat::SevenZip);
+        writer.setOverwriteMode(OverwriteMode::Overwrite);
         int fileCount = 0;
         for (const auto &entry : std::filesystem::recursive_directory_iterator(tempDir))
         {
@@ -94,9 +116,9 @@ DLL_EXPORT int repack_7z_without_password(
             }
         }
         std::cout << "[LOG] Compressing files to output archive..." << std::endl;
-        writer.compressTo(outputPath);
+        writer.compressTo(outputPathExpanded);
         std::cout << "[LOG] Total files added: " << fileCount << std::endl;
-        std::cout << "[LOG] Output archive successfully created: " << outputPath << std::endl;
+        std::cout << "[LOG] Output archive successfully created: " << outputPathExpanded << std::endl;
         return EXIT_SUCCESS;
     }
     catch (const bit7z::BitException &ex)
