@@ -1,9 +1,9 @@
 #pragma once
 
 #ifdef _WIN32
-#define DLL_EXPORT __declspec(dllexport)
+#define REPACK7Z_API __declspec(dllexport)
 #else
-#define DLL_EXPORT
+#define REPACK7Z_API
 #endif
 
 #ifdef __cplusplus
@@ -11,10 +11,10 @@ extern "C"
 {
 #endif
 
-    DLL_EXPORT int repack_7z_without_password(
-        const std::string &inputPath,   // encrypted .7z
-        const std::string &password,    // password to decrypt
-        const std::string &outputPath); // new unencrypted .7z
+    REPACK7Z_API int repack_7z_without_password(
+        const char *inputPath,   // encrypted .7z
+        const char *password,    // password to decrypt
+        const char *outputPath); // new unencrypted .7z
 
 #ifdef __cplusplus
 }

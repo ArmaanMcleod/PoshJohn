@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Management.Automation;
+using System.Runtime.InteropServices;
 using ICSharpCode.SharpZipLib.Zip;
 using iText.Kernel.Exceptions;
 using iText.Kernel.Pdf;
@@ -38,6 +39,12 @@ internal sealed class FileUnlockManager : IFileUnlockManager
     private readonly string _unlockedFileDirectoryPath;
 
     private const string UnlockedFileSuffix = "_unlocked";
+
+    [DllImport("librepack7z_shared", EntryPoint = "repack_7z_without_password", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int repack_7z_without_password(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string inputPath,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string password,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string outputPath);
 
     /// <summary>
     /// Initializes a new instance of the FileUnlockManager class.
@@ -179,6 +186,14 @@ internal sealed class FileUnlockManager : IFileUnlockManager
         _cmdlet?.WriteVerbose($"Unlocking 7-Zip: {unlockResult.FilePath}");
         _cmdlet?.WriteVerbose($"Saving unlocked 7-Zip to: {unlockResult.UnlockedFilePath}");
 
-        throw new NotImplementedException("7-Zip unlocking is not yet implemented.");
+        int result = repack_7z_without_password(
+            unlockResult.FilePath,
+            unlockResult.Password,
+            unlockResult.UnlockedFilePath);
+
+        if (result != 0)
+        {
+            throw new InvalidOperationException($"Failed to unlock 7-Zip archive: {unlockResult.FilePath}");
+        }
     }
 }

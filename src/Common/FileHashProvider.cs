@@ -36,12 +36,6 @@ internal sealed class FileHashProvider : IFileHashProvider
     private readonly IProcessRunner _processRunner;
     private readonly PSCmdlet _cmdlet;
 
-
-    private const string Pdf2JohnDir = "pdf2john";
-    private const string WindowsLibPdfHashDll = "libpdfhash.dll";
-    private const string LinuxLibPdfHashSo = "libpdfhash.so";
-    private const string MacOsLibPdfHashDylib = "libpdfhash.dylib";
-
     [DllImport("libpdfhash", EntryPoint = "get_pdf_hash", CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr get_pdf_hash([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
 
@@ -70,24 +64,6 @@ internal sealed class FileHashProvider : IFileHashProvider
         _fileSystemProvider = fileSystemProvider;
         _processRunner = processRunner;
         _cmdlet = cmdlet;
-    }
-
-    static FileHashProvider()
-    {
-        NativeLibrary.SetDllImportResolver(typeof(FileHashProvider).Assembly, (name, assembly, path) =>
-        {
-            string subLibraryPath =
-                OperatingSystem.IsWindows() ? Path.Combine(Pdf2JohnDir, WindowsLibPdfHashDll) :
-                OperatingSystem.IsLinux() ? Path.Combine(Pdf2JohnDir, LinuxLibPdfHashSo) :
-                OperatingSystem.IsMacOS() ? Path.Combine(Pdf2JohnDir, MacOsLibPdfHashDylib) :
-                throw new PlatformNotSupportedException();
-
-            string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), subLibraryPath);
-
-            IntPtr handle = NativeLibrary.Load(libraryPath);
-
-            return handle;
-        });
     }
 
     /// <inheritdoc/>

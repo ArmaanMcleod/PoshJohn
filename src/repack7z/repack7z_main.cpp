@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     std::string password = argv[2];
     std::string outputPath = argv[3];
 
-    int result = repack_7z_without_password(inputPath, password, outputPath);
+    int result = repack_7z_without_password(inputPath.c_str(), password.c_str(), outputPath.c_str());
     if (result != EXIT_SUCCESS)
     {
         std::cerr << "Repack failed with code: " << result << std::endl;

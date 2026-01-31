@@ -32,7 +32,13 @@ target_include_directories(repack7z_shared PRIVATE
     ${CMAKE_SOURCE_DIR}/../../bit7z/include
 )
 target_link_libraries(repack7z_shared PRIVATE bit7z)
+
 set_target_properties(repack7z_shared PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
 )
+
+# Statically link MinGW/MSYS2 runtime libraries if building with MinGW
+if(MINGW)
+    target_link_options(repack7z_shared PRIVATE -static-libgcc -static-libstdc++ -static)
+endif()

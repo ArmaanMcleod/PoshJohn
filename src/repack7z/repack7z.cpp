@@ -21,6 +21,8 @@ const std::string libName = "/usr/lib/p7zip/7z.so";
 const std::string libName = "/usr/local/lib/lib7z.dylib";
 #endif
 
+#define NAMEOF(x) #x
+
 // Helper to create a unique temp directory path based on outputPath's basename
 std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
 {
@@ -52,16 +54,32 @@ std::string expand_user_path(const std::string &path)
     return path;
 }
 
-DLL_EXPORT int repack_7z_without_password(
-    const std::string &inputPath,
-    const std::string &password,
-    const std::string &outputPath)
+inline void validate_required(const char *s, const char *paramName)
+{
+    if (s == nullptr || s[0] == '\0')
+    {
+        throw std::invalid_argument(std::string("Invalid argument: ") + paramName);
+    }
+}
+
+REPACK7Z_API int repack_7z_without_password(
+    const char *inputPath,
+    const char *password,
+    const char *outputPath)
 {
     try
     {
+        validate_required(inputPath, NAMEOF(inputPath));
+        validate_required(password, NAMEOF(password));
+        validate_required(outputPath, NAMEOF(outputPath));
+
+        std::string inputPathStr = inputPath;
+        std::string passwordStr = password;
+        std::string outputPathStr = outputPath;
+
         std::cout << "[LOG] Starting repack_7z_without_password" << std::endl;
-        std::cout << "[LOG] Input archive: " << inputPath << std::endl;
-        std::cout << "[LOG] Output archive: " << outputPath << std::endl;
+        std::cout << "[LOG] Input archive: " << inputPathStr << std::endl;
+        std::cout << "[LOG] Output archive: " << outputPathStr << std::endl;
 
         struct TempDirCleaner
         {
@@ -76,8 +94,8 @@ DLL_EXPORT int repack_7z_without_password(
             }
         };
 
-        std::string inputPathExpanded = expand_user_path(inputPath);
-        std::string outputPathExpanded = expand_user_path(outputPath);
+        std::string inputPathExpanded = expand_user_path(inputPathStr);
+        std::string outputPathExpanded = expand_user_path(outputPathStr);
 
         std::filesystem::path tempDir = make_unique_temp_dir(outputPathExpanded);
         std::cout << "[LOG] Created temp directory path: " << tempDir << std::endl;
@@ -94,7 +112,7 @@ DLL_EXPORT int repack_7z_without_password(
 
         std::cout << "[LOG] Loading 7-Zip library: " << libName << std::endl;
         Bit7zLibrary lib(libName);
-        BitArchiveReader reader(lib, inputPathExpanded, BitFormat::SevenZip, password);
+        BitArchiveReader reader(lib, inputPathExpanded, BitFormat::SevenZip, passwordStr);
         std::cout << "[LOG] Creating temp directory on disk..." << std::endl;
         std::filesystem::create_directory(tempDir);
 
@@ -102,8 +120,13 @@ DLL_EXPORT int repack_7z_without_password(
         reader.extractTo(tempDir.string());
         std::cout << "[LOG] Extraction completed." << std::endl;
 
-        BitArchiveWriter writer(lib, outputPath, BitFormat::SevenZip);
-        writer.setOverwriteMode(OverwriteMode::Overwrite);
+        if (std::filesystem::exists(outputPathExpanded))
+        {
+            std::cout << "[LOG] Output archive already exists. Deleting: " << outputPathExpanded << std::endl;
+            std::filesystem::remove(outputPathExpanded);
+        }
+
+        BitArchiveWriter writer(lib, outputPathExpanded, BitFormat::SevenZip);
         int fileCount = 0;
         for (const auto &entry : std::filesystem::recursive_directory_iterator(tempDir))
         {

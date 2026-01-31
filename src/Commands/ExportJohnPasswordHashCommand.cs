@@ -79,6 +79,8 @@ public sealed class ExportJohnPasswordHashCommand : PSCmdlet
                 _pythonEnvironmentManager.CreateVirtualEnvironment();
             }
 
+            NativeLibraryResolver.Initialize();
+
             _initialized = true;
         }
         catch (Exception ex)
