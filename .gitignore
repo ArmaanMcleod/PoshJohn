@@ -13,3 +13,4 @@ mupdf/
 *.log
 strawberry-perl/
 build/
+bit7z/
