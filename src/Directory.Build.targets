@@ -20,7 +20,7 @@
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
     <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-pdf2john.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-perl-windows.ps1"
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-perl.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
   </Target>
 
