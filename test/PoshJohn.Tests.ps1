@@ -879,7 +879,7 @@ Describe 'PoshJohn Tests' {
 
     Context 'Docker Tests' {
         BeforeAll {
-            $dockerBuildScriptPath = Join-Path -Path $repoPath -ChildPath 'scripts/build-docker-linux.ps1'
+            $dockerBuildScriptPath = Join-Path -Path $repoPath -ChildPath 'docker/build-docker-linux.ps1'
         }
 
         It 'Build & Test Linux Docker Image' -Skip:(-not $IsLinux -or (Test-Path -Path '/.dockerenv')) -Tag 'docker-linux' {
