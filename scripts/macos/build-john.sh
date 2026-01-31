@@ -23,12 +23,16 @@ echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
 echo "FILTER_JOHN_SCRIPT: $FILTER_JOHN_SCRIPT"
 
 # Install dependencies
-chmod +x $INSTALL_DEPS_SCRIPT
-$INSTALL_DEPS_SCRIPT
+chmod +x "$INSTALL_DEPS_SCRIPT"
+"$INSTALL_DEPS_SCRIPT"
 
-# 6. Clone John the Ripper to temp directory
-echo "Cloning John the Ripper into $JOHN_TEMP_DIR..."
-git clone --depth 1 "$JOHN_REPO" "$JOHN_TEMP_DIR"
+# Clone John the Ripper to temp directory if not already present
+if [ ! -d "$JOHN_TEMP_DIR/src" ]; then
+	echo "Cloning John the Ripper into $JOHN_TEMP_DIR..."
+	git clone --depth 1 "$JOHN_REPO" "$JOHN_TEMP_DIR"
+else
+	echo "John the Ripper source already present in $JOHN_TEMP_DIR, skipping clone."
+fi
 
 # 7. Build John the Ripper
 cd "$JOHN_SRC_DIR"
@@ -51,7 +55,7 @@ echo "John the Ripper build complete. Binaries are in $JOHN_RUN_DIR"
 
 # Strip unnecessary files to reduce package size
 echo "Stripping unnecessary files..."
-chmod +x $FILTER_JOHN_SCRIPT
+chmod +x "$FILTER_JOHN_SCRIPT"
 "$FILTER_JOHN_SCRIPT" "$JOHN_RUN_DIR"
 
 # Copy run directory contents to flat output directory
