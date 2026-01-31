@@ -13,11 +13,12 @@ WORKDIR /
 
 COPY ./src/ /PoshJohn/src/
 COPY ./scripts/linux/ /PoshJohn/scripts/linux/
+COPY ./scripts/shared/ /PoshJohn/scripts/shared/
 COPY ./PowerShellBuildTools/ /PoshJohn/PowerShellBuildTools/
 COPY ./test/ /PoshJohn/test/
 COPY ./global.json /PoshJohn/global.json
 
-WORKDIR /PoshJohn/scripts
+WORKDIR /PoshJohn/scripts/linux
 
 RUN for f in *.sh; do \
     chmod +x "$f"; \
