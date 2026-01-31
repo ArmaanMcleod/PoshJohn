@@ -5,19 +5,22 @@ param()
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "Downloading Strawberry Perl for Windows..." -ForegroundColor Cyan
-
-$url = "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54201_64bit/strawberry-perl-5.42.0.1-64bit-portable.zip"
-
-$tempFile = Join-Path $env:TEMP "strawberry-perl.zip"
-$extractPath = Join-Path $env:TEMP "strawberry-perl-extract"
-$outputDir = Join-Path $PSScriptRoot "../strawberry-perl"
-
-$repoRoot = Split-Path -Parent $PSScriptRoot
-$helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
-Import-Module $helperModulePath -Force
-
 try {
+    $LogPath = Join-Path $PSScriptRoot "$($MyInvocation.MyCommand.Name.Split('.')[0]).log"
+    Start-Transcript -Path $LogPath -Append
+
+    Write-Host "Downloading Strawberry Perl for Windows..." -ForegroundColor Cyan
+
+    $url = "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54201_64bit/strawberry-perl-5.42.0.1-64bit-portable.zip"
+
+    $repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
+    $helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
+    Import-Module $helperModulePath -Force
+
+    $tempFile = Join-Path $env:TEMP "strawberry-perl.zip"
+    $extractPath = Join-Path $env:TEMP "strawberry-perl-extract"
+    $outputDir = Join-Path $repoRoot "strawberry-perl"
+
     # Download
     Write-Host "Downloading from: $url" -ForegroundColor Cyan
     Invoke-WebRequest -Uri $url -OutFile $tempFile -ErrorAction Stop
@@ -61,4 +64,5 @@ finally {
     # Clean up temporary files
     Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
     Remove-Item $extractPath -Recurse -Force -ErrorAction SilentlyContinue
+    Stop-Transcript
 }

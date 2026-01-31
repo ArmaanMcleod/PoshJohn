@@ -22,6 +22,8 @@
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
     <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-perl.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-repack7z.ps1"
+          Condition=" $([System.OperatingSystem]::IsWindows()) " />
   </Target>
 
   <!-- Copy native assets into publish output -->
@@ -50,6 +52,14 @@
     </ItemGroup>
     <Copy SourceFiles="@(StrawberryPerlAssets)"
           DestinationFiles="@(StrawberryPerlAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+
+    <!-- repack7z outputs go into PublishDir/repack7z -->
+    <ItemGroup>
+      <Bit7zAssets Include="repack7z/build/dist/**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Bit7zAssets)"
+          DestinationFiles="@(Bit7zAssets->'$(PublishDir)repack7z\%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
   </Target>
 </Project>

@@ -5,22 +5,25 @@ param()
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "Downloading John the Ripper for Windows..." -ForegroundColor Cyan
-
-$url = "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.zip"
-$tempFile = Join-Path $env:TEMP "john-win64.zip"
-$extractPath = Join-Path $env:TEMP "john-extract"
-$repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
-$outputDir = Join-Path $repoRoot "john"
-$johnRepoUrl = "https://github.com/openwall/john.git"
-$johnCloneDir = Join-Path $env:TEMP "john-bleeding-jumbo"
-$pdf2johnSrc = Join-Path $johnCloneDir "run/pdf2john.py"
-
-$repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
-$helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
-Import-Module $helperModulePath -Force
-
 try {
+    $LogPath = Join-Path $PSScriptRoot "$($MyInvocation.MyCommand.Name.Split('.')[0]).log"
+    Start-Transcript -Path $LogPath -Append
+
+    Write-Host "Downloading John the Ripper for Windows..." -ForegroundColor Cyan
+
+    $url = "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.zip"
+    $tempFile = Join-Path $env:TEMP "john-win64.zip"
+    $extractPath = Join-Path $env:TEMP "john-extract"
+    $repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
+    $outputDir = Join-Path $repoRoot "john"
+    $johnRepoUrl = "https://github.com/openwall/john.git"
+    $johnCloneDir = Join-Path $env:TEMP "john-bleeding-jumbo"
+    $pdf2johnSrc = Join-Path $johnCloneDir "run/pdf2john.py"
+
+    $repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
+    $helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
+    Import-Module $helperModulePath -Force
+
     # Download
     Write-Host "Downloading from: $url" -ForegroundColor Cyan
     Invoke-WebRequest -Uri $url -OutFile $tempFile -ErrorAction Stop
@@ -69,4 +72,5 @@ finally {
     Remove-Item $johnCloneDir -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item $tempFile -ErrorAction SilentlyContinue
     Remove-Item $extractPath -Recurse -Force -ErrorAction SilentlyContinue
+    Stop-Transcript
 }
