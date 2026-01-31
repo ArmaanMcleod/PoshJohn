@@ -16,3 +16,7 @@ obj/
 out/
 build/
 dist/
+
+# Temporary files
+*.log
+*.tmp
