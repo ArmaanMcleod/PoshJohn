@@ -41,7 +41,7 @@ find . -maxdepth 1 -type f | while read -r file; do
     # Check patterns
     if [ "$keep" = false ]; then
         for pattern in "${KEEP_PATTERNS[@]}"; do
-            if [[ "$basename" == "$pattern" ]]; then
+            if [[ "$basename" == $pattern ]]; then
                 keep=true
                 break
             fi
