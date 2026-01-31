@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-PKG_FILE="$SCRIPT_DIR/packages-linux.txt"
+PKG_FILE="$SCRIPT_DIR/packages.txt"
 if [ ! -f "$PKG_FILE" ]; then
     echo "Package file $PKG_FILE not found!"
     exit 1

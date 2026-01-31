@@ -18,12 +18,11 @@ jobs:
 
       - name: Build John for Windows
         shell: pwsh
-        run: ./scripts/build-john-windows.ps1
+        run: ./scripts/windows/build-john.ps1
 
       - name: Build pdf2john for Windows
         shell: pwsh
-        run: ./scripts/build-pdf2john-windows.ps1
-
+        run: ./scripts/windows/build-pdf2john.ps1
       - name: Create John Windows archive
         shell: pwsh
         run: Compress-Archive -Path john/* -DestinationPath john-windows-x64.zip
@@ -57,13 +56,13 @@ jobs:
 
       - name: Build John for Linux
         run: |
-          chmod +x ./scripts/build-john-linux.sh
-          sudo ./scripts/build-john-linux.sh
+          chmod +x ./scripts/linux/build-john.sh
+          sudo ./scripts/linux/build-john.sh
 
       - name: Build pdf2john for Linux
         run: |
-          chmod +x ./scripts/build-pdf2john-linux.sh
-          sudo ./scripts/build-pdf2john-linux.sh
+          chmod +x ./scripts/linux/build-pdf2john.sh
+          sudo ./scripts/linux/build-pdf2john.sh
 
       - name: Create John Linux archive
         run: tar -czvf john-linux-x64.tar.gz -C john .
@@ -96,13 +95,13 @@ jobs:
 
       - name: Build John for macOS
         run: |
-          chmod +x ./scripts/build-john-macos.sh
-          ./scripts/build-john-macos.sh
+          chmod +x ./scripts/macos/build-john.sh
+          ./scripts/macos/build-john.sh
 
       - name: Build pdf2john for macOS
         run: |
-          chmod +x ./scripts/build-pdf2john-macos.sh
-          ./scripts/build-pdf2john-macos.sh
+          chmod +x ./scripts/macos/build-pdf2john.sh
+          ./scripts/macos/build-pdf2john.sh
 
       - name: Create John macOS archive
         run: tar -czvf john-macos-arm64.tar.gz -C john .

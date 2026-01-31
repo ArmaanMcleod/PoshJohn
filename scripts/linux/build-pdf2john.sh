@@ -5,10 +5,10 @@ set -euo pipefail
 MUPDF_REPO="https://github.com/ArtifexSoftware/mupdf.git"
 
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
-REPO_PATH="$(realpath "$SCRIPT_DIR/..")"
+REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
 MUPDF_REPO_DIR="$REPO_PATH/mupdf"
 PDF2JOHN_DIR="$REPO_PATH/src/pdf2john"
-INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps-macos.sh"
+INSTALL_DEPS_SCRIPT="$SCRIPT_DIR/install-deps.sh"
 
 echo "SCRIPT_DIR: $SCRIPT_DIR"
 echo "REPO_PATH: $REPO_PATH"
@@ -17,8 +17,8 @@ echo "PDF2JOHN_DIR: $PDF2JOHN_DIR"
 echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
 
 # Install dependencies
-chmod +x $INSTALL_DEPS_SCRIPT
-$INSTALL_DEPS_SCRIPT
+chmod +x "$INSTALL_DEPS_SCRIPT"
+"$INSTALL_DEPS_SCRIPT"
 
 # Clone MuPDF only if directory does not exist
 if [ ! -d "$MUPDF_REPO_DIR" ]; then
@@ -43,10 +43,8 @@ else
     XCFLAGS="-fPIC"
 fi
 
-# Limit parallelism on macOS to avoid resource exhaustion on CI runners
-JOBS=2
-
-make -j$JOBS build=release XCFLAGS="$XCFLAGS" libs
+NCPU=$(nproc)
+make -j"$NCPU" build=release XCFLAGS="$XCFLAGS" libs
 echo "MuPDF build completed."
 
 # Build pdf2john
@@ -54,5 +52,6 @@ cd "$PDF2JOHN_DIR"
 echo "Cleaning pdf2john build..."
 make clean
 echo "Building pdf2john..."
-make -j$JOBS
+make -j"$NCPU"
 echo "pdf2john build completed."
+

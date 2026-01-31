@@ -25,12 +25,11 @@ jobs:
 
       - name: Build John
         shell: pwsh
-        run: ./scripts/build-john-windows.ps1
+        run: ./scripts/windows/build-john.ps1
 
       - name: Build pdf2john
         shell: pwsh
-        run: ./scripts/build-pdf2john-windows.ps1
-
+        run: ./scripts/windows/build-pdf2john.ps1
       - name: Upload John Assets
         uses: actions/upload-artifact@v4
         with:
@@ -56,13 +55,13 @@ jobs:
 
       - name: Build John
         run: |
-          chmod +x ./scripts/build-john-linux.sh
-          sudo ./scripts/build-john-linux.sh
+          chmod +x ./scripts/linux/build-john.sh
+          sudo ./scripts/linux/build-john.sh
 
       - name: Build pdf2john
         run: |
-          chmod +x ./scripts/build-pdf2john-linux.sh
-          sudo ./scripts/build-pdf2john-linux.sh
+          chmod +x ./scripts/linux/build-pdf2john.sh
+          sudo ./scripts/linux/build-pdf2john.sh
 
       - name: Upload John Assets
         uses: actions/upload-artifact@v4
@@ -89,13 +88,13 @@ jobs:
 
       - name: Build John
         run: |
-          chmod +x ./scripts/build-john-macos.sh
-          ./scripts/build-john-macos.sh
+          chmod +x ./scripts/macos/build-john.sh
+          ./scripts/macos/build-john.sh
 
       - name: Build pdf2john
         run: |
-          chmod +x ./scripts/build-pdf2john-macos.sh
-          ./scripts/build-pdf2john-macos.sh
+          chmod +x ./scripts/macos/build-pdf2john.sh
+          ./scripts/macos/build-pdf2john.sh
 
       - name: Upload John Assets
         uses: actions/upload-artifact@v4

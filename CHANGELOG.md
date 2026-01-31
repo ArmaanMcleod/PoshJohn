@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Build and Packaging Improvements
+
++ Refactor Build Scripts into OS Specific Folders ([#47](https://github.com/ArmaanMcleod/PoshJohn/pull/47)).
+  + Moved Windows build scripts to `scripts/windows/`.
+  + Moved Linux build scripts to `scripts/linux/`.
+  + Moved macOS build scripts to `scripts/macos/`.
+  + Updated `Directory.Build.targets` and GitHub Actions workflow to use new script paths.
+
 ## v1.1.3 - 21/01/2026
 
 ### General Cmdlet Updates and Fixe

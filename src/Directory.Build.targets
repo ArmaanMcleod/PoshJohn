@@ -4,21 +4,21 @@
           BeforeTargets="Publish"
           Condition=" '$(SKIP_NATIVE_BUILD_ASSETS)' != 'true' ">
     <!-- Linux -->
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-linux.sh"
+    <Exec Command="bash $(ProjectDir)../scripts/linux/build-john.sh"
           Condition=" $([System.OperatingSystem]::IsLinux()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-linux.sh"
+    <Exec Command="bash $(ProjectDir)../scripts/linux/build-pdf2john.sh"
           Condition=" $([System.OperatingSystem]::IsLinux()) " />
 
     <!-- macOS -->
-    <Exec Command="bash $(ProjectDir)../scripts/build-john-macos.sh"
+    <Exec Command="bash $(ProjectDir)../scripts/macos/build-john.sh"
           Condition=" $([System.OperatingSystem]::IsMacOS()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/build-pdf2john-macos.sh"
+    <Exec Command="bash $(ProjectDir)../scripts/macos/build-pdf2john.sh"
           Condition=" $([System.OperatingSystem]::IsMacOS()) " />
 
     <!-- Windows -->
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-john-windows.ps1"
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-john.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-pdf2john-windows.ps1"
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-pdf2john.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
     <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\build-perl-windows.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
