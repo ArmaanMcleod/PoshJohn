@@ -17,8 +17,8 @@ echo "PDF2JOHN_DIR: $PDF2JOHN_DIR"
 echo "INSTALL_DEPS_SCRIPT: $INSTALL_DEPS_SCRIPT"
 
 # Install dependencies
-chmod +x $INSTALL_DEPS_SCRIPT
-$INSTALL_DEPS_SCRIPT
+chmod +x "$INSTALL_DEPS_SCRIPT"
+"$INSTALL_DEPS_SCRIPT"
 
 # Clone MuPDF only if directory does not exist
 if [ ! -d "$MUPDF_REPO_DIR" ]; then
