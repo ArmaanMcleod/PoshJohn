@@ -11,4 +11,4 @@ if [ ! -f "$PKG_FILE" ]; then
 fi
 
 echo "Checking and installing required system dependencies from $PKG_FILE..."
-apt-get update -y && apt-get install -y "$(cat "$PKG_FILE")"
+apt-get update -y && apt-get install -y $(cat "$PKG_FILE")
