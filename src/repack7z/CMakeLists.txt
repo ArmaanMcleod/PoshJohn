@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
+
 project(repack7z_example)
+
+# Ensure all targets are built with -fPIC for shared library compatibility
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

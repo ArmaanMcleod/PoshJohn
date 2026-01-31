@@ -8,3 +8,4 @@ libjpeg-dev
 libopenjp2-7-dev
 zlib1g-dev
 git
+cmake

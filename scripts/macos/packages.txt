@@ -3,3 +3,4 @@ openssl
 libpcap
 git
 wget
+cmake
