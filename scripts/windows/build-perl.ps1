@@ -6,7 +6,7 @@ param()
 $ErrorActionPreference = "Stop"
 
 try {
-    $LogPath = Join-Path $PSScriptRoot "$($MyInvocation.MyCommand.Name.Split('.')[0]).log"
+    $LogPath = Join-Path $PSScriptRoot "build.log"
     Start-Transcript -Path $LogPath -Append
 
     Write-Host "Downloading Strawberry Perl for Windows..." -ForegroundColor Cyan
