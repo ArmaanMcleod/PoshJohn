@@ -14,108 +14,70 @@ env:
 
 jobs:
 
-  build-john-assets-windows:
-    name: Build John Assets (Windows)
-    runs-on: windows-latest
+  build-native-assets:
+    name: Build Native Assets (${{ matrix.info.name }})
+    runs-on: ${{ matrix.info.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        info:
+        - name: Windows
+          os: windows-latest
+        - name: Linux
+          os: ubuntu-latest
+        - name: MacOS
+          os: macos-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
           submodules: true
 
-      - name: Build John
+      - name: Build All Native Assets (Windows)
+        if: ${{ matrix.info.name == 'Windows' }}
         shell: pwsh
-        run: ./scripts/windows/build-john.ps1
+        run: ./scripts/windows/build-all.ps1
 
-      - name: Build pdf2john
-        shell: pwsh
-        run: ./scripts/windows/build-pdf2john.ps1
+      - name: Build All Native Assets (Unix)
+        if: ${{ matrix.info.name != 'Windows' }}
+        shell: bash
+        run: |
+          chmod +x ./scripts/shared/build-all.sh
+          sudo ./scripts/shared/build-all.sh
+
       - name: Upload John Assets
         uses: actions/upload-artifact@v4
         with:
-          name: john-Windows
+          name: john-${{ matrix.info.name }}
           path: ${{ github.workspace }}/john
           if-no-files-found: error
 
       - name: Upload pdf2john Assets
         uses: actions/upload-artifact@v4
         with:
-          name: pdf2john-Windows
+          name: pdf2john-${{ matrix.info.name }}
           path: ${{ github.workspace }}/src/pdf2john/dist
           if-no-files-found: error
 
-  build-john-assets-linux:
-    name: Build John Assets (Linux)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Build John
-        run: |
-          chmod +x ./scripts/linux/build-john.sh
-          sudo ./scripts/linux/build-john.sh
-
-      - name: Build pdf2john
-        run: |
-          chmod +x ./scripts/linux/build-pdf2john.sh
-          sudo ./scripts/linux/build-pdf2john.sh
-
-      - name: Upload John Assets
+      - name: Upload 7z2john Assets
         uses: actions/upload-artifact@v4
         with:
-          name: john-Linux
-          path: ${{ github.workspace }}/john
+          name: 7z2john-${{ matrix.info.name }}
+          path: ${{ github.workspace }}/perl/7z2john
           if-no-files-found: error
 
-      - name: Upload pdf2john Assets
+      - name: Upload repack7z Assets
         uses: actions/upload-artifact@v4
         with:
-          name: pdf2john-Linux
-          path: ${{ github.workspace }}/src/pdf2john/dist
-          if-no-files-found: error
-
-  build-john-assets-macos:
-    name: Build John Assets (MacOS)
-    runs-on: macos-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-
-      - name: Build John
-        run: |
-          chmod +x ./scripts/macos/build-john.sh
-          ./scripts/macos/build-john.sh
-
-      - name: Build pdf2john
-        run: |
-          chmod +x ./scripts/macos/build-pdf2john.sh
-          ./scripts/macos/build-pdf2john.sh
-
-      - name: Upload John Assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: john-MacOS
-          path: ${{ github.workspace }}/john
-          if-no-files-found: error
-
-      - name: Upload pdf2john Assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: pdf2john-MacOS
-          path: ${{ github.workspace }}/src/pdf2john/dist
+          name: repack7z-${{ matrix.info.name }}
+          path: ${{ github.workspace }}/src/repack7z/build/dist
           if-no-files-found: error
 
   build-module:
     name: Build PowerShell Module
     needs:
-      - build-john-assets-windows
-      - build-john-assets-linux
-      - build-john-assets-macos
+      - build-native-assets
     runs-on: ubuntu-latest
     permissions:
       contents: read  # Repo checkout
@@ -184,33 +146,25 @@ jobs:
           name: pdf2john-${{ matrix.info.name }}
           path: pdf2john-artifacts/${{ matrix.info.name }}
 
+      - name: Download 7z2john Assets
+        uses: actions/download-artifact@v4
+        with:
+          name: 7z2john-${{ matrix.info.name }}
+          path: 7z2john-artifacts/${{ matrix.info.name }}
+
+      - name: Download repack7z Assets
+        uses: actions/download-artifact@v4
+        with:
+          name: repack7z-${{ matrix.info.name }}
+          path: repack7z-artifacts/${{ matrix.info.name }}
+
       - name: Install Built PowerShell Module
         shell: pwsh
         run: |
-          # Extract the nupkg
-          Import-Module ./PowerShellBuildTools/tools/helper.psm1 -Force
-          Expand-Nupkg -ModuleManfifestPath ./src/PoshJohn.psd1 -OutputPath out
-
-          # Find the extracted module directory
-          $modulePath = Get-ChildItem -Path out/PoshJohn -Directory | Select-Object -First 1 -ExpandProperty FullName
-
-          # Copy John artifacts to the extracted module
-          $johnDestPath = Join-Path $modulePath "john"
-          if (Test-Path $johnDestPath) {
-              throw "Extracted module should not already contain john artifacts at $johnDestPath"
-          }
-
-          New-Item -ItemType Directory -Force -Path $johnDestPath | Out-Null
-          Copy-Item -Path john-artifacts/${{ matrix.info.name }}/* -Destination $johnDestPath -Recurse -Force
-
-          # Copy pdf2john artifacts to the extracted module
-          $pdf2johnDestPath = Join-Path $modulePath "pdf2john"
-          if (Test-Path $pdf2johnDestPath) {
-              throw "Extracted module should not already contain pdf2john artifacts at $pdf2johnDestPath"
-          }
-
-          New-Item -ItemType Directory -Force -Path $pdf2johnDestPath | Out-Null
-          Copy-Item -Path pdf2john-artifacts/${{ matrix.info.name }}/* -Destination $pdf2johnDestPath -Recurse -Force
+          ./scripts/shared/install-module-artifacts.ps1 `
+            -Platform "${{ matrix.info.name }}" `
+            -ModuleManifestPath "./src/PoshJohn.psd1" `
+            -OutputPath "out"
 
       - name: Install valgrind
         if: ${{ matrix.info.name == 'Linux' }}
