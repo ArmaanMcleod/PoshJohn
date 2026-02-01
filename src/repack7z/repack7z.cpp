@@ -218,7 +218,7 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
 
         return REPACK7Z_OK;
     }
-    catch (const bit7z::BitException &ex)
+    catch (const BitException &ex)
     {
         log_msg(std::string("[ERROR] bit7z exception: ") + ex.what());
         return REPACK7Z_ERROR_FORMAT;
