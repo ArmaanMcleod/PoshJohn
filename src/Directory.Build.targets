@@ -8,11 +8,15 @@
           Condition=" $([System.OperatingSystem]::IsLinux()) " />
     <Exec Command="bash $(ProjectDir)../scripts/linux/build-pdf2john.sh"
           Condition=" $([System.OperatingSystem]::IsLinux()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/linux/build-7z2john.sh"
+          Condition=" $([System.OperatingSystem]::IsLinux()) " />
 
     <!-- macOS -->
     <Exec Command="bash $(ProjectDir)../scripts/macos/build-john.sh"
           Condition=" $([System.OperatingSystem]::IsMacOS()) " />
     <Exec Command="bash $(ProjectDir)../scripts/macos/build-pdf2john.sh"
+          Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <Exec Command="bash $(ProjectDir)../scripts/macos/build-7z2john.sh"
           Condition=" $([System.OperatingSystem]::IsMacOS()) " />
 
     <!-- Windows -->
@@ -48,10 +52,10 @@
 
     <!-- 7z2john outputs go into PublishDir/pdf2john -->
     <ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
-      <StrawberryPerlAssets Include="../strawberry-perl/**" />
+      <7z2JohnAssets Include="../perl/**" />
     </ItemGroup>
-    <Copy SourceFiles="@(StrawberryPerlAssets)"
-          DestinationFiles="@(StrawberryPerlAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+    <Copy SourceFiles="@(7z2JohnAssets)"
+          DestinationFiles="@(7z2JohnAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
 
     <!-- repack7z outputs go into PublishDir/repack7z -->

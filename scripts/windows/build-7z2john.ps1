@@ -23,8 +23,8 @@ try {
     }
     $archiveName = Split-Path $url -Leaf
     $cachedArchive = Join-Path $cacheDir $archiveName
-    $extractPath = Join-Path $env:TEMP ("strawberry-perl-extract-" + [guid]::NewGuid().ToString())
-    $outputDir = Join-Path $repoRoot "strawberry-perl"
+    $extractPath = Join-Path $env:TEMP ("perl-extract-" + [guid]::NewGuid().ToString())
+    $outputDir = Join-Path $repoRoot "perl"
 
     # Download or use cached archive
     if (!(Test-Path $cachedArchive)) {
