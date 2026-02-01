@@ -44,16 +44,9 @@ Write-Host "Module extracted to: $modulePath"
 
 function Copy-Artifacts {
     param(
-        [string]$ArtifactName,
         [string]$SourcePath,
-        [string]$DestinationPath,
-        [switch]$SkipIfMissing
+        [string]$DestinationPath
     )
-
-    if ($SkipIfMissing -and -not (Test-Path $SourcePath)) {
-        Write-Host "Skipping $ArtifactName (not present for this platform)"
-        return
-    }
 
     if (-not (Test-Path $SourcePath)) {
         throw "Source path for $ArtifactName artifacts not found: $SourcePath"
@@ -63,26 +56,22 @@ function Copy-Artifacts {
         throw "Extracted module should not already contain $ArtifactName artifacts at $DestinationPath"
     }
 
-    Write-Host "Copying $ArtifactName artifacts..."
+    Write-Host "Copying $SourcePath artifacts to $DestinationPath"
     New-Item -ItemType Directory -Force -Path $DestinationPath | Out-Null
     Copy-Item -Path "$SourcePath/*" -Destination $DestinationPath -Recurse -Force
-    Write-Host "  -> $DestinationPath"
 }
 
-Copy-Artifacts -ArtifactName "john" `
-    -SourcePath "john-artifacts/$Platform" `
-    -DestinationPath (Join-Path $modulePath "john")
+$artifactNames = @(
+    'john'
+    'pdf2john'
+    '7z2john'
+    'repack7z'
+)
 
-Copy-Artifacts -ArtifactName "pdf2john" `
-    -SourcePath "pdf2john-artifacts/$Platform" `
-    -DestinationPath (Join-Path $modulePath "pdf2john")
-
-Copy-Artifacts -ArtifactName "7z2john" `
-    -SourcePath "7z2john-artifacts/$Platform" `
-    -DestinationPath (Join-Path $modulePath "7z2john")
-
-Copy-Artifacts -ArtifactName "repack7z" `
-    -SourcePath "repack7z-artifacts/$Platform" `
-    -DestinationPath (Join-Path $modulePath "repack7z")
+foreach ($artifact in $artifactNames) {
+    $sourcePath = "$artifact-artifacts/$Platform"
+    $destinationPath = Join-Path $modulePath $artifact
+    Copy-Artifacts -SourcePath $sourcePath -DestinationPath $destinationPath
+}
 
 Write-Host "`nAll artifacts installed successfully for $Platform"
