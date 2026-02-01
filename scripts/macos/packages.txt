@@ -4,3 +4,4 @@ libpcap
 git
 wget
 cmake
+perl

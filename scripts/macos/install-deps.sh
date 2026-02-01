@@ -28,3 +28,7 @@ fi
 
 echo "Checking and installing required system dependencies from $PKG_FILE..."
 brew install $(cat "$PKG_FILE")
+
+# Install PAR::Packer via CPAN
+echo "Installing PAR::Packer via CPAN..."
+cpan -i PAR::Packer
