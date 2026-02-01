@@ -96,7 +96,6 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
         return REPACK7Z_ERROR_INVALID_ARGUMENT;
     }
 
-    // password is optional
     std::string passwordStr = password ? password : "";
 
     std::string inputPathStr = expand_user_path(inputPath);
@@ -123,7 +122,6 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
         return REPACK7Z_ERROR_IO;
     }
 
-    // RAII cleanup
     struct TempDirCleaner
     {
         std::filesystem::path dir;

@@ -4,6 +4,12 @@
 
 static void console_log_callback(const char *msg)
 {
+    if (std::string(msg).rfind("[ERROR]", 0) == 0)
+    {
+        std::cerr << msg << std::endl;
+        return;
+    }
+
     std::cout << msg << std::endl;
 }
 
