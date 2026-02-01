@@ -20,13 +20,26 @@ const std::string libName = "/usr/lib/p7zip/7z.so";
 const std::string libName = "/usr/local/lib/lib7z.dylib";
 #endif
 
+/**
+ * @brief Global logging callback function pointer.
+ */
 static repack7z_log_callback g_log_callback = nullptr;
 
+/**
+ * @brief Set the logging callback function.
+ *
+ * @param cb The callback function to use for logging.
+ */
 extern "C" REPACK7Z_API void repack7z_set_log_callback(repack7z_log_callback cb)
 {
     g_log_callback = cb;
 }
 
+/**
+ * @brief Internal logging function that invokes the registered callback.
+ *
+ * @param msg The message to log.
+ */
 static void log_msg(const std::string &msg)
 {
     if (g_log_callback)
@@ -35,11 +48,23 @@ static void log_msg(const std::string &msg)
     }
 }
 
+/**
+ * @brief Check if a C-string is null or empty.
+ *
+ * @param s The C-string to check.
+ * @return true if the string is null or empty, false otherwise.
+ */
 static bool is_null_or_empty(const char *s)
 {
     return s == nullptr || s[0] == '\0';
 }
 
+/**
+ * @brief Expand a file path that may start with '~' to the user's home directory.
+ *
+ * @param path The input file path.
+ * @return std::string The expanded file path.
+ */
 static std::string expand_user_path(const std::string &path)
 {
     if (!path.empty() && path[0] == '~')
@@ -57,6 +82,12 @@ static std::string expand_user_path(const std::string &path)
     return path;
 }
 
+/**
+ * @brief Generate a random hexadecimal string of specified length.
+ *
+ * @param length Length of the desired hex string (default is 24).
+ * @return std::string Random hexadecimal string.
+ */
 static std::string random_hex_string(std::size_t length = 24)
 {
     static thread_local std::mt19937_64 rng{std::random_device{}()};
@@ -71,6 +102,12 @@ static std::string random_hex_string(std::size_t length = 24)
     return out;
 }
 
+/**
+ * @brief Create a unique temporary directory path based on the output path.
+ *
+ * @param outputPath The desired output path for the final archive.
+ * @return std::filesystem::path A unique temporary directory path.
+ */
 static std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
 {
     auto base = std::filesystem::path(outputPath).stem().string();
@@ -79,6 +116,14 @@ static std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
     return tempRoot / name;
 }
 
+/**
+ * @brief Repack a 7z archive, removing password protection.
+ *
+ * @param inputPath Path to the input (possibly encrypted) .7z archive.
+ * @param password  Password for the input archive (can be empty for unprotected archives).
+ * @param outputPath Path to write the new unencrypted .7z archive.
+ * @return repack7z_result Result code indicating success or error type.
+ */
 extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
     const char *inputPath,
     const char *password,

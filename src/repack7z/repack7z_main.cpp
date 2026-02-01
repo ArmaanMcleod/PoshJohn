@@ -2,6 +2,11 @@
 #include <string>
 #include "repack7z.h"
 
+/**
+ * @brief Console logging callback that prints messages to stdout/stderr.
+ *
+ * @param msg The message to log.
+ */
 static void console_log_callback(const char *msg)
 {
     if (std::string(msg).rfind("[ERROR]", 0) == 0)
@@ -15,6 +20,13 @@ static void console_log_callback(const char *msg)
 
 constexpr int MAX_ARGS = 4;
 
+/**
+ * @brief Main function for the repack7z utility.
+ *
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return int Exit code.
+ */
 int main(int argc, char **argv)
 {
     if (argc != MAX_ARGS)
