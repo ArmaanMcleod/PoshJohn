@@ -40,11 +40,32 @@ internal sealed class FileUnlockManager : IFileUnlockManager
 
     private const string UnlockedFileSuffix = "_unlocked";
 
-    [DllImport("librepack7z_shared", EntryPoint = "repack_7z_without_password", CallingConvention = CallingConvention.Cdecl)]
-    private static extern int repack_7z_without_password(
+    public enum Repack7zResult
+    {
+        Ok = 0,
+        InvalidArgument = 1,
+        Io = 2,
+        Format = 3,
+        Internal = 4
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void Repack7zLogCallback(
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string message);
+
+    [DllImport("librepack7z_shared", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void repack7z_set_log_callback(Repack7zLogCallback cb);
+
+    [DllImport("librepack7z_shared", CallingConvention = CallingConvention.Cdecl)]
+    private static extern Repack7zResult repack_7z_without_password(
         [MarshalAs(UnmanagedType.LPUTF8Str)] string inputPath,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string password,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string outputPath);
+
+    private static readonly object _logLock = new();
+    private static bool _logRegistered;
+    private static string _lastNativeLog;
+    private static readonly Repack7zLogCallback _logCallback = msg => _lastNativeLog = msg;
 
     /// <summary>
     /// Initializes a new instance of the FileUnlockManager class.
@@ -168,6 +189,19 @@ internal sealed class FileUnlockManager : IFileUnlockManager
         }
     }
 
+    private static void EnsureLogCallbackRegistered()
+    {
+        if (_logRegistered) return;
+
+        lock (_logLock)
+        {
+            if (_logRegistered) return;
+
+            repack7z_set_log_callback(_logCallback);
+            _logRegistered = true;
+        }
+    }
+
     /// <summary>
     /// Unlocks a password-protected 7z archive and saves a new archive with no password.
     /// <para>
@@ -181,19 +215,21 @@ internal sealed class FileUnlockManager : IFileUnlockManager
     /// </para>
     /// </summary>
     /// <param name="unlockResult">The result containing file, password, and output path information.</param>
-    private void SaveUnlockedPasswordProtected7Zip(PasswordUnlockResult unlockResult)
+    private static void SaveUnlockedPasswordProtected7Zip(PasswordUnlockResult unlockResult)
     {
-        _cmdlet?.WriteVerbose($"Unlocking 7-Zip: {unlockResult.FilePath}");
-        _cmdlet?.WriteVerbose($"Saving unlocked 7-Zip to: {unlockResult.UnlockedFilePath}");
+        EnsureLogCallbackRegistered();
+        _lastNativeLog = null;
 
-        int result = repack_7z_without_password(
+        var result = repack_7z_without_password(
             unlockResult.FilePath,
             unlockResult.Password,
             unlockResult.UnlockedFilePath);
 
-        if (result != 0)
+        if (result != Repack7zResult.Ok)
         {
-            throw new InvalidOperationException($"Failed to unlock 7-Zip archive: {unlockResult.FilePath}");
+            string nativeMessage = _lastNativeLog ?? "No native error message provided.";
+            string finalMessage = $"Native error ({result}): {nativeMessage}";
+            throw new InvalidOperationException(finalMessage);
         }
     }
 }

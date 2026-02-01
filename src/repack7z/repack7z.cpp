@@ -1,8 +1,7 @@
 #include <filesystem>
-#include <chrono>
-#include <sstream>
-#include <cstdlib>
-#include <iostream>
+#include <random>
+#include <string>
+#include <system_error>
 
 #include "repack7z.h"
 
@@ -21,21 +20,27 @@ const std::string libName = "/usr/lib/p7zip/7z.so";
 const std::string libName = "/usr/local/lib/lib7z.dylib";
 #endif
 
-#define NAMEOF(x) #x
+static repack7z_log_callback g_log_callback = nullptr;
 
-// Helper to create a unique temp directory path based on outputPath's basename
-std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
+extern "C" REPACK7Z_API void repack7z_set_log_callback(repack7z_log_callback cb)
 {
-    auto basename = std::filesystem::path(outputPath).stem().string();
-    auto now = std::chrono::system_clock::now().time_since_epoch().count();
-    std::srand(static_cast<unsigned int>(now));
-    int random = std::rand();
-    std::ostringstream oss;
-    oss << basename << "_" << now << "_" << random;
-    return std::filesystem::temp_directory_path() / oss.str();
+    g_log_callback = cb;
 }
 
-std::string expand_user_path(const std::string &path)
+static void log_msg(const std::string &msg)
+{
+    if (g_log_callback)
+    {
+        g_log_callback(msg.c_str());
+    }
+}
+
+static bool is_null_or_empty(const char *s)
+{
+    return s == nullptr || s[0] == '\0';
+}
+
+static std::string expand_user_path(const std::string &path)
 {
     if (!path.empty() && path[0] == '~')
     {
@@ -46,120 +51,143 @@ std::string expand_user_path(const std::string &path)
 #endif
         if (home)
         {
-            std::string expandedPath = std::string(home) + path.substr(1);
-            std::cout << "[LOG] Expanded path " << path << " to " << expandedPath << std::endl;
-            return expandedPath;
+            return std::string(home) + path.substr(1);
         }
     }
     return path;
 }
 
-inline void validate_required(const char *s, const char *paramName)
+static std::string random_hex_string(std::size_t length = 24)
 {
-    if (s == nullptr || s[0] == '\0')
+    static thread_local std::mt19937_64 rng{std::random_device{}()};
+    static const char *hex = "0123456789abcdef";
+
+    std::string out;
+    out.reserve(length);
+    for (std::size_t i = 0; i < length; ++i)
     {
-        throw std::invalid_argument(std::string("Invalid argument: ") + paramName);
+        out.push_back(hex[rng() & 0xF]);
     }
+    return out;
 }
 
-REPACK7Z_API int repack_7z_without_password(
+static std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
+{
+    auto base = std::filesystem::path(outputPath).stem().string();
+    auto tempRoot = std::filesystem::temp_directory_path();
+    std::string name = base + "_" + random_hex_string();
+    return tempRoot / name;
+}
+
+extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
     const char *inputPath,
     const char *password,
     const char *outputPath)
 {
+    if (is_null_or_empty(inputPath))
+    {
+        log_msg("[ERROR] inputPath is null or empty");
+        return REPACK7Z_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (is_null_or_empty(outputPath))
+    {
+        log_msg("[ERROR] outputPath is null or empty");
+        return REPACK7Z_ERROR_INVALID_ARGUMENT;
+    }
+
+    // password is optional
+    std::string passwordStr = password ? password : "";
+
+    std::string inputPathStr = expand_user_path(inputPath);
+    std::string outputPathStr = expand_user_path(outputPath);
+
+    log_msg("[LOG] Starting repack_7z_without_password");
+    log_msg("[LOG] Input: " + inputPathStr);
+    log_msg("[LOG] Output: " + outputPathStr);
+
+    std::error_code ec;
+    if (!std::filesystem::exists(inputPathStr, ec) || ec)
+    {
+        log_msg("[ERROR] Input archive does not exist: " + inputPathStr);
+        return REPACK7Z_ERROR_IO;
+    }
+
+    std::filesystem::path tempDir = make_unique_temp_dir(outputPathStr);
+    log_msg("[LOG] Temp directory: " + tempDir.string());
+
+    std::filesystem::create_directories(tempDir, ec);
+    if (ec)
+    {
+        log_msg("[ERROR] Failed to create temp directory");
+        return REPACK7Z_ERROR_IO;
+    }
+
+    // RAII cleanup
+    struct TempDirCleaner
+    {
+        std::filesystem::path dir;
+        ~TempDirCleaner()
+        {
+            if (dir.empty())
+                return;
+            std::error_code ec2;
+            std::filesystem::remove_all(dir, ec2);
+        }
+    } cleaner{tempDir};
+
     try
     {
-        validate_required(inputPath, NAMEOF(inputPath));
-        validate_required(password, NAMEOF(password));
-        validate_required(outputPath, NAMEOF(outputPath));
+        static Bit7zLibrary lib(libName);
 
-        std::string inputPathStr = inputPath;
-        std::string passwordStr = password;
-        std::string outputPathStr = outputPath;
-
-        std::cout << "[LOG] Starting repack_7z_without_password" << std::endl;
-        std::cout << "[LOG] Input archive: " << inputPathStr << std::endl;
-        std::cout << "[LOG] Output archive: " << outputPathStr << std::endl;
-
-        struct TempDirCleaner
-        {
-            std::filesystem::path dir;
-            ~TempDirCleaner()
-            {
-                if (!dir.empty() && std::filesystem::exists(dir))
-                {
-                    std::cout << "[LOG] Cleaning up temp directory: " << dir << std::endl;
-                    std::filesystem::remove_all(dir);
-                }
-            }
-        };
-
-        std::string inputPathExpanded = expand_user_path(inputPathStr);
-        std::string outputPathExpanded = expand_user_path(outputPathStr);
-
-        std::filesystem::path tempDir = make_unique_temp_dir(outputPathExpanded);
-        std::cout << "[LOG] Created temp directory path: " << tempDir << std::endl;
-        TempDirCleaner cleaner{tempDir};
-
-        if (!std::filesystem::exists(inputPathExpanded))
-        {
-            std::cerr << "[ERROR] Input archive does not exist: " << inputPathExpanded << std::endl;
-            throw std::filesystem::filesystem_error(
-                "Input archive does not exist",
-                inputPathExpanded,
-                std::make_error_code(std::errc::no_such_file_or_directory));
-        }
-
-        std::cout << "[LOG] Loading 7-Zip library: " << libName << std::endl;
-        Bit7zLibrary lib(libName);
-        BitArchiveReader reader(lib, inputPathExpanded, BitFormat::SevenZip, passwordStr);
-        std::cout << "[LOG] Creating temp directory on disk..." << std::endl;
-        std::filesystem::create_directory(tempDir);
-
-        std::cout << "[LOG] Extracting archive to temp directory..." << std::endl;
+        log_msg("[LOG] Extracting archive...");
+        BitArchiveReader reader(lib, inputPathStr, BitFormat::SevenZip, passwordStr);
         reader.extractTo(tempDir.string());
-        std::cout << "[LOG] Extraction completed." << std::endl;
+        log_msg("[LOG] Extraction complete");
 
-        if (std::filesystem::exists(outputPathExpanded))
+        if (std::filesystem::exists(outputPathStr, ec) && !ec)
         {
-            std::cout << "[LOG] Output archive already exists. Deleting: " << outputPathExpanded << std::endl;
-            std::filesystem::remove(outputPathExpanded);
+            std::filesystem::remove(outputPathStr, ec);
         }
 
-        BitArchiveWriter writer(lib, outputPathExpanded, BitFormat::SevenZip);
+        BitArchiveWriter writer(lib, outputPathStr, BitFormat::SevenZip);
+
         int fileCount = 0;
         for (const auto &entry : std::filesystem::recursive_directory_iterator(tempDir))
         {
             if (entry.is_regular_file())
             {
-                auto relativePath = std::filesystem::relative(entry.path(), tempDir);
-                std::cout << "[LOG] Adding file to archive: " << entry.path() << " as " << relativePath << std::endl;
-                writer.addFile(entry.path().string(), relativePath.string());
+                auto rel = std::filesystem::relative(entry.path(), tempDir, ec);
+                if (ec)
+                {
+                    log_msg("[ERROR] Failed to compute relative path");
+                    return REPACK7Z_ERROR_IO;
+                }
+                writer.addFile(entry.path().string(), rel.string());
                 fileCount++;
             }
         }
-        std::cout << "[LOG] Compressing files to output archive..." << std::endl;
-        writer.compressTo(outputPathExpanded);
-        std::cout << "[LOG] Total files added: " << fileCount << std::endl;
-        std::cout << "[LOG] Output archive successfully created: " << outputPathExpanded << std::endl;
-        return EXIT_SUCCESS;
+
+        log_msg("[LOG] Compressing...");
+        writer.compressTo(outputPathStr);
+        log_msg("[LOG] Files added: " + std::to_string(fileCount));
+        log_msg("[LOG] Output archive created");
+
+        return REPACK7Z_OK;
     }
     catch (const bit7z::BitException &ex)
     {
-        std::cerr << "[ERROR] bit7z exception: " << ex.what() << std::endl;
-    }
-    catch (const std::filesystem::filesystem_error &ex)
-    {
-        std::cerr << "[ERROR] Filesystem error: " << ex.what() << std::endl;
+        log_msg(std::string("[ERROR] bit7z exception: ") + ex.what());
+        return REPACK7Z_ERROR_FORMAT;
     }
     catch (const std::exception &ex)
     {
-        std::cerr << "[ERROR] Standard exception: " << ex.what() << std::endl;
+        log_msg(std::string("[ERROR] std::exception: ") + ex.what());
+        return REPACK7Z_ERROR_INTERNAL;
     }
     catch (...)
     {
-        std::cerr << "[ERROR] Unknown exception occurred." << std::endl;
+        log_msg("[ERROR] Unknown exception");
+        return REPACK7Z_ERROR_INTERNAL;
     }
-    std::cerr << "[LOG] repack_7z_without_password failed." << std::endl;
-    return EXIT_FAILURE;
 }

@@ -2,25 +2,38 @@
 #include <string>
 #include "repack7z.h"
 
+static void console_log_callback(const char *msg)
+{
+    std::cout << msg << std::endl;
+}
+
+constexpr int MAX_ARGS = 4;
+
 int main(int argc, char **argv)
 {
-    if (argc != 4)
+    if (argc != MAX_ARGS)
     {
         std::cerr << "Usage: repack7z <input.7z> <password> <output.7z>\n";
-        return EXIT_FAILURE;
+        return REPACK7Z_ERROR_INVALID_ARGUMENT;
     }
+
+    repack7z_set_log_callback(console_log_callback);
 
     std::string inputPath = argv[1];
     std::string password = argv[2];
     std::string outputPath = argv[3];
 
-    int result = repack_7z_without_password(inputPath.c_str(), password.c_str(), outputPath.c_str());
-    if (result != EXIT_SUCCESS)
+    repack7z_result result = repack_7z_without_password(
+        inputPath.c_str(),
+        password.c_str(),
+        outputPath.c_str());
+
+    if (result != REPACK7Z_OK)
     {
         std::cerr << "Repack failed with code: " << result << std::endl;
-        return result;
+        return static_cast<int>(result);
     }
 
     std::cout << "Repack succeeded." << std::endl;
-    return EXIT_SUCCESS;
+    return static_cast<int>(REPACK7Z_OK);
 }
