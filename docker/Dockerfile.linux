@@ -18,11 +18,9 @@ COPY ./PowerShellBuildTools/ /PoshJohn/PowerShellBuildTools/
 COPY ./test/ /PoshJohn/test/
 COPY ./global.json /PoshJohn/global.json
 
-WORKDIR /PoshJohn/scripts/linux
+WORKDIR /PoshJohn/scripts/
 
-RUN for f in *.sh; do \
-    chmod +x "$f"; \
-    done
+RUN find -type f -name "*.sh" -exec chmod +x {} \;
 
 WORKDIR /PoshJohn
 
