@@ -3,30 +3,13 @@
   <Target Name="PreBuildNativeAssets"
           BeforeTargets="Publish"
           Condition=" '$(SKIP_NATIVE_BUILD_ASSETS)' != 'true' ">
-    <!-- Linux -->
-    <Exec Command="bash $(ProjectDir)../scripts/linux/build-john.sh"
-          Condition=" $([System.OperatingSystem]::IsLinux()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/linux/build-pdf2john.sh"
-          Condition=" $([System.OperatingSystem]::IsLinux()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/linux/build-7z2john.sh"
-          Condition=" $([System.OperatingSystem]::IsLinux()) " />
 
-    <!-- macOS -->
-    <Exec Command="bash $(ProjectDir)../scripts/macos/build-john.sh"
-          Condition=" $([System.OperatingSystem]::IsMacOS()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/macos/build-pdf2john.sh"
-          Condition=" $([System.OperatingSystem]::IsMacOS()) " />
-    <Exec Command="bash $(ProjectDir)../scripts/macos/build-7z2john.sh"
-          Condition=" $([System.OperatingSystem]::IsMacOS()) " />
+    <!-- Linux/macOS - Use shared build-all.sh -->
+    <Exec Command="bash $(ProjectDir)../scripts/shared/build-all.sh"
+          Condition=" $([System.OperatingSystem]::IsLinux()) OR $([System.OperatingSystem]::IsMacOS()) " />
 
-    <!-- Windows -->
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-john.ps1"
-          Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-pdf2john.ps1"
-          Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-7z2john.ps1"
-          Condition=" $([System.OperatingSystem]::IsWindows()) " />
-    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-repack7z.ps1"
+    <!-- Windows - Use build-all.ps1 -->
+    <Exec Command="pwsh.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $(ProjectDir)..\scripts\windows\build-all.ps1"
           Condition=" $([System.OperatingSystem]::IsWindows()) " />
   </Target>
 
