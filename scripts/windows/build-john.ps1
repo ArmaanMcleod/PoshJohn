@@ -12,8 +12,13 @@ try {
     Write-Host "Downloading John the Ripper for Windows..." -ForegroundColor Cyan
 
     $url = "https://www.openwall.com/john/k/john-1.9.0-jumbo-1-win64.zip"
-    $tempFile = Join-Path $env:TEMP "john-win64.zip"
-    $extractPath = Join-Path $env:TEMP "john-extract"
+    $cacheDir = Join-Path $env:LOCALAPPDATA "PoshJohn"
+    if (!(Test-Path $cacheDir)) { 
+        New-Item -ItemType Directory -Path $cacheDir | Out-Null 
+    }
+    $archiveName = Split-Path $url -Leaf
+    $cachedArchive = Join-Path $cacheDir $archiveName
+    $extractPath = Join-Path $env:TEMP ("john-extract-" + [guid]::NewGuid().ToString())
     $repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
     $outputDir = Join-Path $repoRoot "john"
     $johnRepoUrl = "https://github.com/openwall/john.git"
@@ -24,16 +29,18 @@ try {
     $helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
     Import-Module $helperModulePath -Force
 
-    # Download
-    Write-Host "Downloading from: $url" -ForegroundColor Cyan
-    Invoke-WebRequest -Uri $url -OutFile $tempFile -ErrorAction Stop
+    # Download or use cached archive
+    if (!(Test-Path $cachedArchive)) {
+        Write-Host "Downloading from: $url" -ForegroundColor Cyan
+        Invoke-WebRequest -Uri $url -OutFile $cachedArchive -ErrorAction Stop
+    }
+    else {
+        Write-Host "Using cached John archive from $cachedArchive" -ForegroundColor Green
+    }
 
     # Extract
     Write-Host "Extracting to $extractPath..." -ForegroundColor Cyan
-    if (Test-Path $extractPath) {
-        Remove-Item $extractPath -Recurse -Force
-    }
-    Expand-Archive -Path $tempFile -DestinationPath $extractPath -Force
+    Expand-Archive -Path $cachedArchive -DestinationPath $extractPath -Force
 
     # Create output directory
     New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
@@ -70,7 +77,6 @@ catch {
 finally {
     Write-Host "Cleaning up temporary files..." -ForegroundColor Cyan
     Remove-Item $johnCloneDir -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item $tempFile -ErrorAction SilentlyContinue
     Remove-Item $extractPath -Recurse -Force -ErrorAction SilentlyContinue
     Stop-Transcript
 }
