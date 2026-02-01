@@ -35,10 +35,10 @@
 
     <!-- 7z2john outputs go into PublishDir/pdf2john -->
     <ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
-      <7z2JohnAssets Include="../perl/**" />
+      <SevenZip2JohnAssets Include="../perl/**" />
     </ItemGroup>
-    <Copy SourceFiles="@(7z2JohnAssets)"
-          DestinationFiles="@(7z2JohnAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+    <Copy SourceFiles="@(SevenZip2JohnAssets)"
+          DestinationFiles="@(SevenZip2JohnAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
 
     <!-- repack7z outputs go into PublishDir/repack7z -->
