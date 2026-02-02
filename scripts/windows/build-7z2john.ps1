@@ -6,72 +6,37 @@ param()
 $ErrorActionPreference = "Stop"
 
 try {
+
     $LogPath = Join-Path $PSScriptRoot "build.log"
     Start-Transcript -Path $LogPath -Append
 
-    Write-Host "Downloading Strawberry Perl for Windows..." -ForegroundColor Cyan
-
-    $url = "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_54201_64bit/strawberry-perl-5.42.0.1-64bit-portable.zip"
-
     $repoRoot = (Get-Item -Path $PSScriptRoot).Parent.Parent.FullName
+
+    Write-Host "Building 7z2john.exe..." -ForegroundColor Cyan
+    $outputDir = Join-Path $repoRoot "perl\7z2john"
+    New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+    
+    $exePath = Join-Path $outputDir "7z2john.exe"
+    $perlScriptPath = Join-Path $repoRoot "john\7z2john.pl"
+
     $helperModulePath = Join-Path -Path $repoRoot -ChildPath "PowerShellBuildTools/tools/helper.psm1"
     Import-Module $helperModulePath -Force
 
-    $cacheDir = Join-Path $env:LOCALAPPDATA "PoshJohn"
-    if (!(Test-Path $cacheDir)) { 
-        New-Item -ItemType Directory -Path $cacheDir | Out-Null 
-    }
-    $archiveName = Split-Path $url -Leaf
-    $cachedArchive = Join-Path $cacheDir $archiveName
-    $extractPath = Join-Path $env:TEMP ("perl-extract-" + [guid]::NewGuid().ToString())
-    $outputDir = Join-Path $repoRoot "perl"
-
-    # Download or use cached archive
-    if (!(Test-Path $cachedArchive)) {
-        Write-Host "Downloading from: $url" -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $url -OutFile $cachedArchive -ErrorAction Stop
-    }
-    else {
-        Write-Host "Using cached Strawberry Perl archive from $cachedArchive" -ForegroundColor Green
+    # Check if perl is available
+    $perlCommand = Get-Command perl -ErrorAction SilentlyContinue
+    if (-not $perlCommand) {
+        Write-Host "Perl not found. Installing Strawberry Perl via winget..." -ForegroundColor Cyan
+        Invoke-Winget -Command "install StrawberryPerl.StrawberryPerl --silent --accept-source-agreements --accept-package-agreements"
     }
 
-    # Extract
-    Write-Host "Extracting to $extractPath..." -ForegroundColor Cyan
-    if (Test-Path $extractPath) {
-        Remove-Item $extractPath -Recurse -Force
-    }
-    Expand-Archive -Path $cachedArchive -DestinationPath $extractPath -Force
-
-    # Create output directory
-    New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
-
-    # Copy all files to output directory
-    Write-Host "Copying all files to $outputDir..." -ForegroundColor Cyan
-    Copy-Item "$extractPath/*" $outputDir -Recurse -Force
-
-    Write-Host "Strawberry Perl downloaded and extracted successfully to $outputDir" -ForegroundColor Green
-
-    # Build 7z2john.exe using PAR::Packer
-    Write-Host "Building 7z2john.exe using PAR::Packer..." -ForegroundColor Cyan
-    $parPackerPath = Join-Path $outputDir "perl\bin\pp.bat"
-    $exeDirPath = Join-Path $outputDir "7z2john"
-    New-Item -ItemType Directory -Force -Path $exeDirPath | Out-Null
-    $exePath = Join-Path $exeDirPath "7z2john.exe"
-    $perlScriptPath = Join-Path $repoRoot "john\7z2john.pl"
-    cmd.exe /c "call $parPackerPath -o $exePath $perlScriptPath"
-
-    # Define what to keep and remove non-essential files
-    Remove-NonEssentialFiles -TargetDir $outputDir -KeepDirs @('7z2john')
+    Invoke-PerlParPacker -Command "-o $exePath $perlScriptPath"
 
     Write-Host "7z2john.exe built successfully at $exePath" -ForegroundColor Green
 }
 catch {
-    Write-Error "Failed to download or extract Strawberry Perl: $_"
-    Write-Host "`nYou can manually download from: $url" -ForegroundColor Yellow
+    Write-Error "Failed to build 7z2john.exe: $_"
     exit 1
 }
 finally {
-    # Clean up temporary files
-    Remove-Item $extractPath -Recurse -Force -ErrorAction SilentlyContinue
     Stop-Transcript
 }
