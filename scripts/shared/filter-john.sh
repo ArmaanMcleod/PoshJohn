@@ -21,7 +21,7 @@ fi
 BEFORE_SIZE=$(du -sm . | cut -f1)
 
 # Define what to keep
-KEEP_FILES=("john" "zip2john" "pdf2john.py")
+KEEP_FILES=("john" "zip2john" "pdf2john.py" "7z2john.pl")
 KEEP_PATTERNS=("*.conf" "*.chr")
 KEEP_DIRS=("lib" "rules")
 
