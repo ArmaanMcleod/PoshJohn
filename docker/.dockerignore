@@ -11,11 +11,11 @@
 *.so
 
 # Build output folders
-bin/
-obj/
-out/
-build/
-dist/
+**/bin/
+**/obj/
+**/out/
+**/build/
+**/dist/
 
 # Temporary files
 *.log

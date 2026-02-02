@@ -24,6 +24,12 @@ fi
 
 cd "$REPACK7Z_DIR"
 
+# Clean CMake cache to avoid path mismatch issues
+if [ -d "build" ]; then
+    echo "Cleaning existing CMake build directory..."
+    rm -rf build
+fi
+
 mkdir -p build
 cd build
 cmake ..

@@ -36,6 +36,14 @@ try {
     Write-Host "MinGW bootstrap complete."
     $repack7zMsysPath = Convert-ToMsysPath $repack7zDir
     Write-Host "repack7z MSYS2 path: $repack7zMsysPath"
+    
+    # Clean existing CMake build directory to avoid path mismatch issues
+    $buildDir = Join-Path $repack7zDir "build"
+    if (Test-Path $buildDir) {
+        Write-Host "Cleaning existing CMake build directory..."
+        Remove-Item -Path $buildDir -Recurse -Force
+    }
+    
     Write-Host "Running CMake and build in MSYS2..."
     Invoke-Mingw64 "cd $repack7zMsysPath && mkdir -p build && cd build && cmake ../ && cmake --build ."
     Write-Host "repack7z built successfully."
