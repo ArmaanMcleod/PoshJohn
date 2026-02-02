@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 REPO_PATH="$(realpath "$SCRIPT_DIR/../..")"
 JOHN_DIR="$REPO_PATH/john"
-PERL_SCRIPT="$JOHN_DIR/run/7z2john.pl"
+PERL_SCRIPT="$JOHN_DIR/7z2john.pl"
 OUTPUT_DIR="$REPO_PATH/perl"
 EXE_PATH="$OUTPUT_DIR/7z2john"
 
