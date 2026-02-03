@@ -265,7 +265,7 @@ public sealed class InvokeJohnPasswordCrackCommand : PSCmdlet
 
         switch (input.Trim().ToLowerInvariant())
         {
-            case "zip":
+            case "pkzip":
                 fileFormat = FileFormatType.PKZIP;
                 return true;
             case "pdf":
