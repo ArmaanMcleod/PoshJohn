@@ -137,6 +137,7 @@ try {
     $githubToken = $env:GITHUB_TOKEN
     $johnDir = Join-Path $PSScriptRoot 'john'
     $pdf2johnDir = Join-Path $PSScriptRoot 'pdf2john'
+    $7z2johnDir = Join-Path $PSScriptRoot '7z2john'
 
     $assets = @()
     if ($IsWindows) {
@@ -189,6 +190,7 @@ try {
     if ($IsLinux -or $IsMacOS) {
         Set-BinariesExecutable -RunDir $johnDir -Binaries @('john', 'zip2john')
         Set-BinariesExecutable -RunDir $pdf2johnDir -Binaries @('pdf2john')
+        Set-BinariesExecutable -RunDir $7z2johnDir -Binaries @('7z2john')
     }
 }
 catch {
