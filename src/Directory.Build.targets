@@ -33,12 +33,12 @@
           DestinationFiles="@(JohnAssets->'$(PublishDir)john\%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
 
-    <!-- 7z2john outputs go into PublishDir/pdf2john -->
+    <!-- perl outputs go into PublishDir -->
     <ItemGroup>
-      <SevenZip2JohnAssets Include="../perl/**" />
+      <Perlssets Include="../perl/**" />
     </ItemGroup>
-    <Copy SourceFiles="@(SevenZip2JohnAssets)"
-          DestinationFiles="@(SevenZip2JohnAssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
+    <Copy SourceFiles="@(Perlssets)"
+          DestinationFiles="@(Perlssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
 
     <!-- repack7z outputs go into PublishDir/repack7z -->
