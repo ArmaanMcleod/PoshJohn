@@ -34,7 +34,7 @@
           SkipUnchangedFiles="true" />
 
     <!-- 7z2john outputs go into PublishDir/pdf2john -->
-    <ItemGroup Condition="$([System.OperatingSystem]::IsWindows())">
+    <ItemGroup>
       <SevenZip2JohnAssets Include="../perl/**" />
     </ItemGroup>
     <Copy SourceFiles="@(SevenZip2JohnAssets)"
