@@ -117,17 +117,30 @@ static std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
 }
 
 /**
- * @brief Repack a 7z archive, removing password protection.
+ * @brief Get the Bit7zLibrary instance (singleton).
  *
- * @param inputPath Path to the input (possibly encrypted) .7z archive.
- * @param password  Password for the input archive (can be empty for unprotected archives).
- * @param outputPath Path to write the new unencrypted .7z archive.
- * @return archive7z_result Result code indicating success or error type.
+ * @return Bit7zLibrary& Reference to the library instance.
  */
-extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
+static Bit7zLibrary &get_library()
+{
+    static Bit7zLibrary lib(libName);
+    return lib;
+}
+
+/**
+ * @brief Validate and expand input/output paths.
+ *
+ * @param inputPath Input path to validate.
+ * @param outputPath Output path to validate.
+ * @param expandedInput Output parameter for expanded input path.
+ * @param expandedOutput Output parameter for expanded output path.
+ * @return archive7z_result Result code indicating success or error.
+ */
+static archive7z_result validate_and_expand_paths(
     const char *inputPath,
-    const char *password,
-    const char *outputPath)
+    const char *outputPath,
+    std::string &expandedInput,
+    std::string &expandedOutput)
 {
     if (is_null_or_empty(inputPath))
     {
@@ -141,25 +154,103 @@ extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
         return ARCHIVE7Z_ERROR_INVALID_ARGUMENT;
     }
 
-    std::string passwordStr = password ? password : "";
+    expandedInput = expand_user_path(inputPath);
+    expandedOutput = expand_user_path(outputPath);
 
-    std::string inputPathStr = expand_user_path(inputPath);
-    std::string outputPathStr = expand_user_path(outputPath);
+    std::error_code ec;
+    if (!std::filesystem::exists(expandedInput, ec) || ec)
+    {
+        log_msg("[ERROR] Input path does not exist: " + expandedInput);
+        return ARCHIVE7Z_ERROR_IO;
+    }
+
+    return ARCHIVE7Z_OK;
+}
+
+/**
+ * @brief Add files from a directory to an archive writer recursively.
+ *
+ * @param writer The BitArchiveWriter to add files to.
+ * @param basePath The base directory path.
+ * @param filesAdded Output parameter for number of files added.
+ * @return archive7z_result Result code indicating success or error.
+ */
+static archive7z_result add_files_from_directory(
+    BitArchiveWriter &writer,
+    const std::filesystem::path &basePath,
+    int &filesAdded)
+{
+    for (const auto &entry : std::filesystem::recursive_directory_iterator(basePath))
+    {
+        if (entry.is_regular_file())
+        {
+            std::error_code ec;
+            auto rel = std::filesystem::relative(entry.path(), basePath, ec);
+            if (ec)
+            {
+                log_msg("[ERROR] Failed to compute relative path for: " + entry.path().string());
+                return ARCHIVE7Z_ERROR_IO;
+            }
+            writer.addFile(entry.path().string(), rel.string());
+            filesAdded++;
+        }
+    }
+    return ARCHIVE7Z_OK;
+}
+
+/**
+ * @brief Handle exceptions and return appropriate error code.
+ *
+ * @param ex Exception to handle.
+ * @return archive7z_result Appropriate error code.
+ */
+static archive7z_result handle_exception(const std::exception *ex = nullptr)
+{
+    if (auto bitEx = dynamic_cast<const BitException *>(ex))
+    {
+        log_msg(std::string("[ERROR] bit7z exception: ") + bitEx->what());
+        return ARCHIVE7Z_ERROR_FORMAT;
+    }
+    else if (ex)
+    {
+        log_msg(std::string("[ERROR] std::exception: ") + ex->what());
+        return ARCHIVE7Z_ERROR_INTERNAL;
+    }
+
+    log_msg("[ERROR] Unknown exception");
+    return ARCHIVE7Z_ERROR_INTERNAL;
+}
+
+/**
+ * @brief Repack a 7z archive, removing password protection.
+ *
+ * @param inputPath Path to the input (possibly encrypted) .7z archive.
+ * @param password  Password for the input archive (can be empty for unprotected archives).
+ * @param outputPath Path to write the new unencrypted .7z archive.
+ * @return archive7z_result Result code indicating success or error type.
+ */
+extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
+    const char *inputPath,
+    const char *password,
+    const char *outputPath)
+{
+    std::string inputPathStr, outputPathStr;
+    archive7z_result result = validate_and_expand_paths(inputPath, outputPath, inputPathStr, outputPathStr);
+    if (result != ARCHIVE7Z_OK)
+    {
+        return result;
+    }
+
+    std::string passwordStr = password ? password : "";
 
     log_msg("[LOG] Starting repack_7z_without_password");
     log_msg("[LOG] Input: " + inputPathStr);
     log_msg("[LOG] Output: " + outputPathStr);
 
-    std::error_code ec;
-    if (!std::filesystem::exists(inputPathStr, ec) || ec)
-    {
-        log_msg("[ERROR] Input archive does not exist: " + inputPathStr);
-        return ARCHIVE7Z_ERROR_IO;
-    }
-
     std::filesystem::path tempDir = make_unique_temp_dir(outputPathStr);
     log_msg("[LOG] Temp directory: " + tempDir.string());
 
+    std::error_code ec;
     std::filesystem::create_directories(tempDir, ec);
     if (ec)
     {
@@ -181,7 +272,7 @@ extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
 
     try
     {
-        static Bit7zLibrary lib(libName);
+        Bit7zLibrary &lib = get_library();
 
         log_msg("[LOG] Extracting archive...");
         BitArchiveReader reader(lib, inputPathStr, BitFormat::SevenZip, passwordStr);
@@ -196,19 +287,10 @@ extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
         BitArchiveWriter writer(lib, outputPathStr, BitFormat::SevenZip);
 
         int fileCount = 0;
-        for (const auto &entry : std::filesystem::recursive_directory_iterator(tempDir))
+        result = add_files_from_directory(writer, tempDir, fileCount);
+        if (result != ARCHIVE7Z_OK)
         {
-            if (entry.is_regular_file())
-            {
-                auto rel = std::filesystem::relative(entry.path(), tempDir, ec);
-                if (ec)
-                {
-                    log_msg("[ERROR] Failed to compute relative path");
-                    return ARCHIVE7Z_ERROR_IO;
-                }
-                writer.addFile(entry.path().string(), rel.string());
-                fileCount++;
-            }
+            return result;
         }
 
         log_msg("[LOG] Compressing...");
@@ -218,20 +300,13 @@ extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
 
         return ARCHIVE7Z_OK;
     }
-    catch (const BitException &ex)
-    {
-        log_msg(std::string("[ERROR] bit7z exception: ") + ex.what());
-        return ARCHIVE7Z_ERROR_FORMAT;
-    }
     catch (const std::exception &ex)
     {
-        log_msg(std::string("[ERROR] std::exception: ") + ex.what());
-        return ARCHIVE7Z_ERROR_INTERNAL;
+        return handle_exception(&ex);
     }
     catch (...)
     {
-        log_msg("[ERROR] Unknown exception");
-        return ARCHIVE7Z_ERROR_INTERNAL;
+        return handle_exception();
     }
 }
 
@@ -248,42 +323,28 @@ extern "C" ARCHIVE7Z_API archive7z_result create_7z_with_password(
     const char *password,
     const char *outputPath)
 {
-    if (is_null_or_empty(inputPath))
-    {
-        log_msg("[ERROR] inputPath is null or empty");
-        return ARCHIVE7Z_ERROR_INVALID_ARGUMENT;
-    }
-
     if (is_null_or_empty(password))
     {
         log_msg("[ERROR] password is null or empty");
         return ARCHIVE7Z_ERROR_INVALID_ARGUMENT;
     }
 
-    if (is_null_or_empty(outputPath))
+    std::string inputPathStr, outputPathStr;
+    archive7z_result result = validate_and_expand_paths(inputPath, outputPath, inputPathStr, outputPathStr);
+    if (result != ARCHIVE7Z_OK)
     {
-        log_msg("[ERROR] outputPath is null or empty");
-        return ARCHIVE7Z_ERROR_INVALID_ARGUMENT;
+        return result;
     }
 
     std::string passwordStr = password;
-    std::string inputPathStr = expand_user_path(inputPath);
-    std::string outputPathStr = expand_user_path(outputPath);
 
     log_msg("[LOG] Starting create_7z_with_password");
     log_msg("[LOG] Input: " + inputPathStr);
     log_msg("[LOG] Output: " + outputPathStr);
 
-    std::error_code ec;
-    if (!std::filesystem::exists(inputPathStr, ec) || ec)
-    {
-        log_msg("[ERROR] Input path does not exist: " + inputPathStr);
-        return ARCHIVE7Z_ERROR_IO;
-    }
-
     try
     {
-        static Bit7zLibrary lib(libName);
+        Bit7zLibrary &lib = get_library();
 
         BitArchiveWriter writer(lib, BitFormat::SevenZip);
         writer.setPassword(passwordStr);
@@ -301,20 +362,10 @@ extern "C" ARCHIVE7Z_API archive7z_result create_7z_with_password(
         }
         else if (std::filesystem::is_directory(fsPath))
         {
-            for (const auto &entry : std::filesystem::recursive_directory_iterator(fsPath))
+            result = add_files_from_directory(writer, fsPath, filesAdded);
+            if (result != ARCHIVE7Z_OK)
             {
-                if (entry.is_regular_file())
-                {
-                    std::error_code ec;
-                    auto rel = std::filesystem::relative(entry.path(), fsPath, ec);
-                    if (ec)
-                    {
-                        log_msg("[ERROR] Failed to compute relative path for: " + entry.path().string());
-                        return ARCHIVE7Z_ERROR_IO;
-                    }
-                    writer.addFile(entry.path().string(), rel.string());
-                    filesAdded++;
-                }
+                return result;
             }
             log_msg("[LOG] Added directory contents: " + inputPathStr);
         }
@@ -337,19 +388,12 @@ extern "C" ARCHIVE7Z_API archive7z_result create_7z_with_password(
 
         return ARCHIVE7Z_OK;
     }
-    catch (const BitException &ex)
-    {
-        log_msg(std::string("[ERROR] bit7z exception: ") + ex.what());
-        return ARCHIVE7Z_ERROR_FORMAT;
-    }
     catch (const std::exception &ex)
     {
-        log_msg(std::string("[ERROR] std::exception: ") + ex.what());
-        return ARCHIVE7Z_ERROR_INTERNAL;
+        return handle_exception(&ex);
     }
     catch (...)
     {
-        log_msg("[ERROR] Unknown exception");
-        return ARCHIVE7Z_ERROR_INTERNAL;
+        return handle_exception();
     }
 }
