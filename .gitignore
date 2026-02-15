@@ -11,6 +11,6 @@ mupdf/
 *.dylib
 *.a
 *.log
-strawberry-perl/
+perl/
 build/
 bit7z/
