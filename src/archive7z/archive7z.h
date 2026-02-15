@@ -29,6 +29,11 @@ extern "C"
         const char *password,
         const char *outputPath);
 
+    ARCHIVE7Z_API archive7z_result create_7z_with_password(
+        const char *inputPath,
+        const char *password,
+        const char *outputPath);
+
 #ifdef __cplusplus
 }
 #endif
