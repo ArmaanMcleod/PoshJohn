@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(repack7z_example)
+project(archive7z_example)
 
 # Ensure all targets are built with -fPIC for shared library compatibility
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -12,33 +12,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(${CMAKE_SOURCE_DIR}/../../bit7z ${CMAKE_BINARY_DIR}/bit7z)
 
 # Source files
-set(REPACK7Z_SOURCES repack7z.cpp)
-set(REPACK7Z_MAIN repack7z_main.cpp)
+set(ARCHIVE7Z_SOURCES archive7z.cpp)
+set(ARCHIVE7Z_MAIN archive7z_main.cpp)
 
 # Executable (EXE)
-add_executable(repack7z_app ${REPACK7Z_MAIN} ${REPACK7Z_SOURCES})
-target_include_directories(repack7z_app PRIVATE
+add_executable(archive7z_app ${ARCHIVE7Z_MAIN} ${ARCHIVE7Z_SOURCES})
+target_include_directories(archive7z_app PRIVATE
     ${CMAKE_SOURCE_DIR}/../../bit7z/include
 )
-target_link_libraries(repack7z_app PRIVATE bit7z)
-set_target_properties(repack7z_app PROPERTIES
+target_link_libraries(archive7z_app PRIVATE bit7z)
+set_target_properties(archive7z_app PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
-    OUTPUT_NAME repack7z
+    OUTPUT_NAME archive7z
 )
 
 # Shared library (DLL) for native interop
-add_library(repack7z_shared SHARED ${REPACK7Z_SOURCES})
-target_include_directories(repack7z_shared PRIVATE
+add_library(archive7z_shared SHARED ${ARCHIVE7Z_SOURCES})
+target_include_directories(archive7z_shared PRIVATE
     ${CMAKE_SOURCE_DIR}/../../bit7z/include
 )
-target_link_libraries(repack7z_shared PRIVATE bit7z)
+target_link_libraries(archive7z_shared PRIVATE bit7z)
 
-set_target_properties(repack7z_shared PROPERTIES
+set_target_properties(archive7z_shared PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/dist
 )
 
 # Statically link MinGW/MSYS2 runtime libraries if building with MinGW
 if(MINGW)
-    target_link_options(repack7z_shared PRIVATE -static-libgcc -static-libstdc++ -static)
+    target_link_options(archive7z_shared PRIVATE -static-libgcc -static-libstdc++ -static)
 endif()

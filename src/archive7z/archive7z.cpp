@@ -3,7 +3,7 @@
 #include <string>
 #include <system_error>
 
-#include "repack7z.h"
+#include "archive7z.h"
 
 #include <bit7z/bitarchivereader.hpp>
 #include <bit7z/bitarchivewriter.hpp>
@@ -23,14 +23,14 @@ const std::string libName = "/usr/local/lib/lib7z.dylib";
 /**
  * @brief Global logging callback function pointer.
  */
-static repack7z_log_callback g_log_callback = nullptr;
+static archive7z_log_callback g_log_callback = nullptr;
 
 /**
  * @brief Set the logging callback function.
  *
  * @param cb The callback function to use for logging.
  */
-extern "C" REPACK7Z_API void repack7z_set_log_callback(repack7z_log_callback cb)
+extern "C" ARCHIVE7Z_API void archive7z_set_log_callback(archive7z_log_callback cb)
 {
     g_log_callback = cb;
 }
@@ -122,9 +122,9 @@ static std::filesystem::path make_unique_temp_dir(const std::string &outputPath)
  * @param inputPath Path to the input (possibly encrypted) .7z archive.
  * @param password  Password for the input archive (can be empty for unprotected archives).
  * @param outputPath Path to write the new unencrypted .7z archive.
- * @return repack7z_result Result code indicating success or error type.
+ * @return archive7z_result Result code indicating success or error type.
  */
-extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
+extern "C" ARCHIVE7Z_API archive7z_result repack_7z_without_password(
     const char *inputPath,
     const char *password,
     const char *outputPath)
@@ -132,13 +132,13 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
     if (is_null_or_empty(inputPath))
     {
         log_msg("[ERROR] inputPath is null or empty");
-        return REPACK7Z_ERROR_INVALID_ARGUMENT;
+        return ARCHIVE7Z_ERROR_INVALID_ARGUMENT;
     }
 
     if (is_null_or_empty(outputPath))
     {
         log_msg("[ERROR] outputPath is null or empty");
-        return REPACK7Z_ERROR_INVALID_ARGUMENT;
+        return ARCHIVE7Z_ERROR_INVALID_ARGUMENT;
     }
 
     std::string passwordStr = password ? password : "";
@@ -154,7 +154,7 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
     if (!std::filesystem::exists(inputPathStr, ec) || ec)
     {
         log_msg("[ERROR] Input archive does not exist: " + inputPathStr);
-        return REPACK7Z_ERROR_IO;
+        return ARCHIVE7Z_ERROR_IO;
     }
 
     std::filesystem::path tempDir = make_unique_temp_dir(outputPathStr);
@@ -164,7 +164,7 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
     if (ec)
     {
         log_msg("[ERROR] Failed to create temp directory");
-        return REPACK7Z_ERROR_IO;
+        return ARCHIVE7Z_ERROR_IO;
     }
 
     struct TempDirCleaner
@@ -204,7 +204,7 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
                 if (ec)
                 {
                     log_msg("[ERROR] Failed to compute relative path");
-                    return REPACK7Z_ERROR_IO;
+                    return ARCHIVE7Z_ERROR_IO;
                 }
                 writer.addFile(entry.path().string(), rel.string());
                 fileCount++;
@@ -216,21 +216,21 @@ extern "C" REPACK7Z_API repack7z_result repack_7z_without_password(
         log_msg("[LOG] Files added: " + std::to_string(fileCount));
         log_msg("[LOG] Output archive created");
 
-        return REPACK7Z_OK;
+        return ARCHIVE7Z_OK;
     }
     catch (const BitException &ex)
     {
         log_msg(std::string("[ERROR] bit7z exception: ") + ex.what());
-        return REPACK7Z_ERROR_FORMAT;
+        return ARCHIVE7Z_ERROR_FORMAT;
     }
     catch (const std::exception &ex)
     {
         log_msg(std::string("[ERROR] std::exception: ") + ex.what());
-        return REPACK7Z_ERROR_INTERNAL;
+        return ARCHIVE7Z_ERROR_INTERNAL;
     }
     catch (...)
     {
         log_msg("[ERROR] Unknown exception");
-        return REPACK7Z_ERROR_INTERNAL;
+        return ARCHIVE7Z_ERROR_INTERNAL;
     }
 }

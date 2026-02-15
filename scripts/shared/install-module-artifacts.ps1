@@ -4,7 +4,7 @@
     Install native artifacts into the extracted PowerShell module.
 
 .DESCRIPTION
-    Extracts the nupkg and copies platform-specific native artifacts (john, pdf2john, 7z2john, repack7z)
+    Extracts the nupkg and copies platform-specific native artifacts (john, pdf2john, 7z2john, archive7z)
     into the module directory structure.
 
 .PARAMETER Platform
@@ -65,7 +65,7 @@ $artifactNames = @(
     'john'
     'pdf2john'
     '7z2john'
-    'repack7z'
+    'archive7z'
 )
 
 foreach ($artifact in $artifactNames) {

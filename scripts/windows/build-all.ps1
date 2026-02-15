@@ -27,11 +27,11 @@ Write-Host "==> Building 7z2john..." -ForegroundColor Yellow
 & "$PSScriptRoot\build-7z2john.ps1"
 if ($LASTEXITCODE -ne 0) { throw "7z2john build failed" }
 
-# Build repack7z
+# Build archive7z
 Write-Host ""
-Write-Host "==> Building repack7z..." -ForegroundColor Yellow
-& "$PSScriptRoot\build-repack7z.ps1"
-if ($LASTEXITCODE -ne 0) { throw "repack7z build failed" }
+Write-Host "==> Building archive7z..." -ForegroundColor Yellow
+& "$PSScriptRoot\build-archive7z.ps1"
+if ($LASTEXITCODE -ne 0) { throw "archive7z build failed" }
 
 Write-Host ""
 Write-Host "=========================================" -ForegroundColor Green

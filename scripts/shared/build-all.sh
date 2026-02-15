@@ -37,8 +37,8 @@ echo "==> Building 7z2john..."
 bash "$SHARED_SCRIPTS/build-7z2john.sh"
 
 echo ""
-echo "==> Building repack7z..."
-bash "$SHARED_SCRIPTS/build-repack7z.sh"
+echo "==> Building archive7z..."
+bash "$SHARED_SCRIPTS/build-archive7z.sh"
 
 echo ""
 echo "==> Building pdf2john..."

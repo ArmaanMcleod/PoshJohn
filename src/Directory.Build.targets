@@ -41,12 +41,12 @@
           DestinationFiles="@(Perlssets->'$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
 
-    <!-- repack7z outputs go into PublishDir/repack7z -->
+    <!-- archive7z outputs go into PublishDir/archive7z -->
     <ItemGroup>
-      <Bit7zAssets Include="repack7z/build/dist/**" />
+      <Bit7zAssets Include="archive7z/build/dist/**" />
     </ItemGroup>
     <Copy SourceFiles="@(Bit7zAssets)"
-          DestinationFiles="@(Bit7zAssets->'$(PublishDir)repack7z\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(Bit7zAssets->'$(PublishDir)archive7z\%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
   </Target>
 </Project>

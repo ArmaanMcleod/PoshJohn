@@ -67,11 +67,11 @@ jobs:
           path: ${{ github.workspace }}/perl/7z2john
           if-no-files-found: error
 
-      - name: Upload repack7z Assets
+      - name: Upload archive7z Assets
         uses: actions/upload-artifact@v4
         with:
-          name: repack7z-${{ matrix.info.name }}
-          path: ${{ github.workspace }}/src/repack7z/build/dist
+          name: archive7z-${{ matrix.info.name }}
+          path: ${{ github.workspace }}/src/archive7z/build/dist
           if-no-files-found: error
 
   build-module:
@@ -152,11 +152,11 @@ jobs:
           name: 7z2john-${{ matrix.info.name }}
           path: 7z2john-artifacts/${{ matrix.info.name }}
 
-      - name: Download repack7z Assets
+      - name: Download archive7z Assets
         uses: actions/download-artifact@v4
         with:
-          name: repack7z-${{ matrix.info.name }}
-          path: repack7z-artifacts/${{ matrix.info.name }}
+          name: archive7z-${{ matrix.info.name }}
+          path: archive7z-artifacts/${{ matrix.info.name }}
 
       - name: Install Built PowerShell Module
         shell: pwsh

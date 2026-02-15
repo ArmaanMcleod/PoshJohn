@@ -40,7 +40,7 @@ internal sealed class FileUnlockManager : IFileUnlockManager
 
     private const string UnlockedFileSuffix = "_unlocked";
 
-    public enum Repack7zResult
+    public enum Archive7zResult
     {
         Ok = 0,
         InvalidArgument = 1,
@@ -50,14 +50,14 @@ internal sealed class FileUnlockManager : IFileUnlockManager
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate void Repack7zLogCallback(
+    private delegate void Archive7zLogCallback(
         [MarshalAs(UnmanagedType.LPUTF8Str)] string message);
 
-    [DllImport("librepack7z_shared", CallingConvention = CallingConvention.Cdecl)]
-    private static extern void repack7z_set_log_callback(Repack7zLogCallback cb);
+    [DllImport("libarchive7z_shared", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void archive7z_set_log_callback(Archive7zLogCallback cb);
 
-    [DllImport("librepack7z_shared", CallingConvention = CallingConvention.Cdecl)]
-    private static extern Repack7zResult repack_7z_without_password(
+    [DllImport("libarchive7z_shared", CallingConvention = CallingConvention.Cdecl)]
+    private static extern Archive7zResult repack_7z_without_password(
         [MarshalAs(UnmanagedType.LPUTF8Str)] string inputPath,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string password,
         [MarshalAs(UnmanagedType.LPUTF8Str)] string outputPath);
@@ -65,7 +65,7 @@ internal sealed class FileUnlockManager : IFileUnlockManager
     private static readonly object _logLock = new();
     private static bool _logRegistered;
     private static string _lastNativeLog;
-    private static readonly Repack7zLogCallback _logCallback = msg => _lastNativeLog = msg;
+    private static readonly Archive7zLogCallback _logCallback = msg => _lastNativeLog = msg;
 
     /// <summary>
     /// Initializes a new instance of the FileUnlockManager class.
@@ -197,7 +197,7 @@ internal sealed class FileUnlockManager : IFileUnlockManager
         {
             if (_logRegistered) return;
 
-            repack7z_set_log_callback(_logCallback);
+            archive7z_set_log_callback(_logCallback);
             _logRegistered = true;
         }
     }
@@ -225,7 +225,7 @@ internal sealed class FileUnlockManager : IFileUnlockManager
             unlockResult.Password,
             unlockResult.UnlockedFilePath);
 
-        if (result != Repack7zResult.Ok)
+        if (result != Archive7zResult.Ok)
         {
             string nativeMessage = _lastNativeLog ?? "No native error message provided.";
             string finalMessage = $"Native error ({result}): {nativeMessage}";

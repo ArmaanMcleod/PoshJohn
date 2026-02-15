@@ -11,7 +11,7 @@ internal static class NativeLibraryResolver
 {
     private static readonly Dictionary<string, Func<string>> LibraryPathResolvers = new()
     {
-        { "librepack7z_shared", GetRepack7zLibraryPath },
+        { "libarchive7z_shared", GetArchive7zLibraryPath },
         { "libpdfhash", GetPdf2JohnLibraryPath }
     };
 
@@ -49,12 +49,12 @@ internal static class NativeLibraryResolver
         return libraryPath;
     }
 
-    private static string GetRepack7zLibraryPath()
+    private static string GetArchive7zLibraryPath()
     {
         string subLibraryPath =
-                OperatingSystem.IsWindows() ? Path.Combine("repack7z", "librepack7z_shared.dll") :
-                OperatingSystem.IsLinux() ? Path.Combine("repack7z", "librepack7z_shared.so") :
-                OperatingSystem.IsMacOS() ? Path.Combine("repack7z", "librepack7z_shared.dylib") :
+                OperatingSystem.IsWindows() ? Path.Combine("archive7z", "libarchive7z_shared.dll") :
+                OperatingSystem.IsLinux() ? Path.Combine("archive7z", "libarchive7z_shared.so") :
+                OperatingSystem.IsMacOS() ? Path.Combine("archive7z", "libarchive7z_shared.dylib") :
                 throw new PlatformNotSupportedException();
 
         string libraryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), subLibraryPath);
